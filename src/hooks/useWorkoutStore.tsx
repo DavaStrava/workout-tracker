@@ -1,0 +1,146 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { Workout, WorkoutExercise } from '../types';
+import { EXERCISES } from '../data/exercises';
+
+interface WorkoutContextType {
+    activeWorkout: Workout | null;
+    history: Workout[];
+    startWorkout: (name?: string) => void;
+    finishWorkout: () => void;
+    cancelWorkout: () => void;
+    addExercise: (exerciseId: string) => void;
+    updateSet: (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; completed: boolean }>) => void;
+    addSet: (exerciseInstanceId: string) => void;
+    removeSet: (exerciseInstanceId: string, setId: string) => void;
+    getExerciseName: (id: string) => string;
+}
+
+const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
+
+export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [activeWorkout, setActiveWorkout] = useState<Workout | null>(() => {
+        const saved = localStorage.getItem('activeWorkout');
+        return saved ? JSON.parse(saved) : null;
+    });
+
+    const [history, setHistory] = useState<Workout[]>(() => {
+        const saved = localStorage.getItem('workoutHistory');
+        return saved ? JSON.parse(saved) : [];
+    });
+
+    useEffect(() => {
+        if (activeWorkout) {
+            localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
+        } else {
+            localStorage.removeItem('activeWorkout');
+        }
+    }, [activeWorkout]);
+
+    useEffect(() => {
+        localStorage.setItem('workoutHistory', JSON.stringify(history));
+    }, [history]);
+
+    const startWorkout = (name: string = 'New Workout') => {
+        const newWorkout: Workout = {
+            id: crypto.randomUUID(),
+            name,
+            startTime: Date.now(),
+            exercises: [],
+            status: 'active',
+        };
+        setActiveWorkout(newWorkout);
+    };
+
+    const finishWorkout = () => {
+        if (!activeWorkout) return;
+        const completedWorkout = { ...activeWorkout, endTime: Date.now(), status: 'completed' as const };
+        setHistory(prev => [completedWorkout, ...prev]);
+        setActiveWorkout(null);
+    };
+
+    const cancelWorkout = () => setActiveWorkout(null);
+
+    const addExercise = (exerciseId: string) => {
+        if (!activeWorkout) return;
+        const newExercise: WorkoutExercise = {
+            id: crypto.randomUUID(),
+            exerciseId,
+            sets: [{ id: crypto.randomUUID(), reps: 0, weight: 0, completed: false }],
+        };
+        setActiveWorkout(prev => prev ? { ...prev, exercises: [...prev.exercises, newExercise] } : null);
+    };
+
+    const addSet = (exerciseInstanceId: string) => {
+        if (!activeWorkout) return;
+        setActiveWorkout(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                exercises: prev.exercises.map(e => {
+                    if (e.id !== exerciseInstanceId) return e;
+                    // Copy previous set values for convenience
+                    const lastSet = e.sets[e.sets.length - 1];
+                    return {
+                        ...e,
+                        sets: [...e.sets, {
+                            id: crypto.randomUUID(),
+                            reps: lastSet ? lastSet.reps : 0,
+                            weight: lastSet ? lastSet.weight : 0,
+                            completed: false
+                        }]
+                    };
+                })
+            }
+        })
+    }
+
+    const removeSet = (exerciseInstanceId: string, setId: string) => {
+        if (!activeWorkout) return;
+        setActiveWorkout(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                exercises: prev.exercises.map(e => {
+                    if (e.id !== exerciseInstanceId) return e;
+                    return { ...e, sets: e.sets.filter(s => s.id !== setId) };
+                }).filter(e => e.sets.length > 0) // Remove exercise if no sets left? Maybe optional.
+            };
+        });
+    };
+
+    const updateSet = (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; completed: boolean }>) => {
+        if (!activeWorkout) return;
+        setActiveWorkout(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                exercises: prev.exercises.map(ex => {
+                    if (ex.id !== exerciseInstanceId) return ex;
+                    return {
+                        ...ex,
+                        sets: ex.sets.map(s => s.id === setId ? { ...s, ...updates } : s)
+                    };
+                })
+            };
+        });
+    };
+
+    const getExerciseName = (id: string) => EXERCISES.find(e => e.id === id)?.name || 'Unknown Exercise';
+
+    return (
+        <WorkoutContext.Provider value={{
+            activeWorkout, history, startWorkout, finishWorkout, cancelWorkout,
+            addExercise, addSet, removeSet, updateSet, getExerciseName
+        }}>
+            {children}
+        </WorkoutContext.Provider>
+    );
+};
+
+export const useWorkout = () => {
+    const context = useContext(WorkoutContext);
+    if (context === undefined) {
+        throw new Error('useWorkout must be used within a WorkoutProvider');
+    }
+    return context;
+};
