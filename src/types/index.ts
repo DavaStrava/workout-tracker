@@ -31,3 +31,14 @@ export interface Workout {
 export interface UserHistory {
   workouts: Workout[];
 }
+
+export interface RoutineExercise {
+  exerciseId: string;
+  sets: number; // Number of sets to initialize
+}
+
+export interface Routine {
+  id: string;
+  name: string;
+  exercises: RoutineExercise[];
+}

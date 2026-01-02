@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Workout, WorkoutExercise } from '../types';
+import type { Workout, WorkoutExercise, Routine } from '../types';
 import { EXERCISES } from '../data/exercises';
 
 interface WorkoutContextType {
     activeWorkout: Workout | null;
     history: Workout[];
+    routines: Routine[];
     startWorkout: (name?: string) => void;
     finishWorkout: () => void;
     cancelWorkout: () => void;
@@ -13,6 +14,9 @@ interface WorkoutContextType {
     addSet: (exerciseInstanceId: string) => void;
     removeSet: (exerciseInstanceId: string, setId: string) => void;
     getExerciseName: (id: string) => string;
+    saveRoutine: (name: string) => void;
+    startRoutine: (routineId: string) => void;
+    deleteRoutine: (routineId: string) => void;
 }
 
 const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
@@ -28,6 +32,11 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return saved ? JSON.parse(saved) : [];
     });
 
+    const [routines, setRoutines] = useState<Routine[]>(() => {
+        const saved = localStorage.getItem('routines');
+        return saved ? JSON.parse(saved) : [];
+    });
+
     useEffect(() => {
         if (activeWorkout) {
             localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
@@ -39,6 +48,10 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     useEffect(() => {
         localStorage.setItem('workoutHistory', JSON.stringify(history));
     }, [history]);
+
+    useEffect(() => {
+        localStorage.setItem('routines', JSON.stringify(routines));
+    }, [routines]);
 
     const startWorkout = (name: string = 'New Workout') => {
         const newWorkout: Workout = {
@@ -78,7 +91,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 ...prev,
                 exercises: prev.exercises.map(e => {
                     if (e.id !== exerciseInstanceId) return e;
-                    // Copy previous set values for convenience
+                    // Copy previous set values for convenience, or 0
                     const lastSet = e.sets[e.sets.length - 1];
                     return {
                         ...e,
@@ -103,7 +116,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 exercises: prev.exercises.map(e => {
                     if (e.id !== exerciseInstanceId) return e;
                     return { ...e, sets: e.sets.filter(s => s.id !== setId) };
-                }).filter(e => e.sets.length > 0) // Remove exercise if no sets left? Maybe optional.
+                }).filter(e => e.sets.length > 0)
             };
         });
     };
@@ -127,10 +140,52 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const getExerciseName = (id: string) => EXERCISES.find(e => e.id === id)?.name || 'Unknown Exercise';
 
+    // Routine Logic
+    const saveRoutine = (name: string) => {
+        if (!activeWorkout) return;
+        const newRoutine: Routine = {
+            id: crypto.randomUUID(),
+            name,
+            exercises: activeWorkout.exercises.map(e => ({
+                exerciseId: e.exerciseId,
+                sets: e.sets.length
+            }))
+        };
+        setRoutines(prev => [...prev, newRoutine]);
+    };
+
+    const startRoutine = (routineId: string) => {
+        const routine = routines.find(r => r.id === routineId);
+        if (!routine) return;
+
+        const newWorkout: Workout = {
+            id: crypto.randomUUID(),
+            name: routine.name,
+            startTime: Date.now(),
+            exercises: routine.exercises.map(re => ({
+                id: crypto.randomUUID(),
+                exerciseId: re.exerciseId,
+                sets: Array.from({ length: Math.max(1, re.sets) }, () => ({
+                    id: crypto.randomUUID(),
+                    reps: 0,
+                    weight: 0,
+                    completed: false
+                }))
+            })),
+            status: 'active'
+        };
+        setActiveWorkout(newWorkout);
+    };
+
+    const deleteRoutine = (id: string) => {
+        setRoutines(prev => prev.filter(r => r.id !== id));
+    };
+
     return (
         <WorkoutContext.Provider value={{
-            activeWorkout, history, startWorkout, finishWorkout, cancelWorkout,
-            addExercise, addSet, removeSet, updateSet, getExerciseName
+            activeWorkout, history, routines, startWorkout, finishWorkout, cancelWorkout,
+            addExercise, addSet, removeSet, updateSet, getExerciseName,
+            saveRoutine, startRoutine, deleteRoutine
         }}>
             {children}
         </WorkoutContext.Provider>
