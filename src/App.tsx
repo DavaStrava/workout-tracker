@@ -10,7 +10,7 @@ const AppContent: React.FC = () => {
 
   return (
     <Layout activeTab={activeTab} onTabChange={setActiveTab}>
-      {activeTab === 'workout' && <WorkoutLogger />}
+      {activeTab === 'workout' && <WorkoutLogger onNavigate={setActiveTab} />}
       {activeTab === 'history' && <History />}
       {activeTab === 'analytics' && <Analytics />}
     </Layout>

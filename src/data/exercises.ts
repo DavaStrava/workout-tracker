@@ -23,4 +23,11 @@ export const EXERCISES: Exercise[] = [
     // Core
     { id: 'plank', name: 'Plank', bodyArea: 'Core' },
     { id: 'crunch', name: 'Crunch', bodyArea: 'Core' },
+    // Cardio
+    { id: 'running', name: 'Running', bodyArea: 'Cardio', isCardio: true },
+    { id: 'cycling', name: 'Cycling', bodyArea: 'Cardio', isCardio: true },
+    { id: 'rowing', name: 'Rowing', bodyArea: 'Cardio', isCardio: true },
+    { id: 'swimming', name: 'Swimming', bodyArea: 'Cardio', isCardio: true },
+    { id: 'elliptical', name: 'Elliptical', bodyArea: 'Cardio', isCardio: true },
+    { id: 'jump_rope', name: 'Jump Rope', bodyArea: 'Cardio', isCardio: true },
 ];

@@ -1,16 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Workout, WorkoutExercise, Routine } from '../types';
+import type { Workout, WorkoutExercise, Routine, WorkoutType, CardioIntensity, Exercise } from '../types';
 import { EXERCISES } from '../data/exercises';
 
 interface WorkoutContextType {
     activeWorkout: Workout | null;
     history: Workout[];
     routines: Routine[];
-    startWorkout: (name?: string) => void;
+    startWorkout: (name?: string, type?: WorkoutType) => void;
     finishWorkout: () => void;
     cancelWorkout: () => void;
     addExercise: (exerciseId: string) => void;
-    updateSet: (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; completed: boolean }>) => void;
+    updateSet: (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; distance: number; duration: number; intensity: CardioIntensity; completed: boolean }>) => void;
+    updateNotes: (notes: string) => void;
+    getExerciseInfo: (id: string) => Exercise | undefined;
     addSet: (exerciseInstanceId: string) => void;
     removeSet: (exerciseInstanceId: string, setId: string) => void;
     getExerciseName: (id: string) => string;
@@ -53,10 +55,11 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         localStorage.setItem('routines', JSON.stringify(routines));
     }, [routines]);
 
-    const startWorkout = (name: string = 'New Workout') => {
+    const startWorkout = (name: string = 'New Workout', type: WorkoutType = 'STRENGTH') => {
         const newWorkout: Workout = {
             id: crypto.randomUUID(),
             name,
+            type,
             startTime: Date.now(),
             exercises: [],
             status: 'active',
@@ -121,7 +124,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
     };
 
-    const updateSet = (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; completed: boolean }>) => {
+    const updateSet = (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; distance: number; duration: number; intensity: CardioIntensity; completed: boolean }>) => {
         if (!activeWorkout) return;
         setActiveWorkout(prev => {
             if (!prev) return null;
@@ -138,7 +141,14 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
     };
 
-    const getExerciseName = (id: string) => EXERCISES.find(e => e.id === id)?.name || 'Unknown Exercise';
+    const updateNotes = (notes: string) => {
+        if (!activeWorkout) return;
+        setActiveWorkout(prev => prev ? { ...prev, notes } : null);
+    };
+
+    const getExerciseInfo = (id: string): Exercise | undefined => EXERCISES.find(e => e.id === id);
+
+    const getExerciseName = (id: string) => getExerciseInfo(id)?.name || 'Unknown Exercise';
 
     // Routine Logic
     const saveRoutine = (name: string) => {
@@ -161,6 +171,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const newWorkout: Workout = {
             id: crypto.randomUUID(),
             name: routine.name,
+            type: 'STRENGTH',
             startTime: Date.now(),
             exercises: routine.exercises.map(re => ({
                 id: crypto.randomUUID(),
@@ -184,7 +195,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return (
         <WorkoutContext.Provider value={{
             activeWorkout, history, routines, startWorkout, finishWorkout, cancelWorkout,
-            addExercise, addSet, removeSet, updateSet, getExerciseName,
+            addExercise, addSet, removeSet, updateSet, updateNotes, getExerciseName, getExerciseInfo,
             saveRoutine, startRoutine, deleteRoutine
         }}>
             {children}
