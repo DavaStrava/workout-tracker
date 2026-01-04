@@ -92,22 +92,25 @@ body {
   /* Space for tab bar */
 }
 
-/* Typography Utility Classes */
+/* Typography Utility Classes - Spotify-inspired bold headings */
 .text-h1 {
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
 .text-h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .text-h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .text-base {
@@ -214,6 +217,30 @@ body {
   }
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Spotify-style Button Base */
+.btn-spotify {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-spotify:disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }

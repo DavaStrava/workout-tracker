@@ -29,60 +29,136 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
                 </div>
             </main>
 
-            <nav className="fixed bottom-0 left-0 right-0 h-[80px] z-50 px-4 pb-safe pt-2">
-                <div className="glass-panel mx-auto max-w-md h-16 flex items-center justify-around px-2 mb-4 bg-black/40 backdrop-blur-xl border-white/5 shadow-2xl">
+            <nav style={{
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: '90px',
+                zIndex: 50,
+                padding: '8px 16px',
+            }}>
+                <div style={{
+                    margin: '0 auto',
+                    maxWidth: '448px',
+                    height: '80px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-around',
+                    padding: '0 12px',
+                    marginBottom: '16px',
+                    background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(236, 72, 153, 0.2) 50%, rgba(168, 85, 247, 0.2) 100%)',
+                    backdropFilter: 'blur(24px)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '24px',
+                    boxShadow: '0 20px 40px rgba(236, 72, 153, 0.3)',
+                }}>
                     <button
                         onClick={() => onTabChange('workout')}
-                        className={cn(
-                            "flex flex-col items-center justify-center w-full h-full rounded-xl transition-all duration-300 relative overflow-hidden",
-                            activeTab === 'workout' ? "text-blue-400" : "text-zinc-500 hover:text-zinc-300"
-                        )}
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '100%',
+                            height: '100%',
+                            borderRadius: '16px',
+                            transition: 'all 0.3s',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            color: activeTab === 'workout' ? '#fb923c' : 'rgba(255, 255, 255, 0.4)',
+                            transform: activeTab === 'workout' ? 'scale(1.1)' : 'scale(1)',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                        }}
                     >
                         {activeTab === 'workout' && (
                             <motion.div
                                 layoutId="nav-glow"
-                                className="absolute inset-0 bg-blue-500/10"
+                                style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.3) 0%, rgba(236, 72, 153, 0.3) 100%)',
+                                    borderRadius: '16px',
+                                }}
                                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                             />
                         )}
-                        <Dumbbell size={24} strokeWidth={activeTab === 'workout' ? 2.5 : 2} />
-                        <span className="text-[10px] font-medium mt-1">Workout</span>
+                        <Dumbbell size={26} strokeWidth={activeTab === 'workout' ? 2.5 : 2} style={{ position: 'relative', zIndex: 10 }} />
+                        <span style={{ fontSize: '11px', fontWeight: 700, marginTop: '4px', position: 'relative', zIndex: 10 }}>Workout</span>
                     </button>
 
                     <button
                         onClick={() => onTabChange('analytics')}
-                        className={cn(
-                            "flex flex-col items-center justify-center w-full h-full rounded-xl transition-all duration-300 relative overflow-hidden",
-                            activeTab === 'analytics' ? "text-blue-400" : "text-zinc-500 hover:text-zinc-300"
-                        )}
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '100%',
+                            height: '100%',
+                            borderRadius: '16px',
+                            transition: 'all 0.3s',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            color: activeTab === 'analytics' ? '#f472b6' : 'rgba(255, 255, 255, 0.4)',
+                            transform: activeTab === 'analytics' ? 'scale(1.1)' : 'scale(1)',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                        }}
                     >
                         {activeTab === 'analytics' && (
                             <motion.div
                                 layoutId="nav-glow"
-                                className="absolute inset-0 bg-blue-500/10"
+                                style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.3) 0%, rgba(168, 85, 247, 0.3) 100%)',
+                                    borderRadius: '16px',
+                                }}
                                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                             />
                         )}
-                        <BarChart2 size={24} strokeWidth={activeTab === 'analytics' ? 2.5 : 2} />
-                        <span className="text-[10px] font-medium mt-1">Analytics</span>
+                        <BarChart2 size={26} strokeWidth={activeTab === 'analytics' ? 2.5 : 2} style={{ position: 'relative', zIndex: 10 }} />
+                        <span style={{ fontSize: '11px', fontWeight: 700, marginTop: '4px', position: 'relative', zIndex: 10 }}>Analytics</span>
                     </button>
 
                     <button
                         onClick={() => onTabChange('history')}
-                        className={cn(
-                            "flex flex-col items-center justify-center w-full h-full rounded-xl transition-all duration-300 relative overflow-hidden",
-                            activeTab === 'history' ? "text-blue-400" : "text-zinc-500 hover:text-zinc-300"
-                        )}
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '100%',
+                            height: '100%',
+                            borderRadius: '16px',
+                            transition: 'all 0.3s',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            color: activeTab === 'history' ? '#c084fc' : 'rgba(255, 255, 255, 0.4)',
+                            transform: activeTab === 'history' ? 'scale(1.1)' : 'scale(1)',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                        }}
                     >
                         {activeTab === 'history' && (
                             <motion.div
                                 layoutId="nav-glow"
-                                className="absolute inset-0 bg-blue-500/10"
+                                style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(59, 130, 246, 0.3) 100%)',
+                                    borderRadius: '16px',
+                                }}
                                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                             />
                         )}
-                        <HistoryIcon size={24} strokeWidth={activeTab === 'history' ? 2.5 : 2} />
-                        <span className="text-[10px] font-medium mt-1">History</span>
+                        <HistoryIcon size={26} strokeWidth={activeTab === 'history' ? 2.5 : 2} style={{ position: 'relative', zIndex: 10 }} />
+                        <span style={{ fontSize: '11px', fontWeight: 700, marginTop: '4px', position: 'relative', zIndex: 10 }}>History</span>
                     </button>
                 </div>
             </nav>
