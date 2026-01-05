@@ -1,0 +1,365 @@
+import {
+  collection,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  deleteDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  Timestamp,
+  writeBatch,
+} from 'firebase/firestore';
+import { db } from '../config/firebase';
+import type { Workout, Routine } from '../types';
+
+const COLLECTIONS = {
+  WORKOUTS: 'workouts',
+  ROUTINES: 'routines',
+  ACTIVE_WORKOUT: 'activeWorkout',
+} as const;
+
+/**
+ * Get reference to user's collection
+ */
+const getUserCollection = (userId: string, collectionName: string) => {
+  return collection(db, 'users', userId, collectionName);
+};
+
+/**
+ * Get reference to user's document
+ */
+const getUserDoc = (userId: string, collectionName: string, docId: string) => {
+  return doc(db, 'users', userId, collectionName, docId);
+};
+
+// ==================== WORKOUTS ====================
+
+/**
+ * Save a workout to Firestore
+ */
+export const saveWorkout = async (userId: string, workout: Workout) => {
+  try {
+    const workoutRef = getUserDoc(userId, COLLECTIONS.WORKOUTS, workout.id);
+    await setDoc(workoutRef, {
+      ...workout,
+      updatedAt: Timestamp.now(),
+    });
+    return { error: null };
+  } catch (error: any) {
+    console.error('Error saving workout:', error);
+    return { error: error.message };
+  }
+};
+
+/**
+ * Get all workouts for a user
+ */
+export const getWorkouts = async (userId: string): Promise<{ workouts: Workout[]; error: string | null }> => {
+  try {
+    const workoutsRef = getUserCollection(userId, COLLECTIONS.WORKOUTS);
+    const q = query(workoutsRef, orderBy('startTime', 'desc'));
+    const querySnapshot = await getDocs(q);
+
+    const workouts: Workout[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      workouts.push({
+        id: doc.id,
+        name: data.name,
+        type: data.type,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        exercises: data.exercises,
+        notes: data.notes,
+        status: data.status,
+      });
+    });
+
+    return { workouts, error: null };
+  } catch (error: any) {
+    console.error('Error getting workouts:', error);
+    return { workouts: [], error: error.message };
+  }
+};
+
+/**
+ * Subscribe to real-time workout updates
+ */
+export const subscribeToWorkouts = (
+  userId: string,
+  onUpdate: (workouts: Workout[]) => void,
+  onError?: (error: Error) => void
+) => {
+  const workoutsRef = getUserCollection(userId, COLLECTIONS.WORKOUTS);
+  const q = query(workoutsRef, orderBy('startTime', 'desc'));
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const workouts: Workout[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        workouts.push({
+          id: doc.id,
+          name: data.name,
+          type: data.type,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          exercises: data.exercises,
+          notes: data.notes,
+          status: data.status,
+        });
+      });
+      onUpdate(workouts);
+    },
+    (error) => {
+      console.error('Error in workouts subscription:', error);
+      if (onError) onError(error);
+    }
+  );
+};
+
+/**
+ * Delete a workout
+ */
+export const deleteWorkout = async (userId: string, workoutId: string) => {
+  try {
+    const workoutRef = getUserDoc(userId, COLLECTIONS.WORKOUTS, workoutId);
+    await deleteDoc(workoutRef);
+    return { error: null };
+  } catch (error: any) {
+    console.error('Error deleting workout:', error);
+    return { error: error.message };
+  }
+};
+
+// ==================== ACTIVE WORKOUT ====================
+
+/**
+ * Save active workout state
+ */
+export const saveActiveWorkout = async (userId: string, workout: Workout | null) => {
+  try {
+    const activeWorkoutRef = getUserDoc(userId, COLLECTIONS.ACTIVE_WORKOUT, 'current');
+    if (workout) {
+      await setDoc(activeWorkoutRef, {
+        ...workout,
+        updatedAt: Timestamp.now(),
+      });
+    } else {
+      await deleteDoc(activeWorkoutRef);
+    }
+    return { error: null };
+  } catch (error: any) {
+    console.error('Error saving active workout:', error);
+    return { error: error.message };
+  }
+};
+
+/**
+ * Get active workout
+ */
+export const getActiveWorkout = async (userId: string): Promise<{ workout: Workout | null; error: string | null }> => {
+  try {
+    const activeWorkoutRef = getUserDoc(userId, COLLECTIONS.ACTIVE_WORKOUT, 'current');
+    const docSnap = await getDoc(activeWorkoutRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return {
+        workout: {
+          id: data.id,
+          name: data.name,
+          type: data.type,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          exercises: data.exercises,
+          notes: data.notes,
+          status: data.status,
+        },
+        error: null,
+      };
+    }
+
+    return { workout: null, error: null };
+  } catch (error: any) {
+    console.error('Error getting active workout:', error);
+    return { workout: null, error: error.message };
+  }
+};
+
+/**
+ * Subscribe to active workout updates
+ */
+export const subscribeToActiveWorkout = (
+  userId: string,
+  onUpdate: (workout: Workout | null) => void,
+  onError?: (error: Error) => void
+) => {
+  const activeWorkoutRef = getUserDoc(userId, COLLECTIONS.ACTIVE_WORKOUT, 'current');
+
+  return onSnapshot(
+    activeWorkoutRef,
+    (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        onUpdate({
+          id: data.id,
+          name: data.name,
+          type: data.type,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          exercises: data.exercises,
+          notes: data.notes,
+          status: data.status,
+        });
+      } else {
+        onUpdate(null);
+      }
+    },
+    (error) => {
+      console.error('Error in active workout subscription:', error);
+      if (onError) onError(error);
+    }
+  );
+};
+
+// ==================== ROUTINES ====================
+
+/**
+ * Save a routine to Firestore
+ */
+export const saveRoutine = async (userId: string, routine: Routine) => {
+  try {
+    const routineRef = getUserDoc(userId, COLLECTIONS.ROUTINES, routine.id);
+    await setDoc(routineRef, {
+      ...routine,
+      updatedAt: Timestamp.now(),
+    });
+    return { error: null };
+  } catch (error: any) {
+    console.error('Error saving routine:', error);
+    return { error: error.message };
+  }
+};
+
+/**
+ * Get all routines for a user
+ */
+export const getRoutines = async (userId: string): Promise<{ routines: Routine[]; error: string | null }> => {
+  try {
+    const routinesRef = getUserCollection(userId, COLLECTIONS.ROUTINES);
+    const querySnapshot = await getDocs(routinesRef);
+
+    const routines: Routine[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      routines.push({
+        id: doc.id,
+        name: data.name,
+        exercises: data.exercises,
+      });
+    });
+
+    return { routines, error: null };
+  } catch (error: any) {
+    console.error('Error getting routines:', error);
+    return { routines: [], error: error.message };
+  }
+};
+
+/**
+ * Subscribe to real-time routine updates
+ */
+export const subscribeToRoutines = (
+  userId: string,
+  onUpdate: (routines: Routine[]) => void,
+  onError?: (error: Error) => void
+) => {
+  const routinesRef = getUserCollection(userId, COLLECTIONS.ROUTINES);
+
+  return onSnapshot(
+    routinesRef,
+    (snapshot) => {
+      const routines: Routine[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        routines.push({
+          id: doc.id,
+          name: data.name,
+          exercises: data.exercises,
+        });
+      });
+      onUpdate(routines);
+    },
+    (error) => {
+      console.error('Error in routines subscription:', error);
+      if (onError) onError(error);
+    }
+  );
+};
+
+/**
+ * Delete a routine
+ */
+export const deleteRoutine = async (userId: string, routineId: string) => {
+  try {
+    const routineRef = getUserDoc(userId, COLLECTIONS.ROUTINES, routineId);
+    await deleteDoc(routineRef);
+    return { error: null };
+  } catch (error: any) {
+    console.error('Error deleting routine:', error);
+    return { error: error.message };
+  }
+};
+
+// ==================== MIGRATION ====================
+
+/**
+ * Migrate localStorage data to Firestore (one-time operation)
+ */
+export const migrateLocalDataToFirestore = async (
+  userId: string,
+  workouts: Workout[],
+  routines: Routine[],
+  activeWorkout: Workout | null
+) => {
+  try {
+    const batch = writeBatch(db);
+
+    // Migrate workouts
+    workouts.forEach((workout) => {
+      const workoutRef = getUserDoc(userId, COLLECTIONS.WORKOUTS, workout.id);
+      batch.set(workoutRef, {
+        ...workout,
+        updatedAt: Timestamp.now(),
+      });
+    });
+
+    // Migrate routines
+    routines.forEach((routine) => {
+      const routineRef = getUserDoc(userId, COLLECTIONS.ROUTINES, routine.id);
+      batch.set(routineRef, {
+        ...routine,
+        updatedAt: Timestamp.now(),
+      });
+    });
+
+    // Migrate active workout
+    if (activeWorkout) {
+      const activeWorkoutRef = getUserDoc(userId, COLLECTIONS.ACTIVE_WORKOUT, 'current');
+      batch.set(activeWorkoutRef, {
+        ...activeWorkout,
+        updatedAt: Timestamp.now(),
+      });
+    }
+
+    await batch.commit();
+    return { error: null };
+  } catch (error: any) {
+    console.error('Error migrating data:', error);
+    return { error: error.message };
+  }
+};

@@ -1,11 +1,25 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { onAuthStateChanged, type User } from 'firebase/auth';
 import type { Workout, WorkoutExercise, Routine, WorkoutType, CardioIntensity, Exercise } from '../types';
 import { EXERCISES } from '../data/exercises';
+import { auth } from '../config/firebase';
+import {
+    subscribeToWorkouts,
+    subscribeToRoutines,
+    subscribeToActiveWorkout,
+    saveWorkout as saveWorkoutToFirestore,
+    saveActiveWorkout as saveActiveWorkoutToFirestore,
+    saveRoutine as saveRoutineToFirestore,
+    deleteRoutine as deleteRoutineFromFirestore,
+    migrateLocalDataToFirestore,
+} from '../services/firestore';
 
 interface WorkoutContextType {
     activeWorkout: Workout | null;
     history: Workout[];
     routines: Routine[];
+    user: User | null;
+    isLoading: boolean;
     startWorkout: (name?: string, type?: WorkoutType) => void;
     finishWorkout: () => void;
     cancelWorkout: () => void;
@@ -24,6 +38,8 @@ interface WorkoutContextType {
 const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
 
 export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [activeWorkout, setActiveWorkout] = useState<Workout | null>(() => {
         const saved = localStorage.getItem('activeWorkout');
         return saved ? JSON.parse(saved) : null;
@@ -39,21 +55,124 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return saved ? JSON.parse(saved) : [];
     });
 
+    // Track if we've migrated localStorage data
+    const [hasMigrated, setHasMigrated] = useState(() => {
+        return localStorage.getItem('hasFirebaseMigration') === 'true';
+    });
+
+    // Auth state listener
     useEffect(() => {
-        if (activeWorkout) {
-            localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
-        } else {
-            localStorage.removeItem('activeWorkout');
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setUser(user);
+            setIsLoading(false);
+        });
+        return unsubscribe;
+    }, []);
+
+    // Migrate localStorage data to Firestore on first login
+    useEffect(() => {
+        const migrateData = async () => {
+            if (user && !hasMigrated) {
+                const localWorkouts = history;
+                const localRoutines = routines;
+                const localActiveWorkout = activeWorkout;
+
+                if (localWorkouts.length > 0 || localRoutines.length > 0 || localActiveWorkout) {
+                    console.log('Migrating local data to Firestore...');
+                    const { error } = await migrateLocalDataToFirestore(
+                        user.uid,
+                        localWorkouts,
+                        localRoutines,
+                        localActiveWorkout
+                    );
+
+                    if (!error) {
+                        localStorage.setItem('hasFirebaseMigration', 'true');
+                        setHasMigrated(true);
+                        console.log('Migration successful!');
+                    } else {
+                        console.error('Migration failed:', error);
+                    }
+                }
+            }
+        };
+
+        migrateData();
+    }, [user, hasMigrated]);
+
+    // Subscribe to Firestore updates when user is authenticated
+    useEffect(() => {
+        if (!user) {
+            // Not authenticated, keep using localStorage
+            return;
         }
-    }, [activeWorkout]);
+
+        // Subscribe to workouts
+        const unsubscribeWorkouts = subscribeToWorkouts(
+            user.uid,
+            (workouts) => {
+                setHistory(workouts);
+                // Also update localStorage for offline support
+                localStorage.setItem('workoutHistory', JSON.stringify(workouts));
+            },
+            (error) => console.error('Workout subscription error:', error)
+        );
+
+        // Subscribe to routines
+        const unsubscribeRoutines = subscribeToRoutines(
+            user.uid,
+            (routines) => {
+                setRoutines(routines);
+                // Also update localStorage for offline support
+                localStorage.setItem('routines', JSON.stringify(routines));
+            },
+            (error) => console.error('Routines subscription error:', error)
+        );
+
+        // Subscribe to active workout
+        const unsubscribeActiveWorkout = subscribeToActiveWorkout(
+            user.uid,
+            (workout) => {
+                setActiveWorkout(workout);
+                // Also update localStorage for offline support
+                if (workout) {
+                    localStorage.setItem('activeWorkout', JSON.stringify(workout));
+                } else {
+                    localStorage.removeItem('activeWorkout');
+                }
+            },
+            (error) => console.error('Active workout subscription error:', error)
+        );
+
+        return () => {
+            unsubscribeWorkouts();
+            unsubscribeRoutines();
+            unsubscribeActiveWorkout();
+        };
+    }, [user]);
+
+    // Fallback: Save to localStorage when not authenticated
+    useEffect(() => {
+        if (!user) {
+            if (activeWorkout) {
+                localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
+            } else {
+                localStorage.removeItem('activeWorkout');
+            }
+        }
+    }, [activeWorkout, user]);
 
     useEffect(() => {
-        localStorage.setItem('workoutHistory', JSON.stringify(history));
-    }, [history]);
+        if (!user) {
+            localStorage.setItem('workoutHistory', JSON.stringify(history));
+        }
+    }, [history, user]);
 
     useEffect(() => {
-        localStorage.setItem('routines', JSON.stringify(routines));
-    }, [routines]);
+        if (!user) {
+            localStorage.setItem('routines', JSON.stringify(routines));
+        }
+    }, [routines, user]);
 
     const startWorkout = (name: string = 'New Workout', type: WorkoutType = 'STRENGTH') => {
         const newWorkout: Workout = {
@@ -67,83 +186,116 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setActiveWorkout(newWorkout);
     };
 
-    const finishWorkout = () => {
+    const finishWorkout = async () => {
         if (!activeWorkout) return;
         const completedWorkout = { ...activeWorkout, endTime: Date.now(), status: 'completed' as const };
-        setHistory(prev => [completedWorkout, ...prev]);
-        setActiveWorkout(null);
+
+        if (user) {
+            // Save to Firestore (real-time listeners will update state)
+            await saveWorkoutToFirestore(user.uid, completedWorkout);
+            await saveActiveWorkoutToFirestore(user.uid, null);
+        } else {
+            // Fallback to local state
+            setHistory(prev => [completedWorkout, ...prev]);
+            setActiveWorkout(null);
+        }
     };
 
     const cancelWorkout = () => setActiveWorkout(null);
 
-    const addExercise = (exerciseId: string) => {
+    const addExercise = async (exerciseId: string) => {
         if (!activeWorkout) return;
         const newExercise: WorkoutExercise = {
             id: crypto.randomUUID(),
             exerciseId,
             sets: [{ id: crypto.randomUUID(), reps: 0, weight: 0, completed: false }],
         };
-        setActiveWorkout(prev => prev ? { ...prev, exercises: [...prev.exercises, newExercise] } : null);
+        const updatedWorkout = { ...activeWorkout, exercises: [...activeWorkout.exercises, newExercise] };
+
+        if (user) {
+            await saveActiveWorkoutToFirestore(user.uid, updatedWorkout);
+        } else {
+            setActiveWorkout(updatedWorkout);
+        }
     };
 
-    const addSet = (exerciseInstanceId: string) => {
+    const addSet = async (exerciseInstanceId: string) => {
         if (!activeWorkout) return;
-        setActiveWorkout(prev => {
-            if (!prev) return null;
-            return {
-                ...prev,
-                exercises: prev.exercises.map(e => {
-                    if (e.id !== exerciseInstanceId) return e;
-                    // Copy previous set values for convenience, or 0
-                    const lastSet = e.sets[e.sets.length - 1];
-                    return {
-                        ...e,
-                        sets: [...e.sets, {
-                            id: crypto.randomUUID(),
-                            reps: lastSet ? lastSet.reps : 0,
-                            weight: lastSet ? lastSet.weight : 0,
-                            completed: false
-                        }]
-                    };
-                })
-            }
-        })
+
+        const updatedWorkout = {
+            ...activeWorkout,
+            exercises: activeWorkout.exercises.map(e => {
+                if (e.id !== exerciseInstanceId) return e;
+                // Copy previous set values for convenience, or 0
+                const lastSet = e.sets[e.sets.length - 1];
+                return {
+                    ...e,
+                    sets: [...e.sets, {
+                        id: crypto.randomUUID(),
+                        reps: lastSet ? lastSet.reps : 0,
+                        weight: lastSet ? lastSet.weight : 0,
+                        completed: false
+                    }]
+                };
+            })
+        };
+
+        if (user) {
+            await saveActiveWorkoutToFirestore(user.uid, updatedWorkout);
+        } else {
+            setActiveWorkout(updatedWorkout);
+        }
     }
 
-    const removeSet = (exerciseInstanceId: string, setId: string) => {
+    const removeSet = async (exerciseInstanceId: string, setId: string) => {
         if (!activeWorkout) return;
-        setActiveWorkout(prev => {
-            if (!prev) return null;
-            return {
-                ...prev,
-                exercises: prev.exercises.map(e => {
-                    if (e.id !== exerciseInstanceId) return e;
-                    return { ...e, sets: e.sets.filter(s => s.id !== setId) };
-                }).filter(e => e.sets.length > 0)
-            };
-        });
+
+        const updatedWorkout = {
+            ...activeWorkout,
+            exercises: activeWorkout.exercises.map(e => {
+                if (e.id !== exerciseInstanceId) return e;
+                return { ...e, sets: e.sets.filter(s => s.id !== setId) };
+            }).filter(e => e.sets.length > 0)
+        };
+
+        if (user) {
+            await saveActiveWorkoutToFirestore(user.uid, updatedWorkout);
+        } else {
+            setActiveWorkout(updatedWorkout);
+        }
     };
 
-    const updateSet = (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; distance: number; duration: number; intensity: CardioIntensity; completed: boolean }>) => {
+    const updateSet = async (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; distance: number; duration: number; intensity: CardioIntensity; completed: boolean }>) => {
         if (!activeWorkout) return;
-        setActiveWorkout(prev => {
-            if (!prev) return null;
-            return {
-                ...prev,
-                exercises: prev.exercises.map(ex => {
-                    if (ex.id !== exerciseInstanceId) return ex;
-                    return {
-                        ...ex,
-                        sets: ex.sets.map(s => s.id === setId ? { ...s, ...updates } : s)
-                    };
-                })
-            };
-        });
+
+        const updatedWorkout = {
+            ...activeWorkout,
+            exercises: activeWorkout.exercises.map(ex => {
+                if (ex.id !== exerciseInstanceId) return ex;
+                return {
+                    ...ex,
+                    sets: ex.sets.map(s => s.id === setId ? { ...s, ...updates } : s)
+                };
+            })
+        };
+
+        if (user) {
+            await saveActiveWorkoutToFirestore(user.uid, updatedWorkout);
+        } else {
+            setActiveWorkout(updatedWorkout);
+        }
     };
 
-    const updateNotes = (notes: string) => {
+    const updateNotes = async (notes: string) => {
         if (!activeWorkout) return;
-        setActiveWorkout(prev => prev ? { ...prev, notes } : null);
+
+        const updatedWorkout = { ...activeWorkout, notes };
+
+        if (user) {
+            await saveActiveWorkoutToFirestore(user.uid, updatedWorkout);
+        } else {
+            setActiveWorkout(updatedWorkout);
+        }
     };
 
     const getExerciseInfo = (id: string): Exercise | undefined => EXERCISES.find(e => e.id === id);
@@ -151,7 +303,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const getExerciseName = (id: string) => getExerciseInfo(id)?.name || 'Unknown Exercise';
 
     // Routine Logic
-    const saveRoutine = (name: string) => {
+    const saveRoutine = async (name: string) => {
         if (!activeWorkout) return;
         const newRoutine: Routine = {
             id: crypto.randomUUID(),
@@ -161,7 +313,12 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 sets: e.sets.length
             }))
         };
-        setRoutines(prev => [...prev, newRoutine]);
+
+        if (user) {
+            await saveRoutineToFirestore(user.uid, newRoutine);
+        } else {
+            setRoutines(prev => [...prev, newRoutine]);
+        }
     };
 
     const startRoutine = (routineId: string) => {
@@ -188,13 +345,18 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setActiveWorkout(newWorkout);
     };
 
-    const deleteRoutine = (id: string) => {
-        setRoutines(prev => prev.filter(r => r.id !== id));
+    const deleteRoutine = async (id: string) => {
+        if (user) {
+            await deleteRoutineFromFirestore(user.uid, id);
+        } else {
+            setRoutines(prev => prev.filter(r => r.id !== id));
+        }
     };
 
     return (
         <WorkoutContext.Provider value={{
-            activeWorkout, history, routines, startWorkout, finishWorkout, cancelWorkout,
+            activeWorkout, history, routines, user, isLoading,
+            startWorkout, finishWorkout, cancelWorkout,
             addExercise, addSet, removeSet, updateSet, updateNotes, getExerciseName, getExerciseInfo,
             saveRoutine, startRoutine, deleteRoutine
         }}>
