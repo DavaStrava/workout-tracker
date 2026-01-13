@@ -22,12 +22,19 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
     const [showExerciseSelector, setShowExerciseSelector] = useState(false);
     const [selectedBodyArea, setSelectedBodyArea] = useState<BodyArea | 'All'>('All');
     const [searchQuery, setSearchQuery] = useState('');
+    const [showRoutineModal, setShowRoutineModal] = useState(false);
+    const [routineName, setRoutineName] = useState('');
 
     const handleSaveRoutine = () => {
-        const name = window.prompt("Enter routine name:");
-        if (name) {
-            saveRoutine(name);
-            alert("Routine saved!");
+        setShowRoutineModal(true);
+        setRoutineName('');
+    };
+
+    const confirmSaveRoutine = async () => {
+        if (routineName.trim()) {
+            await saveRoutine(routineName.trim());
+            setShowRoutineModal(false);
+            setRoutineName('');
         }
     };
 
@@ -250,6 +257,61 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                     Add Exercise
                 </Button>
             </div>
+
+            {/* Save Routine Modal */}
+            <AnimatePresence>
+                {showRoutineModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        style={{ background: 'rgba(0, 0, 0, 0.7)' }}
+                        onClick={() => setShowRoutineModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="w-full max-w-sm p-6 rounded-2xl"
+                            style={{
+                                background: 'rgba(30, 27, 50, 0.95)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <h3 className="text-xl font-bold mb-4">Save as Routine</h3>
+                            <Input
+                                placeholder="Routine name"
+                                value={routineName}
+                                onChange={(e) => setRoutineName(e.target.value)}
+                                autoFocus
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') confirmSaveRoutine();
+                                    if (e.key === 'Escape') setShowRoutineModal(false);
+                                }}
+                            />
+                            <div className="flex gap-3 mt-4">
+                                <Button
+                                    variant="ghost"
+                                    className="flex-1"
+                                    onClick={() => setShowRoutineModal(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    className="flex-1"
+                                    onClick={confirmSaveRoutine}
+                                    disabled={!routineName.trim()}
+                                >
+                                    Save
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
