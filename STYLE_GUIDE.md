@@ -95,26 +95,42 @@ box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 
 ## Typography
 
+The app uses the system font stack for optimal performance and native feel.
+
 ### Font Weights
-| Usage | Weight |
-|-------|--------|
-| Hero headings | 900 (Black) |
-| Section headings | 700 (Bold) |
-| Button text | 600 (Semibold) |
-| Body text | 500 (Medium) |
-| Regular text | 400 (Normal) |
+| Usage | Weight | Example |
+|-------|--------|---------|
+| Hero headings | 900 (Black) | "Let's Get Moving", page titles |
+| Section headings | 700 (Bold) | Card titles, button labels |
+| Button text | 600 (Semibold) | CTA buttons, navigation |
+| Body text | 500 (Medium) | Descriptions, subtitles |
+| Regular text | 400 (Normal) | General content |
 
 ### Font Sizes
-| Element | Size |
-|---------|------|
-| Hero heading | 48px |
-| Page title | 32px - 36px |
-| Section heading | 24px |
-| Card title | 20px - 22px |
-| Body large | 18px |
-| Body | 16px |
-| Small / Caption | 14px |
-| Tiny / Label | 12px |
+| Element | Size | Line Height |
+|---------|------|-------------|
+| Hero heading | 48px | 1.1 |
+| Page title | 36px | 1.2 |
+| Section heading | 24px | 1.3 |
+| Card title | 20px - 22px | 1.3 |
+| Body large | 18px | 1.5 |
+| Body | 15px - 16px | 1.5 |
+| Small / Caption | 14px | 1.4 |
+| Tiny / Label | 12px - 13px | 1.4 |
+
+### Text Colors
+| Type | Color | Usage |
+|------|-------|-------|
+| Primary | `#ffffff` | Headings, important text |
+| Secondary | `rgba(255, 255, 255, 0.85)` | Button descriptions, body on gradients |
+| Muted | `rgba(255, 255, 255, 0.6)` | Subtitles, helper text |
+| Subtle | `rgba(255, 255, 255, 0.5)` | Placeholders, disabled |
+| Faint | `rgba(255, 255, 255, 0.4)` | Very subtle hints |
+
+### Letter Spacing
+- Hero headings: `-0.02em` (slightly tighter)
+- Body text: `normal`
+- Labels/Uppercase: `0.5px`
 
 ## Component Patterns
 
@@ -187,20 +203,25 @@ transition: all 0.3s ease;
 ## Spacing
 
 ### Standard Spacing Scale
-| Name | Value |
-|------|-------|
-| xs | 4px |
-| sm | 8px |
-| md | 16px |
-| lg | 24px |
-| xl | 32px |
-| 2xl | 48px |
+| Name | Value | Usage |
+|------|-------|-------|
+| xs | 4px | Tight inline spacing |
+| sm | 8px | Icon gaps, small margins |
+| md | 12px | Inner element gaps |
+| lg | 16px | Card grid gaps |
+| xl | 20px | Button gaps in lists |
+| 2xl | 24px | Card padding, section margins |
+| 3xl | 32px | Section gaps, page margins |
+| 4xl | 48px | Large section separators |
 
 ### Component Spacing
 - Card padding: 24px
-- Card gap (grid): 16px
+- Card gap (in grids): 16px
+- Button list gap: 20px (between stacked buttons)
 - Section gap: 32px
 - Inner element gap: 12px - 16px
+- Icon to text gap: 12px - 20px
+- Header margin bottom: 32px
 
 ## Usage Examples
 
@@ -232,10 +253,72 @@ transition: all 0.3s ease;
 ```tsx
 <h1
   style={{
+    fontSize: '36px',
+    fontWeight: 900,
+    lineHeight: 1.2,
+    letterSpacing: '-0.02em',
     background: 'linear-gradient(135deg, #fb923c 0%, #f472b6 50%, #c084fc 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
-    fontWeight: 900,
+    backgroundClip: 'text',
+    marginBottom: '12px',
   }}
 >
+  Page Title
+</h1>
+<p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '18px', fontWeight: 500 }}>
+  Subtitle text here
+</p>
 ```
+
+### Workout Type Button (Full Example)
+```tsx
+<button
+  style={{
+    position: 'relative',
+    overflow: 'hidden',
+    color: '#fff',
+    textAlign: 'left',
+    flex: 1,
+    minHeight: '110px',
+    background: 'linear-gradient(135deg, #f97316 0%, #ea580c 50%, #ec4899 100%)',
+    boxShadow: '0 20px 40px rgba(249, 115, 22, 0.3)',
+    borderRadius: '24px',
+    padding: '24px',
+    border: 'none',
+    cursor: 'pointer',
+  }}
+>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+    <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.2)', borderRadius: '16px' }}>
+      {/* Icon */}
+    </div>
+    <div style={{ flex: 1 }}>
+      <h3 style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '-0.02em' }}>Title</h3>
+      <p style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '15px', fontWeight: 500 }}>Description</p>
+    </div>
+  </div>
+</button>
+```
+
+## Implementation Notes
+
+### Use Inline Styles for Gradients
+Tailwind CSS purges dynamic class names at build time. Always use inline `style={{}}` for:
+- Gradient backgrounds
+- Dynamic colors
+- Box shadows with specific colors
+
+```tsx
+// ❌ DON'T - Will be purged
+<div className={`bg-gradient-to-br ${dynamicGradient}`}>
+
+// ✅ DO - Always works
+<div style={{ background: gradientValue }}>
+```
+
+### Prefer Inline Styles for Consistency
+For major UI components (cards, buttons, headers), use inline styles to:
+- Ensure design system values are applied exactly
+- Avoid Tailwind class conflicts
+- Make styling more explicit and maintainable

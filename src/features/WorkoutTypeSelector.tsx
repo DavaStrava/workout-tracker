@@ -36,15 +36,43 @@ const workoutTypes: { type: WorkoutType; label: string; description: string; ico
 
 export const WorkoutTypeSelector: React.FC<WorkoutTypeSelectorProps> = ({ onSelect }) => {
     return (
-        <div className="flex flex-col min-h-[70vh] px-4 pt-8">
-            <div className="text-center mb-8">
-                <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 bg-clip-text text-transparent">
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '65vh',
+            paddingTop: '16px',
+        }}>
+            {/* Header - matching landing page typography */}
+            <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                <h2 style={{
+                    fontSize: '36px',
+                    fontWeight: 900,
+                    background: 'linear-gradient(135deg, #fb923c 0%, #f472b6 50%, #c084fc 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    marginBottom: '12px',
+                    lineHeight: 1.2,
+                }}>
                     Start Workout
                 </h2>
-                <p className="text-zinc-400 text-lg">Choose your workout type</p>
+                <p style={{
+                    color: 'rgba(255, 255, 255, 0.6)',
+                    fontSize: '18px',
+                    fontWeight: 500,
+                }}>
+                    Choose your workout type
+                </p>
             </div>
 
-            <div className="flex flex-col gap-4 w-full flex-1">
+            {/* Workout type buttons with proper spacing */}
+            <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '20px',
+                width: '100%',
+                flex: 1,
+            }}>
                 {workoutTypes.map((wt, index) => (
                     <motion.button
                         key={wt.type}
@@ -54,15 +82,29 @@ export const WorkoutTypeSelector: React.FC<WorkoutTypeSelectorProps> = ({ onSele
                         whileTap={{ scale: 0.98 }}
                         whileHover={{ scale: 1.01 }}
                         onClick={() => onSelect(wt.type)}
-                        className="relative overflow-hidden text-white text-left flex-1 min-h-[100px]"
                         style={{
+                            position: 'relative',
+                            overflow: 'hidden',
+                            color: '#fff',
+                            textAlign: 'left',
+                            flex: 1,
+                            minHeight: '110px',
                             background: wt.gradient,
                             boxShadow: wt.shadow,
                             borderRadius: '24px',
                             padding: '24px',
+                            border: 'none',
+                            cursor: 'pointer',
                         }}
                     >
-                        <div className="flex items-center gap-5 relative z-10 h-full">
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '20px',
+                            position: 'relative',
+                            zIndex: 10,
+                            height: '100%',
+                        }}>
                             <div style={{
                                 padding: '16px',
                                 background: 'rgba(255, 255, 255, 0.2)',
@@ -70,11 +112,24 @@ export const WorkoutTypeSelector: React.FC<WorkoutTypeSelectorProps> = ({ onSele
                             }}>
                                 {wt.icon}
                             </div>
-                            <div className="flex-1">
-                                <h3 style={{ fontSize: '22px', fontWeight: 700 }}>{wt.label}</h3>
-                                <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '15px', marginTop: '4px' }}>{wt.description}</p>
+                            <div style={{ flex: 1 }}>
+                                <h3 style={{
+                                    fontSize: '24px',
+                                    fontWeight: 700,
+                                    marginBottom: '4px',
+                                    letterSpacing: '-0.02em',
+                                }}>
+                                    {wt.label}
+                                </h3>
+                                <p style={{
+                                    color: 'rgba(255, 255, 255, 0.85)',
+                                    fontSize: '15px',
+                                    fontWeight: 500,
+                                }}>
+                                    {wt.description}
+                                </p>
                             </div>
-                            <div style={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                            <div style={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M9 18l6-6-6-6"/>
                                 </svg>
