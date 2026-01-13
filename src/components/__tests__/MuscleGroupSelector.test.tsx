@@ -55,12 +55,11 @@ describe('MuscleGroupSelector', () => {
       render(<MuscleGroupSelector onSelect={mockOnSelect} />);
 
       // Verify some exercise counts are displayed
-      // Exercise counts: Chest(4), Shoulders(4), Triceps(3), Lats(3), Upper Back(3),
-      // Traps(2), Biceps(3), Forearms(2), Abs(3), Obliques(3), Lower Back(2),
-      // Quads(4), Hamstrings(2), Glutes(3), Calves(2)
-      expect(screen.getAllByText('4 exercises').length).toBe(3); // Chest, Shoulders, Quads
-      expect(screen.getAllByText('3 exercises').length).toBe(7); // Triceps, Lats, Upper Back, Biceps, Abs, Obliques, Glutes
-      expect(screen.getAllByText('2 exercises').length).toBe(5); // Traps, Forearms, Lower Back, Hamstrings, Calves
+      // Exercise counts (expanded catalog):
+      // 10 exercises: Chest, Upper Back, Lats, Shoulders, Biceps, Triceps, Quads, Hamstrings, Glutes, Abs
+      // 8 exercises: Traps, Lower Back, Forearms, Calves, Obliques
+      expect(screen.getAllByText('10 exercises').length).toBe(10);
+      expect(screen.getAllByText('8 exercises').length).toBe(5);
     });
   });
 

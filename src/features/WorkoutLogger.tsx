@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { LandingPage } from './LandingPage';
 import { CardioLogger } from './CardioLogger';
 import { useWorkout } from '../hooks/useWorkoutStore';
-import { EXERCISES } from '../data/exercises';
-import { Plus, Check, X, Search, ChevronLeft, Save, History } from 'lucide-react';
+import { Plus, Check, X, ChevronLeft, Save, History } from 'lucide-react';
 import type { BodyArea } from '../types';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { AnimatePresence, motion } from 'framer-motion';
 import { getLastPerformance } from '../utils/analyticsHelpers';
 import { MuscleGroupSelector } from '../components/MuscleGroupSelector';
+import { ExerciseSelector } from '../components/ExerciseSelector';
 
 type ExerciseSelectorStep = 'hidden' | 'muscle-group' | 'exercise-list';
 
@@ -108,15 +108,8 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
         );
     }
 
-    // Exercise Selector - Exercise List Step
+    // Exercise Selector - Exercise List Step (with icons grid)
     if (exerciseSelectorStep === 'exercise-list' && selectedMuscleGroup) {
-        const filteredExercises = EXERCISES.filter(e => {
-            const matchesArea = e.bodyArea === selectedMuscleGroup;
-            const matchesSearch = e.name.toLowerCase().includes(searchQuery.toLowerCase());
-            const isNotCardio = !e.isCardio;
-            return matchesArea && matchesSearch && isNotCardio;
-        });
-
         return (
             <AnimatePresence mode="wait">
                 <motion.div
@@ -134,46 +127,12 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                         <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff' }}>{selectedMuscleGroup}</h2>
                     </div>
 
-                    <div style={{ position: 'relative' }}>
-                        <Search style={{ position: 'absolute', left: '14px', top: '14px', color: 'rgba(255, 255, 255, 0.4)' }} size={18} />
-                        <Input
-                            placeholder="Search exercises..."
-                            style={{ paddingLeft: '44px' }}
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {filteredExercises.map(ex => (
-                            <motion.div
-                                key={ex.id}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => handleExerciseSelect(ex.id)}
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    padding: '16px 20px',
-                                    borderRadius: '16px',
-                                    background: 'rgba(30, 27, 50, 0.8)',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                }}
-                            >
-                                <h3 style={{ fontWeight: 600, color: '#fff', fontSize: '16px' }}>{ex.name}</h3>
-                                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Plus size={18} style={{ color: 'rgba(255, 255, 255, 0.6)' }} />
-                                </div>
-                            </motion.div>
-                        ))}
-                        {filteredExercises.length === 0 && (
-                            <div style={{ textAlign: 'center', padding: '40px 0', color: 'rgba(255, 255, 255, 0.5)' }}>
-                                No exercises found
-                            </div>
-                        )}
-                    </div>
+                    <ExerciseSelector
+                        muscleGroup={selectedMuscleGroup}
+                        searchQuery={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        onSelectExercise={handleExerciseSelect}
+                    />
                 </motion.div>
             </AnimatePresence>
         );

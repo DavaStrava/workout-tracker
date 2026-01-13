@@ -16,6 +16,16 @@ export type BodyArea =
   | 'Obliques'
   | 'Cardio';
 
+export type Equipment =
+  | 'barbell'
+  | 'dumbbell'
+  | 'cable'
+  | 'machine'
+  | 'bodyweight'
+  | 'kettlebell'
+  | 'resistance_band'
+  | 'ez_bar';
+
 export type WorkoutType = 'STRENGTH' | 'CARDIO' | 'HIIT';
 export type CardioIntensity = 'low' | 'medium' | 'high';
 export type SwimmingStrokeType = 'freestyle' | 'backstroke' | 'breaststroke' | 'butterfly' | 'mixed';
@@ -61,6 +71,7 @@ export interface Exercise {
   id: string;
   name: string;
   bodyArea: BodyArea;
+  equipment?: Equipment;
   isCardio?: boolean;
   sportId?: string;  // Links to CardioSportConfig for cardio exercises
 }

@@ -1,80 +1,177 @@
 import type { Exercise } from '../types';
 
 export const EXERCISES: Exercise[] = [
-  // Chest (4 exercises)
-  { id: 'bench_press', name: 'Bench Press', bodyArea: 'Chest' },
-  { id: 'push_up', name: 'Push Up', bodyArea: 'Chest' },
-  { id: 'incline_dumbell_press', name: 'Incline Dumbbell Press', bodyArea: 'Chest' },
-  { id: 'cable_fly', name: 'Cable Fly', bodyArea: 'Chest' },
+  // ============ CHEST (10 exercises) ============
+  { id: 'bench_press', name: 'Bench Press', bodyArea: 'Chest', equipment: 'barbell' },
+  { id: 'push_up', name: 'Push Up', bodyArea: 'Chest', equipment: 'bodyweight' },
+  { id: 'incline_dumbbell_press', name: 'Incline Dumbbell Press', bodyArea: 'Chest', equipment: 'dumbbell' },
+  { id: 'cable_fly', name: 'Cable Fly', bodyArea: 'Chest', equipment: 'cable' },
+  { id: 'dumbbell_fly', name: 'Dumbbell Fly', bodyArea: 'Chest', equipment: 'dumbbell' },
+  { id: 'incline_bench_press', name: 'Incline Bench Press', bodyArea: 'Chest', equipment: 'barbell' },
+  { id: 'decline_bench_press', name: 'Decline Bench Press', bodyArea: 'Chest', equipment: 'barbell' },
+  { id: 'chest_dip', name: 'Chest Dip', bodyArea: 'Chest', equipment: 'bodyweight' },
+  { id: 'machine_chest_press', name: 'Machine Chest Press', bodyArea: 'Chest', equipment: 'machine' },
+  { id: 'dumbbell_pullover', name: 'Dumbbell Pullover', bodyArea: 'Chest', equipment: 'dumbbell' },
 
-  // Upper Back (3 exercises)
-  { id: 'row', name: 'Barbell Row', bodyArea: 'Upper Back' },
-  { id: 'seated_row', name: 'Seated Cable Row', bodyArea: 'Upper Back' },
-  { id: 'tbar_row', name: 'T-Bar Row', bodyArea: 'Upper Back' },
+  // ============ UPPER BACK (10 exercises) ============
+  { id: 'barbell_row', name: 'Barbell Row', bodyArea: 'Upper Back', equipment: 'barbell' },
+  { id: 'seated_row', name: 'Seated Cable Row', bodyArea: 'Upper Back', equipment: 'cable' },
+  { id: 'tbar_row', name: 'T-Bar Row', bodyArea: 'Upper Back', equipment: 'barbell' },
+  { id: 'dumbbell_row', name: 'Dumbbell Row', bodyArea: 'Upper Back', equipment: 'dumbbell' },
+  { id: 'pendlay_row', name: 'Pendlay Row', bodyArea: 'Upper Back', equipment: 'barbell' },
+  { id: 'chest_supported_row', name: 'Chest Supported Row', bodyArea: 'Upper Back', equipment: 'dumbbell' },
+  { id: 'machine_row', name: 'Machine Row', bodyArea: 'Upper Back', equipment: 'machine' },
+  { id: 'inverted_row', name: 'Inverted Row', bodyArea: 'Upper Back', equipment: 'bodyweight' },
+  { id: 'meadows_row', name: 'Meadows Row', bodyArea: 'Upper Back', equipment: 'barbell' },
+  { id: 'seal_row', name: 'Seal Row', bodyArea: 'Upper Back', equipment: 'dumbbell' },
 
-  // Lats (3 exercises)
-  { id: 'pull_up', name: 'Pull Up', bodyArea: 'Lats' },
-  { id: 'lat_pulldown', name: 'Lat Pulldown', bodyArea: 'Lats' },
-  { id: 'straight_arm_pulldown', name: 'Straight Arm Pulldown', bodyArea: 'Lats' },
+  // ============ LATS (10 exercises) ============
+  { id: 'pull_up', name: 'Pull Up', bodyArea: 'Lats', equipment: 'bodyweight' },
+  { id: 'lat_pulldown', name: 'Lat Pulldown', bodyArea: 'Lats', equipment: 'cable' },
+  { id: 'straight_arm_pulldown', name: 'Straight Arm Pulldown', bodyArea: 'Lats', equipment: 'cable' },
+  { id: 'chin_up', name: 'Chin Up', bodyArea: 'Lats', equipment: 'bodyweight' },
+  { id: 'close_grip_lat_pulldown', name: 'Close Grip Pulldown', bodyArea: 'Lats', equipment: 'cable' },
+  { id: 'wide_grip_pulldown', name: 'Wide Grip Pulldown', bodyArea: 'Lats', equipment: 'cable' },
+  { id: 'single_arm_lat_pulldown', name: 'Single Arm Pulldown', bodyArea: 'Lats', equipment: 'cable' },
+  { id: 'assisted_pull_up', name: 'Assisted Pull Up', bodyArea: 'Lats', equipment: 'machine' },
+  { id: 'neutral_grip_pull_up', name: 'Neutral Grip Pull Up', bodyArea: 'Lats', equipment: 'bodyweight' },
+  { id: 'kneeling_lat_pulldown', name: 'Kneeling Pulldown', bodyArea: 'Lats', equipment: 'cable' },
 
-  // Traps (2 exercises)
-  { id: 'shrugs', name: 'Shrugs', bodyArea: 'Traps' },
-  { id: 'face_pull', name: 'Face Pull', bodyArea: 'Traps' },
+  // ============ TRAPS (8 exercises) ============
+  { id: 'shrugs', name: 'Barbell Shrugs', bodyArea: 'Traps', equipment: 'barbell' },
+  { id: 'face_pull', name: 'Face Pull', bodyArea: 'Traps', equipment: 'cable' },
+  { id: 'dumbbell_shrugs', name: 'Dumbbell Shrugs', bodyArea: 'Traps', equipment: 'dumbbell' },
+  { id: 'cable_shrugs', name: 'Cable Shrugs', bodyArea: 'Traps', equipment: 'cable' },
+  { id: 'rack_pull', name: 'Rack Pull', bodyArea: 'Traps', equipment: 'barbell' },
+  { id: 'farmers_walk', name: "Farmer's Walk", bodyArea: 'Traps', equipment: 'dumbbell' },
+  { id: 'upright_row', name: 'Upright Row', bodyArea: 'Traps', equipment: 'barbell' },
+  { id: 'behind_back_shrugs', name: 'Behind Back Shrugs', bodyArea: 'Traps', equipment: 'barbell' },
 
-  // Lower Back (2 exercises)
-  { id: 'deadlift', name: 'Deadlift', bodyArea: 'Lower Back' },
-  { id: 'back_extension', name: 'Back Extension', bodyArea: 'Lower Back' },
+  // ============ LOWER BACK (8 exercises) ============
+  { id: 'deadlift', name: 'Deadlift', bodyArea: 'Lower Back', equipment: 'barbell' },
+  { id: 'back_extension', name: 'Back Extension', bodyArea: 'Lower Back', equipment: 'bodyweight' },
+  { id: 'good_morning', name: 'Good Morning', bodyArea: 'Lower Back', equipment: 'barbell' },
+  { id: 'hyperextension', name: 'Hyperextension', bodyArea: 'Lower Back', equipment: 'bodyweight' },
+  { id: 'reverse_hyper', name: 'Reverse Hyper', bodyArea: 'Lower Back', equipment: 'machine' },
+  { id: 'bird_dog', name: 'Bird Dog', bodyArea: 'Lower Back', equipment: 'bodyweight' },
+  { id: 'superman', name: 'Superman', bodyArea: 'Lower Back', equipment: 'bodyweight' },
+  { id: 'cable_pull_through', name: 'Cable Pull Through', bodyArea: 'Lower Back', equipment: 'cable' },
 
-  // Shoulders (4 exercises)
-  { id: 'overhead_press', name: 'Overhead Press', bodyArea: 'Shoulders' },
-  { id: 'lateral_raise', name: 'Lateral Raise', bodyArea: 'Shoulders' },
-  { id: 'front_raise', name: 'Front Raise', bodyArea: 'Shoulders' },
-  { id: 'rear_delt_fly', name: 'Rear Delt Fly', bodyArea: 'Shoulders' },
+  // ============ SHOULDERS (10 exercises) ============
+  { id: 'overhead_press', name: 'Overhead Press', bodyArea: 'Shoulders', equipment: 'barbell' },
+  { id: 'lateral_raise', name: 'Lateral Raise', bodyArea: 'Shoulders', equipment: 'dumbbell' },
+  { id: 'front_raise', name: 'Front Raise', bodyArea: 'Shoulders', equipment: 'dumbbell' },
+  { id: 'rear_delt_fly', name: 'Rear Delt Fly', bodyArea: 'Shoulders', equipment: 'dumbbell' },
+  { id: 'dumbbell_shoulder_press', name: 'Dumbbell Shoulder Press', bodyArea: 'Shoulders', equipment: 'dumbbell' },
+  { id: 'arnold_press', name: 'Arnold Press', bodyArea: 'Shoulders', equipment: 'dumbbell' },
+  { id: 'cable_lateral_raise', name: 'Cable Lateral Raise', bodyArea: 'Shoulders', equipment: 'cable' },
+  { id: 'machine_shoulder_press', name: 'Machine Shoulder Press', bodyArea: 'Shoulders', equipment: 'machine' },
+  { id: 'reverse_pec_deck', name: 'Reverse Pec Deck', bodyArea: 'Shoulders', equipment: 'machine' },
+  { id: 'seated_dumbbell_press', name: 'Seated Dumbbell Press', bodyArea: 'Shoulders', equipment: 'dumbbell' },
 
-  // Biceps (3 exercises)
-  { id: 'bicep_curl', name: 'Bicep Curl', bodyArea: 'Biceps' },
-  { id: 'hammer_curl', name: 'Hammer Curl', bodyArea: 'Biceps' },
-  { id: 'preacher_curl', name: 'Preacher Curl', bodyArea: 'Biceps' },
+  // ============ BICEPS (10 exercises) ============
+  { id: 'bicep_curl', name: 'Dumbbell Curl', bodyArea: 'Biceps', equipment: 'dumbbell' },
+  { id: 'hammer_curl', name: 'Hammer Curl', bodyArea: 'Biceps', equipment: 'dumbbell' },
+  { id: 'preacher_curl', name: 'Preacher Curl', bodyArea: 'Biceps', equipment: 'ez_bar' },
+  { id: 'barbell_curl', name: 'Barbell Curl', bodyArea: 'Biceps', equipment: 'barbell' },
+  { id: 'incline_curl', name: 'Incline Curl', bodyArea: 'Biceps', equipment: 'dumbbell' },
+  { id: 'concentration_curl', name: 'Concentration Curl', bodyArea: 'Biceps', equipment: 'dumbbell' },
+  { id: 'cable_curl', name: 'Cable Curl', bodyArea: 'Biceps', equipment: 'cable' },
+  { id: 'spider_curl', name: 'Spider Curl', bodyArea: 'Biceps', equipment: 'dumbbell' },
+  { id: 'ez_bar_curl', name: 'EZ Bar Curl', bodyArea: 'Biceps', equipment: 'ez_bar' },
+  { id: 'drag_curl', name: 'Drag Curl', bodyArea: 'Biceps', equipment: 'barbell' },
 
-  // Triceps (3 exercises)
-  { id: 'tricep_dip', name: 'Tricep Dip', bodyArea: 'Triceps' },
-  { id: 'tricep_pushdown', name: 'Tricep Pushdown', bodyArea: 'Triceps' },
-  { id: 'skull_crusher', name: 'Skull Crusher', bodyArea: 'Triceps' },
+  // ============ TRICEPS (10 exercises) ============
+  { id: 'tricep_dip', name: 'Tricep Dip', bodyArea: 'Triceps', equipment: 'bodyweight' },
+  { id: 'tricep_pushdown', name: 'Tricep Pushdown', bodyArea: 'Triceps', equipment: 'cable' },
+  { id: 'skull_crusher', name: 'Skull Crusher', bodyArea: 'Triceps', equipment: 'ez_bar' },
+  { id: 'close_grip_bench', name: 'Close Grip Bench', bodyArea: 'Triceps', equipment: 'barbell' },
+  { id: 'overhead_tricep_extension', name: 'Overhead Extension', bodyArea: 'Triceps', equipment: 'dumbbell' },
+  { id: 'tricep_kickback', name: 'Tricep Kickback', bodyArea: 'Triceps', equipment: 'dumbbell' },
+  { id: 'rope_pushdown', name: 'Rope Pushdown', bodyArea: 'Triceps', equipment: 'cable' },
+  { id: 'diamond_push_up', name: 'Diamond Push Up', bodyArea: 'Triceps', equipment: 'bodyweight' },
+  { id: 'jm_press', name: 'JM Press', bodyArea: 'Triceps', equipment: 'barbell' },
+  { id: 'single_arm_pushdown', name: 'Single Arm Pushdown', bodyArea: 'Triceps', equipment: 'cable' },
 
-  // Forearms (2 exercises)
-  { id: 'wrist_curl', name: 'Wrist Curl', bodyArea: 'Forearms' },
-  { id: 'reverse_curl', name: 'Reverse Curl', bodyArea: 'Forearms' },
+  // ============ FOREARMS (8 exercises) ============
+  { id: 'wrist_curl', name: 'Wrist Curl', bodyArea: 'Forearms', equipment: 'barbell' },
+  { id: 'reverse_curl', name: 'Reverse Curl', bodyArea: 'Forearms', equipment: 'barbell' },
+  { id: 'reverse_wrist_curl', name: 'Reverse Wrist Curl', bodyArea: 'Forearms', equipment: 'barbell' },
+  { id: 'farmers_carry', name: "Farmer's Carry", bodyArea: 'Forearms', equipment: 'dumbbell' },
+  { id: 'plate_pinch', name: 'Plate Pinch', bodyArea: 'Forearms', equipment: 'barbell' },
+  { id: 'dead_hang', name: 'Dead Hang', bodyArea: 'Forearms', equipment: 'bodyweight' },
+  { id: 'hammer_curl_forearm', name: 'Hammer Curl', bodyArea: 'Forearms', equipment: 'dumbbell' },
+  { id: 'wrist_roller', name: 'Wrist Roller', bodyArea: 'Forearms', equipment: 'machine' },
 
-  // Quads (4 exercises)
-  { id: 'squat', name: 'Squat', bodyArea: 'Quads' },
-  { id: 'leg_press', name: 'Leg Press', bodyArea: 'Quads' },
-  { id: 'leg_extension', name: 'Leg Extension', bodyArea: 'Quads' },
-  { id: 'lunge', name: 'Lunges', bodyArea: 'Quads' },
+  // ============ QUADS (10 exercises) ============
+  { id: 'squat', name: 'Back Squat', bodyArea: 'Quads', equipment: 'barbell' },
+  { id: 'leg_press', name: 'Leg Press', bodyArea: 'Quads', equipment: 'machine' },
+  { id: 'leg_extension', name: 'Leg Extension', bodyArea: 'Quads', equipment: 'machine' },
+  { id: 'lunge', name: 'Lunges', bodyArea: 'Quads', equipment: 'dumbbell' },
+  { id: 'front_squat', name: 'Front Squat', bodyArea: 'Quads', equipment: 'barbell' },
+  { id: 'goblet_squat', name: 'Goblet Squat', bodyArea: 'Quads', equipment: 'dumbbell' },
+  { id: 'hack_squat', name: 'Hack Squat', bodyArea: 'Quads', equipment: 'machine' },
+  { id: 'sissy_squat', name: 'Sissy Squat', bodyArea: 'Quads', equipment: 'bodyweight' },
+  { id: 'bulgarian_split_squat', name: 'Bulgarian Split Squat', bodyArea: 'Quads', equipment: 'dumbbell' },
+  { id: 'step_up', name: 'Step Up', bodyArea: 'Quads', equipment: 'dumbbell' },
 
-  // Hamstrings (2 exercises)
-  { id: 'romanian_deadlift', name: 'Romanian Deadlift', bodyArea: 'Hamstrings' },
-  { id: 'leg_curl', name: 'Leg Curl', bodyArea: 'Hamstrings' },
+  // ============ HAMSTRINGS (10 exercises) ============
+  { id: 'romanian_deadlift', name: 'Romanian Deadlift', bodyArea: 'Hamstrings', equipment: 'barbell' },
+  { id: 'leg_curl', name: 'Lying Leg Curl', bodyArea: 'Hamstrings', equipment: 'machine' },
+  { id: 'stiff_leg_deadlift', name: 'Stiff Leg Deadlift', bodyArea: 'Hamstrings', equipment: 'barbell' },
+  { id: 'seated_leg_curl', name: 'Seated Leg Curl', bodyArea: 'Hamstrings', equipment: 'machine' },
+  { id: 'nordic_curl', name: 'Nordic Curl', bodyArea: 'Hamstrings', equipment: 'bodyweight' },
+  { id: 'glute_ham_raise', name: 'Glute Ham Raise', bodyArea: 'Hamstrings', equipment: 'machine' },
+  { id: 'dumbbell_rdl', name: 'Dumbbell RDL', bodyArea: 'Hamstrings', equipment: 'dumbbell' },
+  { id: 'single_leg_rdl', name: 'Single Leg RDL', bodyArea: 'Hamstrings', equipment: 'dumbbell' },
+  { id: 'cable_leg_curl', name: 'Cable Leg Curl', bodyArea: 'Hamstrings', equipment: 'cable' },
+  { id: 'kettlebell_swing', name: 'Kettlebell Swing', bodyArea: 'Hamstrings', equipment: 'kettlebell' },
 
-  // Glutes (3 exercises)
-  { id: 'hip_thrust', name: 'Hip Thrust', bodyArea: 'Glutes' },
-  { id: 'glute_bridge', name: 'Glute Bridge', bodyArea: 'Glutes' },
-  { id: 'cable_kickback', name: 'Cable Kickback', bodyArea: 'Glutes' },
+  // ============ GLUTES (10 exercises) ============
+  { id: 'hip_thrust', name: 'Barbell Hip Thrust', bodyArea: 'Glutes', equipment: 'barbell' },
+  { id: 'glute_bridge', name: 'Glute Bridge', bodyArea: 'Glutes', equipment: 'bodyweight' },
+  { id: 'cable_kickback', name: 'Cable Kickback', bodyArea: 'Glutes', equipment: 'cable' },
+  { id: 'single_leg_hip_thrust', name: 'Single Leg Hip Thrust', bodyArea: 'Glutes', equipment: 'bodyweight' },
+  { id: 'sumo_deadlift', name: 'Sumo Deadlift', bodyArea: 'Glutes', equipment: 'barbell' },
+  { id: 'frog_pump', name: 'Frog Pump', bodyArea: 'Glutes', equipment: 'bodyweight' },
+  { id: 'banded_walk', name: 'Banded Walk', bodyArea: 'Glutes', equipment: 'resistance_band' },
+  { id: 'donkey_kick', name: 'Donkey Kick', bodyArea: 'Glutes', equipment: 'bodyweight' },
+  { id: 'reverse_lunge', name: 'Reverse Lunge', bodyArea: 'Glutes', equipment: 'dumbbell' },
+  { id: 'hip_abduction', name: 'Hip Abduction', bodyArea: 'Glutes', equipment: 'machine' },
 
-  // Calves (2 exercises)
-  { id: 'calf_raise', name: 'Calf Raise', bodyArea: 'Calves' },
-  { id: 'seated_calf_raise', name: 'Seated Calf Raise', bodyArea: 'Calves' },
+  // ============ CALVES (8 exercises) ============
+  { id: 'calf_raise', name: 'Standing Calf Raise', bodyArea: 'Calves', equipment: 'machine' },
+  { id: 'seated_calf_raise', name: 'Seated Calf Raise', bodyArea: 'Calves', equipment: 'machine' },
+  { id: 'donkey_calf_raise', name: 'Donkey Calf Raise', bodyArea: 'Calves', equipment: 'machine' },
+  { id: 'single_leg_calf_raise', name: 'Single Leg Calf Raise', bodyArea: 'Calves', equipment: 'bodyweight' },
+  { id: 'leg_press_calf_raise', name: 'Leg Press Calf Raise', bodyArea: 'Calves', equipment: 'machine' },
+  { id: 'smith_calf_raise', name: 'Smith Calf Raise', bodyArea: 'Calves', equipment: 'machine' },
+  { id: 'barbell_calf_raise', name: 'Barbell Calf Raise', bodyArea: 'Calves', equipment: 'barbell' },
+  { id: 'tibialis_raise', name: 'Tibialis Raise', bodyArea: 'Calves', equipment: 'bodyweight' },
 
-  // Abs (3 exercises)
-  { id: 'crunch', name: 'Crunch', bodyArea: 'Abs' },
-  { id: 'leg_raise', name: 'Leg Raise', bodyArea: 'Abs' },
-  { id: 'plank', name: 'Plank', bodyArea: 'Abs' },
+  // ============ ABS (10 exercises) ============
+  { id: 'crunch', name: 'Crunch', bodyArea: 'Abs', equipment: 'bodyweight' },
+  { id: 'leg_raise', name: 'Leg Raise', bodyArea: 'Abs', equipment: 'bodyweight' },
+  { id: 'plank', name: 'Plank', bodyArea: 'Abs', equipment: 'bodyweight' },
+  { id: 'hanging_leg_raise', name: 'Hanging Leg Raise', bodyArea: 'Abs', equipment: 'bodyweight' },
+  { id: 'cable_crunch', name: 'Cable Crunch', bodyArea: 'Abs', equipment: 'cable' },
+  { id: 'ab_wheel', name: 'Ab Wheel Rollout', bodyArea: 'Abs', equipment: 'machine' },
+  { id: 'dead_bug', name: 'Dead Bug', bodyArea: 'Abs', equipment: 'bodyweight' },
+  { id: 'hollow_hold', name: 'Hollow Hold', bodyArea: 'Abs', equipment: 'bodyweight' },
+  { id: 'decline_crunch', name: 'Decline Crunch', bodyArea: 'Abs', equipment: 'bodyweight' },
+  { id: 'v_up', name: 'V-Up', bodyArea: 'Abs', equipment: 'bodyweight' },
 
-  // Obliques (3 exercises)
-  { id: 'russian_twist', name: 'Russian Twist', bodyArea: 'Obliques' },
-  { id: 'side_plank', name: 'Side Plank', bodyArea: 'Obliques' },
-  { id: 'woodchop', name: 'Cable Woodchop', bodyArea: 'Obliques' },
+  // ============ OBLIQUES (8 exercises) ============
+  { id: 'russian_twist', name: 'Russian Twist', bodyArea: 'Obliques', equipment: 'dumbbell' },
+  { id: 'side_plank', name: 'Side Plank', bodyArea: 'Obliques', equipment: 'bodyweight' },
+  { id: 'woodchop', name: 'Cable Woodchop', bodyArea: 'Obliques', equipment: 'cable' },
+  { id: 'bicycle_crunch', name: 'Bicycle Crunch', bodyArea: 'Obliques', equipment: 'bodyweight' },
+  { id: 'pallof_press', name: 'Pallof Press', bodyArea: 'Obliques', equipment: 'cable' },
+  { id: 'hanging_oblique_raise', name: 'Hanging Oblique Raise', bodyArea: 'Obliques', equipment: 'bodyweight' },
+  { id: 'side_bend', name: 'Side Bend', bodyArea: 'Obliques', equipment: 'dumbbell' },
+  { id: 'landmine_rotation', name: 'Landmine Rotation', bodyArea: 'Obliques', equipment: 'barbell' },
 
-  // Cardio (11 exercises)
+  // ============ CARDIO (11 exercises) ============
   { id: 'running', name: 'Running', bodyArea: 'Cardio', isCardio: true, sportId: 'running' },
   { id: 'cycling', name: 'Cycling', bodyArea: 'Cardio', isCardio: true, sportId: 'cycling' },
   { id: 'swimming', name: 'Swimming', bodyArea: 'Cardio', isCardio: true, sportId: 'swimming' },
