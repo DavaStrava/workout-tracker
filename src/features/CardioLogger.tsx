@@ -7,11 +7,7 @@ import { Input } from '../components/Input';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { CardioIntensity } from '../types';
 
-interface CardioLoggerProps {
-    onBack: () => void;
-}
-
-export const CardioLogger: React.FC<CardioLoggerProps> = ({ onBack: _onBack }) => {
+export const CardioLogger: React.FC = () => {
     const {
         activeWorkout, finishWorkout, cancelWorkout,
         addExercise, updateSet, updateNotes, getExerciseName
@@ -161,8 +157,8 @@ export const CardioLogger: React.FC<CardioLoggerProps> = ({ onBack: _onBack }) =
 
                                 {/* Intensity */}
                                 <div>
-                                    <label style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px', display: 'block' }}>Intensity</label>
-                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                    <label id={`intensity-label-${exerciseInstance.id}`} style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px', display: 'block' }}>Intensity</label>
+                                    <div role="group" aria-labelledby={`intensity-label-${exerciseInstance.id}`} style={{ display: 'flex', gap: '10px' }}>
                                         {(['low', 'medium', 'high'] as CardioIntensity[]).map(level => {
                                             const isActive = set.intensity === level;
                                             const colors = {
@@ -173,6 +169,8 @@ export const CardioLogger: React.FC<CardioLoggerProps> = ({ onBack: _onBack }) =
                                             return (
                                                 <button
                                                     key={level}
+                                                    aria-pressed={isActive}
+                                                    aria-label={`${level} intensity`}
                                                     onClick={() => updateSet(exerciseInstance.id, set.id, { intensity: level })}
                                                     style={{
                                                         flex: 1,
@@ -197,6 +195,8 @@ export const CardioLogger: React.FC<CardioLoggerProps> = ({ onBack: _onBack }) =
 
                                 {/* Completed toggle */}
                                 <button
+                                    aria-pressed={set.completed}
+                                    aria-label={set.completed ? 'Mark as incomplete' : 'Mark as complete'}
                                     onClick={() => updateSet(exerciseInstance.id, set.id, { completed: !set.completed })}
                                     style={{
                                         width: '100%',

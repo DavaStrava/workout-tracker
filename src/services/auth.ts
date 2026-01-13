@@ -7,8 +7,39 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   type User,
+  type AuthError,
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
+
+/**
+ * Get a user-friendly error message from Firebase Auth errors
+ */
+const getAuthErrorMessage = (error: unknown): string => {
+  if (error && typeof error === 'object' && 'code' in error) {
+    const authError = error as AuthError;
+    switch (authError.code) {
+      case 'auth/email-already-in-use':
+        return 'This email is already registered. Please sign in instead.';
+      case 'auth/invalid-email':
+        return 'Please enter a valid email address.';
+      case 'auth/weak-password':
+        return 'Password should be at least 6 characters.';
+      case 'auth/user-not-found':
+        return 'No account found with this email.';
+      case 'auth/wrong-password':
+        return 'Incorrect password. Please try again.';
+      case 'auth/too-many-requests':
+        return 'Too many failed attempts. Please try again later.';
+      case 'auth/popup-closed-by-user':
+        return ''; // User intentionally closed popup
+      case 'auth/network-request-failed':
+        return 'Network error. Please check your connection.';
+      default:
+        return authError.message || 'An authentication error occurred.';
+    }
+  }
+  return 'An unexpected error occurred.';
+};
 
 /**
  * Sign up a new user with email and password
@@ -23,8 +54,8 @@ export const signUp = async (email: string, password: string, displayName?: stri
     }
 
     return { user: userCredential.user, error: null };
-  } catch (error: any) {
-    return { user: null, error: error.message };
+  } catch (error: unknown) {
+    return { user: null, error: getAuthErrorMessage(error) };
   }
 };
 
@@ -35,8 +66,8 @@ export const signIn = async (email: string, password: string) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     return { user: userCredential.user, error: null };
-  } catch (error: any) {
-    return { user: null, error: error.message };
+  } catch (error: unknown) {
+    return { user: null, error: getAuthErrorMessage(error) };
   }
 };
 
@@ -48,12 +79,13 @@ export const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
     return { user: result.user, error: null };
-  } catch (error: any) {
-    // Handle popup closed by user
-    if (error.code === 'auth/popup-closed-by-user') {
+  } catch (error: unknown) {
+    const errorMessage = getAuthErrorMessage(error);
+    // Return null error for user-cancelled popup (empty message from helper)
+    if (!errorMessage) {
       return { user: null, error: null };
     }
-    return { user: null, error: error.message };
+    return { user: null, error: errorMessage };
   }
 };
 
@@ -64,8 +96,8 @@ export const signOut = async () => {
   try {
     await firebaseSignOut(auth);
     return { error: null };
-  } catch (error: any) {
-    return { error: error.message };
+  } catch (error: unknown) {
+    return { error: getAuthErrorMessage(error) };
   }
 };
 
@@ -76,8 +108,8 @@ export const resetPassword = async (email: string) => {
   try {
     await sendPasswordResetEmail(auth, email);
     return { error: null };
-  } catch (error: any) {
-    return { error: error.message };
+  } catch (error: unknown) {
+    return { error: getAuthErrorMessage(error) };
   }
 };
 

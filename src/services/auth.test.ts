@@ -83,13 +83,13 @@ describe('Auth Service', () => {
     });
 
     it('should return error message on failure', async () => {
-      const errorMessage = 'Email already in use';
-      vi.mocked(createUserWithEmailAndPassword).mockRejectedValue(new Error(errorMessage));
+      const firebaseError = { code: 'auth/email-already-in-use', message: 'Email already in use' };
+      vi.mocked(createUserWithEmailAndPassword).mockRejectedValue(firebaseError);
 
       const result = await signUp('test@example.com', 'password123');
 
       expect(result.user).toBeNull();
-      expect(result.error).toBe(errorMessage);
+      expect(result.error).toBe('This email is already registered. Please sign in instead.');
     });
   });
 
@@ -109,13 +109,13 @@ describe('Auth Service', () => {
     });
 
     it('should return error message on invalid credentials', async () => {
-      const errorMessage = 'Invalid password';
-      vi.mocked(signInWithEmailAndPassword).mockRejectedValue(new Error(errorMessage));
+      const firebaseError = { code: 'auth/wrong-password', message: 'Invalid password' };
+      vi.mocked(signInWithEmailAndPassword).mockRejectedValue(firebaseError);
 
       const result = await signIn('test@example.com', 'wrongpassword');
 
       expect(result.user).toBeNull();
-      expect(result.error).toBe(errorMessage);
+      expect(result.error).toBe('Incorrect password. Please try again.');
     });
   });
 
@@ -141,13 +141,13 @@ describe('Auth Service', () => {
     });
 
     it('should return error message on other failures', async () => {
-      const errorMessage = 'Network error';
-      vi.mocked(signInWithPopup).mockRejectedValue(new Error(errorMessage));
+      const firebaseError = { code: 'auth/network-request-failed', message: 'Network error' };
+      vi.mocked(signInWithPopup).mockRejectedValue(firebaseError);
 
       const result = await signInWithGoogle();
 
       expect(result.user).toBeNull();
-      expect(result.error).toBe(errorMessage);
+      expect(result.error).toBe('Network error. Please check your connection.');
     });
   });
 
@@ -162,12 +162,12 @@ describe('Auth Service', () => {
     });
 
     it('should return error message on failure', async () => {
-      const errorMessage = 'Sign out failed';
-      vi.mocked(firebaseSignOut).mockRejectedValue(new Error(errorMessage));
+      const firebaseError = { code: 'auth/internal-error', message: 'Sign out failed' };
+      vi.mocked(firebaseSignOut).mockRejectedValue(firebaseError);
 
       const result = await signOut();
 
-      expect(result.error).toBe(errorMessage);
+      expect(result.error).toBe('Sign out failed');
     });
   });
 
@@ -182,12 +182,12 @@ describe('Auth Service', () => {
     });
 
     it('should return error message on failure', async () => {
-      const errorMessage = 'User not found';
-      vi.mocked(sendPasswordResetEmail).mockRejectedValue(new Error(errorMessage));
+      const firebaseError = { code: 'auth/user-not-found', message: 'User not found' };
+      vi.mocked(sendPasswordResetEmail).mockRejectedValue(firebaseError);
 
       const result = await resetPassword('nonexistent@example.com');
 
-      expect(result.error).toBe(errorMessage);
+      expect(result.error).toBe('No account found with this email.');
     });
   });
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import type { Workout, WorkoutExercise, Routine, WorkoutType, CardioIntensity, Exercise } from '../types';
 import { EXERCISES } from '../data/exercises';
@@ -7,11 +7,11 @@ import {
     subscribeToWorkouts,
     subscribeToRoutines,
     subscribeToActiveWorkout,
-    saveWorkout as saveWorkoutToFirestore,
     saveActiveWorkout as saveActiveWorkoutToFirestore,
     saveRoutine as saveRoutineToFirestore,
     deleteRoutine as deleteRoutineFromFirestore,
     migrateLocalDataToFirestore,
+    finishWorkoutAtomic,
 } from '../services/firestore';
 
 interface WorkoutContextType {
@@ -21,18 +21,18 @@ interface WorkoutContextType {
     user: User | null;
     isLoading: boolean;
     startWorkout: (name?: string, type?: WorkoutType) => void;
-    finishWorkout: () => void;
+    finishWorkout: () => Promise<void>;
     cancelWorkout: () => void;
-    addExercise: (exerciseId: string) => void;
-    updateSet: (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; distance: number; duration: number; intensity: CardioIntensity; completed: boolean }>) => void;
-    updateNotes: (notes: string) => void;
+    addExercise: (exerciseId: string) => Promise<void>;
+    updateSet: (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; distance: number; duration: number; intensity: CardioIntensity; completed: boolean }>) => Promise<void>;
+    updateNotes: (notes: string) => Promise<void>;
     getExerciseInfo: (id: string) => Exercise | undefined;
-    addSet: (exerciseInstanceId: string) => void;
-    removeSet: (exerciseInstanceId: string, setId: string) => void;
+    addSet: (exerciseInstanceId: string) => Promise<void>;
+    removeSet: (exerciseInstanceId: string, setId: string) => Promise<void>;
     getExerciseName: (id: string) => string;
-    saveRoutine: (name: string) => void;
-    startRoutine: (routineId: string) => void;
-    deleteRoutine: (routineId: string) => void;
+    saveRoutine: (name: string) => Promise<void>;
+    startRoutine: (routineId: string) => Promise<void>;
+    deleteRoutine: (routineId: string) => Promise<void>;
 }
 
 const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
@@ -60,6 +60,13 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return localStorage.getItem('hasFirebaseMigration') === 'true';
     });
 
+    // Capture initial localStorage values for migration (to avoid stale closure issues)
+    const initialDataRef = useRef({
+        workouts: history,
+        routines: routines,
+        activeWorkout: activeWorkout,
+    });
+
     // Auth state listener
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -73,9 +80,8 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     useEffect(() => {
         const migrateData = async () => {
             if (user && !hasMigrated) {
-                const localWorkouts = history;
-                const localRoutines = routines;
-                const localActiveWorkout = activeWorkout;
+                // Use initial data captured at mount to avoid stale closures
+                const { workouts: localWorkouts, routines: localRoutines, activeWorkout: localActiveWorkout } = initialDataRef.current;
 
                 if (localWorkouts.length > 0 || localRoutines.length > 0 || localActiveWorkout) {
                     console.log('Migrating local data to Firestore...');
@@ -191,9 +197,8 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const completedWorkout = { ...activeWorkout, endTime: Date.now(), status: 'completed' as const };
 
         if (user) {
-            // Save to Firestore (real-time listeners will update state)
-            await saveWorkoutToFirestore(user.uid, completedWorkout);
-            await saveActiveWorkoutToFirestore(user.uid, null);
+            // Use atomic batch operation to prevent race conditions
+            await finishWorkoutAtomic(user.uid, completedWorkout);
         } else {
             // Fallback to local state
             setHistory(prev => [completedWorkout, ...prev]);
@@ -321,7 +326,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     };
 
-    const startRoutine = (routineId: string) => {
+    const startRoutine = async (routineId: string) => {
         const routine = routines.find(r => r.id === routineId);
         if (!routine) return;
 
@@ -342,7 +347,13 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
             })),
             status: 'active'
         };
-        setActiveWorkout(newWorkout);
+
+        if (user) {
+            // Persist to Firestore when authenticated
+            await saveActiveWorkoutToFirestore(user.uid, newWorkout);
+        } else {
+            setActiveWorkout(newWorkout);
+        }
     };
 
     const deleteRoutine = async (id: string) => {

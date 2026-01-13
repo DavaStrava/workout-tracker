@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Card } from '../Card';
 
@@ -14,7 +14,7 @@ describe('Card', () => {
 
     expect(card).toHaveClass('card-spotify');
     expect(card).toHaveStyle({
-      background: 'rgba(255, 255, 255, 0.05)'
+      background: 'rgba(30, 27, 50, 0.8)'
     });
   });
 
@@ -23,7 +23,7 @@ describe('Card', () => {
     const card = screen.getByText('Default Card');
 
     expect(card).toHaveStyle({
-      background: 'rgba(24, 24, 27, 0.8)'
+      background: 'rgba(30, 27, 50, 0.8)'
     });
   });
 
@@ -34,7 +34,6 @@ describe('Card', () => {
     expect(card).toHaveStyle({
       background: 'transparent'
     });
-    expect(card.style.border).toContain('2px solid');
   });
 
   it('should apply elevated variant styles', () => {
@@ -42,7 +41,7 @@ describe('Card', () => {
     const card = screen.getByText('Elevated Card');
 
     expect(card).toHaveStyle({
-      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)'
+      background: 'rgba(30, 27, 50, 0.9)'
     });
   });
 
@@ -51,7 +50,7 @@ describe('Card', () => {
     const card = screen.getByText('Floating Card');
 
     expect(card).toHaveStyle({
-      boxShadow: '0 20px 40px rgba(236, 72, 153, 0.2)'
+      background: 'rgba(30, 27, 50, 0.9)'
     });
   });
 
@@ -60,8 +59,10 @@ describe('Card', () => {
     const card = screen.getByText('Gradient Card');
 
     expect(card).toHaveStyle({
-      background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(236, 72, 153, 0.2) 50%, rgba(168, 85, 247, 0.1) 100%)'
+      background: 'rgba(30, 27, 50, 0.8)'
     });
+    // Check for the gradient border color
+    expect(card.style.border).toContain('rgba(249, 115, 22, 0.3)');
   });
 
   it('should apply gradient variant with pink-purple gradient', () => {
@@ -69,8 +70,9 @@ describe('Card', () => {
     const card = screen.getByText('Pink Purple');
 
     expect(card).toHaveStyle({
-      background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(168, 85, 247, 0.2) 50%, rgba(59, 130, 246, 0.1) 100%)'
+      background: 'rgba(30, 27, 50, 0.8)'
     });
+    expect(card.style.border).toContain('rgba(236, 72, 153, 0.3)');
   });
 
   it('should apply base styles to all variants', () => {

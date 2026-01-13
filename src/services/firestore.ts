@@ -10,9 +10,30 @@ import {
   orderBy,
   Timestamp,
   writeBatch,
+  type FirestoreError,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import type { Workout, Routine } from '../types';
+
+/**
+ * Get error message from Firestore errors
+ */
+const getFirestoreErrorMessage = (error: unknown): string => {
+  if (error && typeof error === 'object' && 'code' in error) {
+    const firestoreError = error as FirestoreError;
+    switch (firestoreError.code) {
+      case 'permission-denied':
+        return 'You do not have permission to perform this action.';
+      case 'unavailable':
+        return 'Service temporarily unavailable. Please try again.';
+      case 'not-found':
+        return 'The requested data was not found.';
+      default:
+        return firestoreError.message || 'A database error occurred.';
+    }
+  }
+  return 'An unexpected error occurred.';
+};
 
 const COLLECTIONS = {
   WORKOUTS: 'workouts',
@@ -47,9 +68,9 @@ export const saveWorkout = async (userId: string, workout: Workout) => {
       updatedAt: Timestamp.now(),
     });
     return { error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error saving workout:', error);
-    return { error: error.message };
+    return { error: getFirestoreErrorMessage(error) };
   }
 };
 
@@ -78,9 +99,9 @@ export const getWorkouts = async (userId: string): Promise<{ workouts: Workout[]
     });
 
     return { workouts, error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error getting workouts:', error);
-    return { workouts: [], error: error.message };
+    return { workouts: [], error: getFirestoreErrorMessage(error) };
   }
 };
 
@@ -129,9 +150,9 @@ export const deleteWorkout = async (userId: string, workoutId: string) => {
     const workoutRef = getUserDoc(userId, COLLECTIONS.WORKOUTS, workoutId);
     await deleteDoc(workoutRef);
     return { error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting workout:', error);
-    return { error: error.message };
+    return { error: getFirestoreErrorMessage(error) };
   }
 };
 
@@ -152,9 +173,9 @@ export const saveActiveWorkout = async (userId: string, workout: Workout | null)
       await deleteDoc(activeWorkoutRef);
     }
     return { error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error saving active workout:', error);
-    return { error: error.message };
+    return { error: getFirestoreErrorMessage(error) };
   }
 };
 
@@ -184,9 +205,9 @@ export const getActiveWorkout = async (userId: string): Promise<{ workout: Worko
     }
 
     return { workout: null, error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error getting active workout:', error);
-    return { workout: null, error: error.message };
+    return { workout: null, error: getFirestoreErrorMessage(error) };
   }
 };
 
@@ -239,9 +260,9 @@ export const saveRoutine = async (userId: string, routine: Routine) => {
       updatedAt: Timestamp.now(),
     });
     return { error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error saving routine:', error);
-    return { error: error.message };
+    return { error: getFirestoreErrorMessage(error) };
   }
 };
 
@@ -264,9 +285,9 @@ export const getRoutines = async (userId: string): Promise<{ routines: Routine[]
     });
 
     return { routines, error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error getting routines:', error);
-    return { routines: [], error: error.message };
+    return { routines: [], error: getFirestoreErrorMessage(error) };
   }
 };
 
@@ -309,9 +330,37 @@ export const deleteRoutine = async (userId: string, routineId: string) => {
     const routineRef = getUserDoc(userId, COLLECTIONS.ROUTINES, routineId);
     await deleteDoc(routineRef);
     return { error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting routine:', error);
-    return { error: error.message };
+    return { error: getFirestoreErrorMessage(error) };
+  }
+};
+
+// ==================== ATOMIC OPERATIONS ====================
+
+/**
+ * Atomically finish a workout - saves completed workout and clears active workout in one batch
+ */
+export const finishWorkoutAtomic = async (userId: string, completedWorkout: Workout) => {
+  try {
+    const batch = writeBatch(db);
+
+    // Add completed workout to history
+    const workoutRef = getUserDoc(userId, COLLECTIONS.WORKOUTS, completedWorkout.id);
+    batch.set(workoutRef, {
+      ...completedWorkout,
+      updatedAt: Timestamp.now(),
+    });
+
+    // Delete active workout
+    const activeWorkoutRef = getUserDoc(userId, COLLECTIONS.ACTIVE_WORKOUT, 'current');
+    batch.delete(activeWorkoutRef);
+
+    await batch.commit();
+    return { error: null };
+  } catch (error: unknown) {
+    console.error('Error finishing workout:', error);
+    return { error: getFirestoreErrorMessage(error) };
   }
 };
 
@@ -358,8 +407,8 @@ export const migrateLocalDataToFirestore = async (
 
     await batch.commit();
     return { error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error migrating data:', error);
-    return { error: error.message };
+    return { error: getFirestoreErrorMessage(error) };
   }
 };

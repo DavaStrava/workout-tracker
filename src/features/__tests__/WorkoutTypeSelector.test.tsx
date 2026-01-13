@@ -91,14 +91,14 @@ describe('WorkoutTypeSelector', () => {
   });
 
   describe('styling', () => {
-    it('should apply gradient classes to buttons', () => {
+    it('should apply gradient styles to buttons', () => {
       const { container } = render(<WorkoutTypeSelector onSelect={vi.fn()} />);
 
       const buttons = container.querySelectorAll('button');
 
-      // Each button should have gradient styling
+      // Each button should have gradient styling via inline styles
       buttons.forEach((button) => {
-        expect(button.className).toContain('bg-gradient-to-br');
+        expect(button.style.background).toContain('linear-gradient');
       });
     });
 
@@ -106,8 +106,10 @@ describe('WorkoutTypeSelector', () => {
       render(<WorkoutTypeSelector onSelect={vi.fn()} />);
 
       const heading = screen.getByText('Start Workout');
-      expect(heading.className).toContain('bg-gradient-to-r');
-      expect(heading.className).toContain('bg-clip-text');
+      // Heading uses inline styles for gradient text
+      expect(heading.style.background).toContain('linear-gradient');
+      // WebkitBackgroundClip becomes webkitTextFillColor transparent when text clip is applied
+      expect(heading.style.webkitTextFillColor).toBe('transparent');
     });
 
     it('should have rounded corners on buttons', () => {
@@ -115,7 +117,7 @@ describe('WorkoutTypeSelector', () => {
 
       const buttons = container.querySelectorAll('button');
       buttons.forEach((button) => {
-        expect(button.className).toContain('rounded-2xl');
+        expect(button.style.borderRadius).toBe('24px');
       });
     });
   });

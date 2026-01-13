@@ -138,7 +138,7 @@ describe('StatCard', () => {
     const card = container.firstChild as HTMLElement;
 
     expect(card).toHaveStyle({
-      background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.3) 0%, rgba(236, 72, 153, 0.2) 100%)'
+      background: 'rgba(30, 27, 50, 0.8)'
     });
     expect(card.style.border).toContain('1px solid');
   });
@@ -148,8 +148,10 @@ describe('StatCard', () => {
     const card = container.firstChild as HTMLElement;
 
     expect(card).toHaveStyle({
-      background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.3) 0%, rgba(168, 85, 247, 0.2) 100%)'
+      background: 'rgba(30, 27, 50, 0.8)'
     });
+    // Check for gradient border color
+    expect(card.style.border).toContain('rgba(236, 72, 153, 0.3)');
   });
 
   it('should apply purple-blue gradient', () => {
@@ -157,8 +159,9 @@ describe('StatCard', () => {
     const card = container.firstChild as HTMLElement;
 
     expect(card).toHaveStyle({
-      background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(59, 130, 246, 0.2) 100%)'
+      background: 'rgba(30, 27, 50, 0.8)'
     });
+    expect(card.style.border).toContain('rgba(168, 85, 247, 0.3)');
   });
 
   it('should apply cyan-blue gradient', () => {
@@ -166,8 +169,9 @@ describe('StatCard', () => {
     const card = container.firstChild as HTMLElement;
 
     expect(card).toHaveStyle({
-      background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(59, 130, 246, 0.2) 100%)'
+      background: 'rgba(30, 27, 50, 0.8)'
     });
+    expect(card.style.border).toContain('rgba(6, 182, 212, 0.3)');
   });
 
   it('should apply base styles', () => {

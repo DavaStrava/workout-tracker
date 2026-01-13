@@ -47,9 +47,13 @@ workout-tracker/
     │   ├── Button.tsx
     │   ├── Input.tsx
     │   ├── Card.tsx
-    │   └── Badge.tsx
+    │   ├── Badge.tsx
+    │   └── ErrorBoundary.tsx
     ├── features/
     │   ├── __tests__/
+    │   │   ├── Auth.test.tsx
+    │   │   ├── CardioLogger.test.tsx
+    │   │   ├── History.test.tsx
     │   │   ├── WorkoutTypeSelector.test.tsx
     │   │   └── WorkoutLogger.test.tsx
     │   ├── Auth.tsx
@@ -158,10 +162,13 @@ src/
 | Area | Tests | Coverage |
 |------|-------|----------|
 | Auth Service | 15 | signUp, signIn, signInWithGoogle, signOut, resetPassword |
+| Auth UI | 37 | Login/signup forms, mode toggle, error display |
 | WorkoutTypeSelector | 14 | Rendering, interactions, styling, accessibility |
 | WorkoutLogger | 27 | Active workout, save routine modal, set management |
-| Components | 40+ | Button, Card, Badge variants and interactions |
-| Analytics Helpers | 10+ | Volume calculation, frequency tracking |
+| CardioLogger | 31 | Cardio exercise logging, intensity, duration tracking |
+| History | 22 | Workout history display, empty state |
+| Components | 53 | Button, Card, Badge variants and interactions |
+| Analytics Helpers | 35 | Volume calculation, frequency tracking |
 
 ### Writing Tests
 
@@ -229,9 +236,10 @@ Workout (workout session with metadata)
 - `CardioLogger.tsx` - Cardio-specific logging interface
 
 **Shared components** (`src/components/`):
-- `Layout.tsx` - Bottom navigation wrapper
+- `Layout.tsx` - Bottom navigation wrapper with accessible tab navigation
 - `Button.tsx`, `Input.tsx`, `Card.tsx` - Reusable UI primitives
 - `Badge.tsx` - Status badges and StatCard component for displaying metrics
+- `ErrorBoundary.tsx` - React error boundary for graceful error handling
 
 ### Analytics Helpers (`src/utils/analyticsHelpers.ts`)
 
@@ -252,6 +260,9 @@ Firebase Authentication with email/password and Google Sign-in:
 - `signIn()` - Sign in with email/password
 - `signInWithGoogle()` - Opens Google OAuth popup
 - `signOut()` - Sign out current user
+- `resetPassword()` - Send password reset email
+
+**Error Handling**: All auth functions return `{ user, error }` objects. Errors are converted to user-friendly messages via `getAuthErrorMessage()` helper (e.g., `auth/email-already-in-use` → "This email is already registered").
 
 **Google Sign-in uses popup flow** for compatibility with Chrome's bounce tracking protection. The redirect flow was causing issues where Chrome would clear the auth state during the redirect chain.
 
@@ -262,6 +273,10 @@ Cloud Firestore for persistent data storage:
 - Routines stored per user
 - Active workout state preserved
 - Automatic migration from localStorage on first login
+
+**Atomic Operations**: `finishWorkoutAtomic()` uses Firestore batch writes to save completed workout and clear active workout atomically, preventing race conditions.
+
+**Error Handling**: All Firestore functions return `{ error }` or `{ data, error }` objects. Errors are converted to user-friendly messages via `getFirestoreErrorMessage()` helper.
 
 ### Styling
 
@@ -293,6 +308,12 @@ Uses Flexbox/Grid for layout, Framer Motion for animations, and TailwindCSS util
 3. **Active Workout Recovery**: If the app crashes mid-workout, the active workout state is restored from localStorage on next load.
 
 4. **Routine Starting**: `startRoutine()` creates a new workout pre-populated with exercises and empty sets matching the routine template.
+
+5. **Error Boundary**: The app is wrapped in `ErrorBoundary` component that catches React errors and displays a recovery UI with "Try Again" and "Refresh" options.
+
+6. **Input Validation**: Weight inputs are constrained to 0-1000kg, reps to 0-100 to prevent unreasonable values.
+
+7. **Accessibility**: Navigation uses proper ARIA attributes (`role="tablist"`, `aria-selected`). Toggle buttons use `aria-pressed`. All interactive elements have `aria-label` where needed.
 
 ## Common Patterns
 

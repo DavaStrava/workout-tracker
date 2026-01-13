@@ -42,7 +42,7 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
 
     // Render CardioLogger for CARDIO workouts
     if (activeWorkout.type === 'CARDIO') {
-        return <CardioLogger onBack={() => cancelWorkout()} />;
+        return <CardioLogger />;
     }
 
     // Exercise Selector View
@@ -230,15 +230,35 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                                                     type="number"
                                                     style={{ height: '40px', textAlign: 'center', padding: '4px', background: 'rgba(255, 255, 255, 0.05)' }}
                                                     placeholder="-"
+                                                    min="0"
+                                                    max="1000"
+                                                    step="0.5"
                                                     value={set.weight || ''}
-                                                    onChange={(e) => updateSet(exerciseInstance.id, set.id, { weight: parseFloat(e.target.value) || 0 })}
+                                                    onChange={(e) => {
+                                                        const value = parseFloat(e.target.value);
+                                                        if (!isNaN(value) && value >= 0 && value <= 1000) {
+                                                            updateSet(exerciseInstance.id, set.id, { weight: value });
+                                                        } else if (e.target.value === '') {
+                                                            updateSet(exerciseInstance.id, set.id, { weight: 0 });
+                                                        }
+                                                    }}
                                                 />
                                                 <Input
                                                     type="number"
                                                     style={{ height: '40px', textAlign: 'center', padding: '4px', background: 'rgba(255, 255, 255, 0.05)' }}
                                                     placeholder="-"
+                                                    min="0"
+                                                    max="100"
+                                                    step="1"
                                                     value={set.reps || ''}
-                                                    onChange={(e) => updateSet(exerciseInstance.id, set.id, { reps: parseFloat(e.target.value) || 0 })}
+                                                    onChange={(e) => {
+                                                        const value = parseInt(e.target.value, 10);
+                                                        if (!isNaN(value) && value >= 0 && value <= 100) {
+                                                            updateSet(exerciseInstance.id, set.id, { reps: value });
+                                                        } else if (e.target.value === '') {
+                                                            updateSet(exerciseInstance.id, set.id, { reps: 0 });
+                                                        }
+                                                    }}
                                                 />
                                                 <button
                                                     onClick={() => updateSet(exerciseInstance.id, set.id, { completed: !set.completed })}

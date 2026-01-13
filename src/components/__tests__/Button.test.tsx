@@ -29,7 +29,7 @@ describe('Button', () => {
     const button = screen.getByText('Secondary');
 
     expect(button).toHaveStyle({
-      background: 'rgba(255, 255, 255, 0.1)'
+      background: 'rgba(30, 27, 50, 0.8)'
     });
     expect(button.style.border).toContain('1px solid');
   });

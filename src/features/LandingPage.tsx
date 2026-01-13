@@ -115,7 +115,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     icon={<Target size={20} style={{ color: '#c084fc' }} />}
                 />
                 <StatCard
-                    label="lbs Lifted"
+                    label="kg Lifted"
                     value={formatWeight(totalWeight)}
                     gradient="cyan-blue"
                     icon={<TrendingUp size={20} style={{ color: '#06b6d4' }} />}

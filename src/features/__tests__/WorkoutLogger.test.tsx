@@ -173,9 +173,8 @@ describe('WorkoutLogger', () => {
 
       // Click cancel - find the Cancel button within the modal
       const cancelButtons = screen.getAllByRole('button', { name: 'Cancel' });
-      const modalCancelButton = cancelButtons.find(btn =>
-        btn.closest('.fixed')
-      );
+      // Modal Cancel button is the last one added
+      const modalCancelButton = cancelButtons[cancelButtons.length - 1];
       if (modalCancelButton) {
         await user.click(modalCancelButton);
       }
@@ -194,8 +193,8 @@ describe('WorkoutLogger', () => {
       await user.click(screen.getByTitle('Save as Routine'));
       expect(screen.getByPlaceholderText('Routine name')).toBeInTheDocument();
 
-      // Click the backdrop (the fixed overlay) - use the outer div
-      const backdrop = document.querySelector('.fixed.inset-0.z-50');
+      // Click the backdrop - find element with position fixed using inline styles
+      const backdrop = document.querySelector('[style*="position: fixed"]');
       if (backdrop) {
         // Click directly on the backdrop, not on the modal content
         await user.click(backdrop);

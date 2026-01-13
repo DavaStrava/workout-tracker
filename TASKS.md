@@ -16,3 +16,12 @@
 - [x] Verification
     - [x] Test on mobile viewport <!-- id: 10 -->
     - [x] Verify data persistence <!-- id: 11 -->
+- [x] Code Quality & Reliability
+    - [x] Replace `any` types with proper error handling <!-- id: 12 -->
+    - [x] Add ErrorBoundary component <!-- id: 13 -->
+    - [x] Fix race condition in finishWorkout with atomic batch writes <!-- id: 14 -->
+    - [x] Fix stale closure in migration useEffect <!-- id: 15 -->
+    - [x] Add input validation for weight/reps <!-- id: 16 -->
+    - [x] Add accessibility attributes (ARIA) <!-- id: 17 -->
+    - [x] Fix unit consistency (kg throughout) <!-- id: 18 -->
+    - [x] Expand test coverage (234 tests passing) <!-- id: 19 -->

@@ -6,6 +6,7 @@ import { Analytics } from './features/Analytics';
 import { Auth } from './features/Auth';
 import { WorkoutProvider, useWorkout } from './hooks/useWorkoutStore';
 import { Button } from './components/Button';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { signOut } from './services/auth';
 
 const AppContent: React.FC = () => {
@@ -69,8 +70,10 @@ const AppContent: React.FC = () => {
 
 export default function App() {
   return (
-    <WorkoutProvider>
-      <AppContent />
-    </WorkoutProvider>
+    <ErrorBoundary>
+      <WorkoutProvider>
+        <AppContent />
+      </WorkoutProvider>
+    </ErrorBoundary>
   );
 }

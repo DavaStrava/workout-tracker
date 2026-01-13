@@ -37,22 +37,29 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
                 zIndex: 50,
                 padding: '8px 16px',
             }}>
-                <div style={{
-                    margin: '0 auto',
-                    maxWidth: '448px',
-                    height: '80px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-around',
-                    padding: '0 12px',
-                    marginBottom: '16px',
-                    background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(236, 72, 153, 0.2) 50%, rgba(168, 85, 247, 0.2) 100%)',
-                    backdropFilter: 'blur(24px)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '24px',
-                    boxShadow: '0 20px 40px rgba(236, 72, 153, 0.3)',
-                }}>
+                <div
+                    role="tablist"
+                    aria-label="Main navigation"
+                    style={{
+                        margin: '0 auto',
+                        maxWidth: '448px',
+                        height: '80px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-around',
+                        padding: '0 12px',
+                        marginBottom: '16px',
+                        background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(236, 72, 153, 0.2) 50%, rgba(168, 85, 247, 0.2) 100%)',
+                        backdropFilter: 'blur(24px)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        borderRadius: '24px',
+                        boxShadow: '0 20px 40px rgba(236, 72, 153, 0.3)',
+                    }}
+                >
                     <button
+                        role="tab"
+                        aria-selected={activeTab === 'workout'}
+                        aria-label="Workout tab"
                         onClick={() => onTabChange('workout')}
                         style={{
                             display: 'flex',
@@ -89,6 +96,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
                     </button>
 
                     <button
+                        role="tab"
+                        aria-selected={activeTab === 'analytics'}
+                        aria-label="Analytics tab"
                         onClick={() => onTabChange('analytics')}
                         style={{
                             display: 'flex',
@@ -125,6 +135,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
                     </button>
 
                     <button
+                        role="tab"
+                        aria-selected={activeTab === 'history'}
+                        aria-label="History tab"
                         onClick={() => onTabChange('history')}
                         style={{
                             display: 'flex',
