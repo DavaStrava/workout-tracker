@@ -54,6 +54,11 @@ workout-tracker/
     ├── utils/
     │   ├── analyticsHelpers.ts
     │   └── styles.ts
+    ├── services/
+    │   ├── auth.ts
+    │   └── firestore.ts
+    ├── config/
+    │   └── firebase.ts
     └── assets/
         └── react.svg
 ```
@@ -138,6 +143,27 @@ Pure functions for computing workout stats:
 
 **Important**: These functions read from the entire workout history array. For MVP scale (<1000 workouts), this is acceptable. If performance becomes an issue, consider indexing or aggregation strategies.
 
+### Authentication (`src/services/auth.ts`)
+
+Firebase Authentication with email/password and Google Sign-in:
+- `signUp()` - Create new user with email/password
+- `signIn()` - Sign in with email/password
+- `signInWithGoogle()` - Initiates Google OAuth redirect flow
+- `handleGoogleRedirect()` - Processes redirect result on app load
+- `signOut()` - Sign out current user
+
+**Google Sign-in uses redirect flow** (not popup) for better mobile and production compatibility. The `handleGoogleRedirect()` function is called on app initialization in `useWorkoutStore.tsx` to complete the OAuth flow after redirect.
+
+**Firebase Console requirement**: The production domain must be added to Firebase Console → Authentication → Settings → Authorized domains.
+
+### Firestore (`src/services/firestore.ts`)
+
+Cloud Firestore for persistent data storage:
+- Workout history synced per user
+- Routines stored per user
+- Active workout state preserved
+- Automatic migration from localStorage on first login
+
 ### Styling
 
 **Vibrant Sunset Theme**: The app uses a consistent dark purple theme:
@@ -182,7 +208,8 @@ Create a new helper in `analyticsHelpers.ts` that accepts `Workout[]` and return
 
 ## Technical Constraints
 
-- **No backend**: All data is localStorage only. Export/import features (if added) should use JSON download/upload.
+- **Firebase backend**: Uses Firebase Auth for authentication and Firestore for data persistence. Falls back to localStorage when not authenticated.
+- **Environment variables**: Firebase config requires `VITE_FIREBASE_*` environment variables (see `.env.example` or Vercel dashboard).
 - **Mobile-first**: UI is optimized for mobile touch targets. Test in Chrome DevTools mobile view.
 - **PWA ready**: The app can be added to home screen. Ensure manifest and service worker (if added) are configured correctly.
 - **React 19**: Uses latest React features including automatic batching.
