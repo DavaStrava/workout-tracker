@@ -31,3 +31,9 @@
     - [x] Handle existing user migration (no Firestore doc) <!-- id: 22 -->
     - [x] Add registration closed UI banner <!-- id: 23 -->
     - [x] Add Firestore service tests (23 tests) <!-- id: 24 -->
+- [x] UX Improvements
+    - [x] Replace exercise selector with muscle group visual selection <!-- id: 25 -->
+    - [x] Create anatomical SVG icons for muscle groups <!-- id: 26 -->
+    - [x] Auto-show muscle groups when starting strength workout <!-- id: 27 -->
+    - [x] Add back button navigation throughout exercise selection flow <!-- id: 28 -->
+    - [x] Add MuscleGroupSelector tests (15 tests) <!-- id: 29 -->

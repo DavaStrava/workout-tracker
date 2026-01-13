@@ -9,6 +9,9 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { AnimatePresence, motion } from 'framer-motion';
 import { getLastPerformance } from '../utils/analyticsHelpers';
+import { MuscleGroupSelector } from '../components/MuscleGroupSelector';
+
+type ExerciseSelectorStep = 'hidden' | 'muscle-group' | 'exercise-list';
 
 export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' | 'analytics') => void }> = ({ onNavigate }) => {
     const {
@@ -17,9 +20,43 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
         saveRoutine
     } = useWorkout();
 
-    const [showExerciseSelector, setShowExerciseSelector] = useState(false);
-    const [selectedBodyArea, setSelectedBodyArea] = useState<BodyArea | 'All'>('All');
+    const [exerciseSelectorStep, setExerciseSelectorStep] = useState<ExerciseSelectorStep>('hidden');
+    const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<BodyArea | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Determine if we should show muscle selector (empty workout or user opened it)
+    const showMuscleGroupStep = exerciseSelectorStep === 'muscle-group' ||
+        (activeWorkout && activeWorkout.exercises.length === 0 && exerciseSelectorStep === 'hidden');
+
+    // Navigation handlers for exercise selector
+    const handleOpenExerciseSelector = () => {
+        setExerciseSelectorStep('muscle-group');
+        setSelectedMuscleGroup(null);
+        setSearchQuery('');
+    };
+
+    const handleMuscleGroupSelect = (bodyArea: BodyArea) => {
+        setSelectedMuscleGroup(bodyArea);
+        setExerciseSelectorStep('exercise-list');
+    };
+
+    const handleBackFromExerciseList = () => {
+        setExerciseSelectorStep('muscle-group');
+    };
+
+    const handleBackFromMuscleGroup = () => {
+        // If workout has no exercises, cancel the workout entirely
+        if (activeWorkout && activeWorkout.exercises.length === 0) {
+            cancelWorkout();
+        } else {
+            setExerciseSelectorStep('hidden');
+        }
+    };
+
+    const handleExerciseSelect = (exerciseId: string) => {
+        addExercise(exerciseId);
+        setExerciseSelectorStep('hidden');
+    };
     const [showRoutineModal, setShowRoutineModal] = useState(false);
     const [routineName, setRoutineName] = useState('');
 
@@ -45,25 +82,58 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
         return <CardioLogger />;
     }
 
-    // Exercise Selector View
-    if (showExerciseSelector) {
-        const areas: (BodyArea | 'All')[] = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio'];
-        const filteredExercises = EXERCISES.filter(e => {
-            const matchesArea = selectedBodyArea === 'All' || e.bodyArea === selectedBodyArea;
-            const matchesSearch = e.name.toLowerCase().includes(searchQuery.toLowerCase());
-            return matchesArea && matchesSearch;
-        });
-
+    // Exercise Selector - Muscle Group Step (also shown when workout has no exercises)
+    if (showMuscleGroupStep) {
         return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%', paddingBottom: '80px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <Button variant="ghost" size="icon" onClick={() => setShowExerciseSelector(false)}>
+                    <Button variant="ghost" size="icon" onClick={handleBackFromMuscleGroup} aria-label="Go back">
                         <ChevronLeft size={24} />
                     </Button>
-                    <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff' }}>Add Exercise</h2>
+                    <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff' }}>Select Muscle Group</h2>
                 </div>
 
-                <div style={{ position: 'sticky', top: 0, zIndex: 10, backdropFilter: 'blur(12px)', paddingBottom: '16px', paddingTop: '8px', marginTop: '-8px', display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(26, 22, 37, 0.9)' }}>
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key="muscle-grid"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <MuscleGroupSelector onSelect={handleMuscleGroupSelect} />
+                    </motion.div>
+                </AnimatePresence>
+            </div>
+        );
+    }
+
+    // Exercise Selector - Exercise List Step
+    if (exerciseSelectorStep === 'exercise-list' && selectedMuscleGroup) {
+        const filteredExercises = EXERCISES.filter(e => {
+            const matchesArea = e.bodyArea === selectedMuscleGroup;
+            const matchesSearch = e.name.toLowerCase().includes(searchQuery.toLowerCase());
+            const isNotCardio = !e.isCardio;
+            return matchesArea && matchesSearch && isNotCardio;
+        });
+
+        return (
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key="exercise-list"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.2 }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%', paddingBottom: '80px' }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <Button variant="ghost" size="icon" onClick={handleBackFromExerciseList} aria-label="Go back">
+                            <ChevronLeft size={24} />
+                        </Button>
+                        <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff' }}>{selectedMuscleGroup}</h2>
+                    </div>
+
                     <div style={{ position: 'relative' }}>
                         <Search style={{ position: 'absolute', left: '14px', top: '14px', color: 'rgba(255, 255, 255, 0.4)' }} size={18} />
                         <Input
@@ -74,73 +144,38 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                         />
                     </div>
 
-                    <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '8px' }}>
-                        {areas.map(area => {
-                            const isActive = selectedBodyArea === area;
-                            return (
-                                <button
-                                    key={area}
-                                    onClick={() => setSelectedBodyArea(area)}
-                                    style={{
-                                        padding: '10px 18px',
-                                        borderRadius: '20px',
-                                        fontSize: '14px',
-                                        fontWeight: 600,
-                                        whiteSpace: 'nowrap',
-                                        transition: 'all 0.2s',
-                                        cursor: 'pointer',
-                                        border: isActive ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
-                                        background: isActive
-                                            ? 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)'
-                                            : 'rgba(255, 255, 255, 0.05)',
-                                        color: isActive ? '#fff' : 'rgba(255, 255, 255, 0.6)',
-                                        boxShadow: isActive ? '0 4px 12px rgba(236, 72, 153, 0.3)' : 'none',
-                                    }}
-                                >
-                                    {area}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {filteredExercises.map(ex => (
-                        <motion.div
-                            key={ex.id}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => {
-                                addExercise(ex.id);
-                                setShowExerciseSelector(false);
-                            }}
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                padding: '16px 20px',
-                                borderRadius: '16px',
-                                background: 'rgba(30, 27, 50, 0.8)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                            }}
-                        >
-                            <div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {filteredExercises.map(ex => (
+                            <motion.div
+                                key={ex.id}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => handleExerciseSelect(ex.id)}
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: '16px 20px',
+                                    borderRadius: '16px',
+                                    background: 'rgba(30, 27, 50, 0.8)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                }}
+                            >
                                 <h3 style={{ fontWeight: 600, color: '#fff', fontSize: '16px' }}>{ex.name}</h3>
-                                <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>{ex.bodyArea}</p>
+                                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Plus size={18} style={{ color: 'rgba(255, 255, 255, 0.6)' }} />
+                                </div>
+                            </motion.div>
+                        ))}
+                        {filteredExercises.length === 0 && (
+                            <div style={{ textAlign: 'center', padding: '40px 0', color: 'rgba(255, 255, 255, 0.5)' }}>
+                                No exercises found
                             </div>
-                            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Plus size={18} style={{ color: 'rgba(255, 255, 255, 0.6)' }} />
-                            </div>
-                        </motion.div>
-                    ))}
-                    {filteredExercises.length === 0 && (
-                        <div style={{ textAlign: 'center', padding: '40px 0', color: 'rgba(255, 255, 255, 0.5)' }}>
-                            No exercises found
-                        </div>
-                    )}
-                </div>
-            </div>
+                        )}
+                    </div>
+                </motion.div>
+            </AnimatePresence>
         );
     }
 
@@ -311,7 +346,7 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                 </AnimatePresence>
 
                 <button
-                    onClick={() => setShowExerciseSelector(true)}
+                    onClick={handleOpenExerciseSelector}
                     style={{
                         width: '100%',
                         height: '64px',

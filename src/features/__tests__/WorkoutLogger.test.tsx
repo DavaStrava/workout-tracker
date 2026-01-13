@@ -418,51 +418,135 @@ describe('WorkoutLogger', () => {
     });
   });
 
-  describe('exercise selector', () => {
+  describe('exercise selector - muscle group step (empty workout)', () => {
     beforeEach(() => {
+      // Empty workout - should auto-show muscle group selector
       mockActiveWorkout = createMockWorkout();
     });
 
-    it('should show exercise selector when Add Exercise is clicked', async () => {
+    it('should automatically show muscle group selector for empty workout', () => {
+      render(<WorkoutLogger onNavigate={mockOnNavigate} />);
+
+      // Should show muscle groups immediately without clicking Add Exercise
+      expect(screen.getByText('Select Muscle Group')).toBeInTheDocument();
+    });
+
+    it('should show all 6 muscle group cards', () => {
+      render(<WorkoutLogger onNavigate={mockOnNavigate} />);
+
+      expect(screen.getByText('Chest')).toBeInTheDocument();
+      expect(screen.getByText('Back')).toBeInTheDocument();
+      expect(screen.getByText('Legs')).toBeInTheDocument();
+      expect(screen.getByText('Shoulders')).toBeInTheDocument();
+      expect(screen.getByText('Arms')).toBeInTheDocument();
+      expect(screen.getByText('Core')).toBeInTheDocument();
+    });
+
+    it('should NOT show Cardio in muscle group selector', () => {
+      render(<WorkoutLogger onNavigate={mockOnNavigate} />);
+
+      expect(screen.queryByText('Cardio')).not.toBeInTheDocument();
+    });
+
+    it('should cancel workout when back button is clicked from empty workout', async () => {
+      const user = userEvent.setup();
+
+      render(<WorkoutLogger onNavigate={mockOnNavigate} />);
+
+      expect(screen.getByText('Select Muscle Group')).toBeInTheDocument();
+
+      const backButton = screen.getByRole('button', { name: 'Go back' });
+      await user.click(backButton);
+
+      // Should cancel the workout (go back to landing page)
+      expect(mockCancelWorkout).toHaveBeenCalled();
+    });
+  });
+
+  describe('exercise selector - muscle group step (with exercises)', () => {
+    beforeEach(() => {
+      // Workout with exercises - should show workout view with Add Exercise button
+      mockActiveWorkout = createMockWorkout({
+        exercises: [createMockExercise()],
+      });
+    });
+
+    it('should show muscle group selector when Add Exercise is clicked', async () => {
       const user = userEvent.setup();
 
       render(<WorkoutLogger onNavigate={mockOnNavigate} />);
 
       await user.click(screen.getByText('Add Exercise'));
 
+      expect(screen.getByText('Select Muscle Group')).toBeInTheDocument();
+    });
+
+    it('should go back to workout when back button is clicked', async () => {
+      const user = userEvent.setup();
+
+      render(<WorkoutLogger onNavigate={mockOnNavigate} />);
+
+      await user.click(screen.getByText('Add Exercise'));
+      expect(screen.getByText('Select Muscle Group')).toBeInTheDocument();
+
+      const backButton = screen.getByRole('button', { name: 'Go back' });
+      await user.click(backButton);
+
+      expect(screen.queryByText('Select Muscle Group')).not.toBeInTheDocument();
+      expect(screen.getByText('Add Exercise')).toBeInTheDocument();
+    });
+  });
+
+  describe('exercise selector - exercise list step', () => {
+    beforeEach(() => {
+      // Empty workout - auto-shows muscle group selector
+      mockActiveWorkout = createMockWorkout();
+    });
+
+    it('should show exercise list when muscle group is selected', async () => {
+      const user = userEvent.setup();
+
+      render(<WorkoutLogger onNavigate={mockOnNavigate} />);
+
+      // Muscle groups shown automatically for empty workout
+      await user.click(screen.getByText('Chest'));
+
+      expect(screen.getByText('Bench Press')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('Search exercises...')).toBeInTheDocument();
     });
 
-    it('should show body area filter pills', async () => {
+    it('should show muscle group name as header', async () => {
       const user = userEvent.setup();
 
       render(<WorkoutLogger onNavigate={mockOnNavigate} />);
 
-      await user.click(screen.getByText('Add Exercise'));
+      await user.click(screen.getByText('Chest'));
 
-      // Filter pills are buttons
-      expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();
-      // Use getAllByText for body areas as they may appear in both filter and exercise list
-      expect(screen.getAllByText('Chest').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Back').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Legs').length).toBeGreaterThan(0);
+      expect(screen.getByRole('heading', { name: 'Chest' })).toBeInTheDocument();
     });
 
-    it('should go back when back button is clicked', async () => {
+    it('should go back to muscle groups when back button is clicked from exercise list', async () => {
       const user = userEvent.setup();
 
       render(<WorkoutLogger onNavigate={mockOnNavigate} />);
 
-      await user.click(screen.getByText('Add Exercise'));
+      await user.click(screen.getByText('Chest'));
 
-      // Find the back button (ChevronLeft icon button)
-      const buttons = screen.getAllByRole('button');
-      const backButton = buttons[0]; // First button is back
-
+      const backButton = screen.getByRole('button', { name: 'Go back' });
       await user.click(backButton);
 
-      // Should be back to active workout view
-      expect(screen.queryByPlaceholderText('Search exercises...')).not.toBeInTheDocument();
+      expect(screen.getByText('Select Muscle Group')).toBeInTheDocument();
+    });
+
+    it('should call addExercise when exercise is selected', async () => {
+      const user = userEvent.setup();
+
+      render(<WorkoutLogger onNavigate={mockOnNavigate} />);
+
+      await user.click(screen.getByText('Chest'));
+      await user.click(screen.getByText('Bench Press'));
+
+      expect(mockAddExercise).toHaveBeenCalledWith('bench_press');
     });
   });
 

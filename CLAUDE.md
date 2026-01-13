@@ -42,13 +42,16 @@ workout-tracker/
     │   ├── __tests__/
     │   │   ├── Button.test.tsx
     │   │   ├── Card.test.tsx
-    │   │   └── Badge.test.tsx
+    │   │   ├── Badge.test.tsx
+    │   │   └── MuscleGroupSelector.test.tsx
     │   ├── Layout.tsx
     │   ├── Button.tsx
     │   ├── Input.tsx
     │   ├── Card.tsx
     │   ├── Badge.tsx
-    │   └── ErrorBoundary.tsx
+    │   ├── ErrorBoundary.tsx
+    │   ├── MuscleGroupSelector.tsx
+    │   └── MuscleGroupIcons.tsx
     ├── features/
     │   ├── __tests__/
     │   │   ├── Auth.test.tsx
@@ -168,7 +171,8 @@ src/
 | Auth UI | 55 | Login/signup forms, mode toggle, error display, user limit |
 | Firestore Service | 23 | User limit, registration, count, existence checks |
 | WorkoutTypeSelector | 14 | Rendering, interactions, styling, accessibility |
-| WorkoutLogger | 27 | Active workout, save routine modal, set management |
+| WorkoutLogger | 34 | Active workout, save routine modal, set management, muscle group selection |
+| MuscleGroupSelector | 15 | Rendering, interactions, styling, accessibility |
 | CardioLogger | 31 | Cardio exercise logging, intensity, duration tracking |
 | History | 22 | Workout history display, empty state |
 | Components | 53 | Button, Card, Badge variants and interactions |
@@ -244,6 +248,8 @@ Workout (workout session with metadata)
 - `Button.tsx`, `Input.tsx`, `Card.tsx` - Reusable UI primitives
 - `Badge.tsx` - Status badges and StatCard component for displaying metrics
 - `ErrorBoundary.tsx` - React error boundary for graceful error handling
+- `MuscleGroupSelector.tsx` - 2-column grid of muscle group cards for exercise selection
+- `MuscleGroupIcons.tsx` - Anatomical SVG illustrations for each muscle group (Chest, Back, Legs, Shoulders, Arms, Core)
 
 ### Analytics Helpers (`src/utils/analyticsHelpers.ts`)
 
@@ -333,6 +339,8 @@ Uses Flexbox/Grid for layout, Framer Motion for animations, and TailwindCSS util
 6. **Input Validation**: Weight inputs are constrained to 0-1000kg, reps to 0-100 to prevent unreasonable values.
 
 7. **Accessibility**: Navigation uses proper ARIA attributes (`role="tablist"`, `aria-selected`). Toggle buttons use `aria-pressed`. All interactive elements have `aria-label` where needed.
+
+8. **Muscle Group Selection Flow**: When starting a strength workout, users are immediately presented with anatomical muscle group cards (Chest, Back, Legs, Shoulders, Arms, Core). Selecting a muscle group shows exercises for that area. Back buttons allow navigation: from exercise list → muscle groups → cancel workout (if empty) or return to workout (if exercises exist).
 
 ## Common Patterns
 

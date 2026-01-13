@@ -38,9 +38,11 @@ Main wrapper with navigation (bottom tab bar for mobile feel).
 
 #### [NEW] [WorkoutLogger.tsx]
 The clear, focused interface for the active workout.
-- Selector for Body Area -> Exercise.
-- List of added exercises.
-- Input rows for Sets, Reps, Weight.
+- **Muscle Group Selection**: Visual 2-column grid with anatomical SVG icons (MuscleGroupSelector component)
+- Selecting a muscle group shows filtered exercises for that body area
+- Auto-shows muscle groups when starting a new strength workout
+- List of added exercises with set logging
+- Input rows for Sets, Reps, Weight
 
 #### [NEW] [History.tsx]
 View past workouts.
