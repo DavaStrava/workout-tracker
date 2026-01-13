@@ -27,7 +27,18 @@ export const exerciseIcons: Record<string, React.FC<ExerciseIconProps>> = {
   ...coreExerciseIcons,
 };
 
+// Track warned icons to avoid spamming console
+const warnedIcons = new Set<string>();
+
 // Helper function to get icon for an exercise
 export const getExerciseIcon = (exerciseId: string): React.FC<ExerciseIconProps> | null => {
-  return exerciseIcons[exerciseId] || null;
+  const icon = exerciseIcons[exerciseId];
+
+  // Warn in development when icon is missing (only once per exerciseId)
+  if (!icon && import.meta.env.DEV && !warnedIcons.has(exerciseId)) {
+    warnedIcons.add(exerciseId);
+    console.warn(`[ExerciseIcons] Missing icon for exercise: "${exerciseId}"`);
+  }
+
+  return icon || null;
 };

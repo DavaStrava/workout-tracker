@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
 import type { BodyArea, Exercise } from '../types';
@@ -19,13 +19,16 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
   onSearchChange,
   onSelectExercise,
 }) => {
-  // Filter exercises by muscle group and search query
-  const filteredExercises = EXERCISES.filter((e: Exercise) => {
-    const matchesArea = e.bodyArea === muscleGroup;
-    const matchesSearch = e.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const isNotCardio = !e.isCardio;
-    return matchesArea && matchesSearch && isNotCardio;
-  });
+  // Filter exercises by muscle group and search query (memoized for performance)
+  const filteredExercises = useMemo(() =>
+    EXERCISES.filter((e: Exercise) => {
+      const matchesArea = e.bodyArea === muscleGroup;
+      const matchesSearch = e.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const isNotCardio = !e.isCardio;
+      return matchesArea && matchesSearch && isNotCardio;
+    }),
+    [muscleGroup, searchQuery]
+  );
 
   return (
     <div className="flex flex-col gap-4">
