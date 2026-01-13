@@ -26,7 +26,10 @@ export function CardioLogger() {
     getExerciseName,
   } = useWorkout();
 
-  const [showSportSelector, setShowSportSelector] = useState(false);
+  // Show sport selector immediately if no activities added yet
+  const [showSportSelector, setShowSportSelector] = useState(
+    !activeWorkout?.exercises.length
+  );
   const [expandedActivities, setExpandedActivities] = useState<Set<string>>(new Set());
 
   if (!activeWorkout) return null;

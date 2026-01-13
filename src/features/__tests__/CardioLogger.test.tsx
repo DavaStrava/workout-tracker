@@ -422,26 +422,19 @@ describe('CardioLogger', () => {
   });
 
   describe('sport selector', () => {
-    beforeEach(() => {
-      mockActiveWorkout = createMockWorkout();
-    });
-
-    it('should show exercise selector when Add Activity is clicked', async () => {
-      const user = userEvent.setup();
+    it('should show exercise selector immediately when workout has no activities', () => {
+      mockActiveWorkout = createMockWorkout({ exercises: [] });
 
       render(<CardioLogger />);
 
-      await user.click(screen.getByText('Add Activity'));
-
+      // Selector shows immediately for empty workout
       expect(screen.getByText('Select Activity')).toBeInTheDocument();
     });
 
-    it('should show cardio exercises in selector', async () => {
-      const user = userEvent.setup();
+    it('should show cardio exercises in selector', () => {
+      mockActiveWorkout = createMockWorkout({ exercises: [] });
 
       render(<CardioLogger />);
-
-      await user.click(screen.getByText('Add Activity'));
 
       expect(screen.getByText('Running')).toBeInTheDocument();
       expect(screen.getByText('Cycling')).toBeInTheDocument();
@@ -450,39 +443,34 @@ describe('CardioLogger', () => {
 
     it('should call addExercise when activity is selected', async () => {
       const user = userEvent.setup();
+      mockActiveWorkout = createMockWorkout({ exercises: [] });
 
       render(<CardioLogger />);
 
-      await user.click(screen.getByText('Add Activity'));
       await user.click(screen.getByLabelText('Select Running'));
 
       expect(mockAddExercise).toHaveBeenCalledWith('running');
     });
 
-    it('should hide selector after exercise is added', async () => {
-      const user = userEvent.setup();
+    it('should show Add Activity button when workout has activities', () => {
+      mockActiveWorkout = createMockWorkout({
+        exercises: [createMockCardioExercise()],
+      });
 
       render(<CardioLogger />);
 
-      await user.click(screen.getByText('Add Activity'));
-      await user.click(screen.getByLabelText('Select Running'));
-
-      expect(screen.queryByText('Select Activity')).not.toBeInTheDocument();
+      expect(screen.getByText('Add Activity')).toBeInTheDocument();
     });
 
-    it('should go back when back button is clicked', async () => {
+    it('should go back and cancel workout when back button is clicked with no activities', async () => {
       const user = userEvent.setup();
+      mockActiveWorkout = createMockWorkout({ exercises: [] });
 
       render(<CardioLogger />);
 
-      await user.click(screen.getByText('Add Activity'));
-
-      // Find back button by aria-label
       const backButton = screen.getByLabelText('Go back');
-
       await user.click(backButton);
 
-      // When no exercises, back cancels the workout
       expect(mockCancelWorkout).toHaveBeenCalled();
     });
   });
