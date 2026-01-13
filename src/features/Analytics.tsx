@@ -1,11 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
-import { Card } from '../components/Card';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line } from 'recharts';
 import { TrendingUp, Activity, Calendar, Dumbbell, Heart, Zap, ChevronDown } from 'lucide-react';
 import { EXERCISES } from '../data/exercises';
 import { calculateTotalVolume, getWorkoutFrequency, getExerciseProgress, getVolumeByWeek } from '../utils/analyticsHelpers';
-import { cn } from '../utils/styles';
 
 type TimePeriod = 'week' | 'month' | 'year';
 
@@ -53,28 +51,43 @@ export const Analytics: React.FC = () => {
     const strengthExercises = EXERCISES.filter(e => !e.isCardio);
 
     return (
-        <div className="flex flex-col gap-6 pb-24">
-            <header className="mb-2">
-                <h1 className="text-h1 text-gradient">Analytics</h1>
-                <p className="text-zinc-400">Track your progress over time</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '96px' }}>
+            {/* Header */}
+            <header style={{ marginBottom: '8px' }}>
+                <h1 style={{
+                    fontSize: '36px',
+                    fontWeight: 900,
+                    background: 'linear-gradient(135deg, #fb923c 0%, #f472b6 50%, #c084fc 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    marginBottom: '8px',
+                }}>
+                    Analytics
+                </h1>
+                <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>Track your progress over time</p>
             </header>
 
             {/* Time Period Selector */}
-            <div className="flex gap-2">
+            <div style={{ display: 'flex', gap: '12px' }}>
                 {(['week', 'month', 'year'] as TimePeriod[]).map(period => (
                     <button
                         key={period}
                         onClick={() => setTimePeriod(period)}
-                        className={cn(
-                            "flex-1 py-2.5 rounded-xl font-medium text-sm transition-all capitalize",
-                            timePeriod === period
-                                ? "text-white"
-                                : "bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10"
-                        )}
-                        style={timePeriod === period ? {
-                            background: 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)',
-                            boxShadow: '0 4px 15px rgba(236, 72, 153, 0.3)'
-                        } : undefined}
+                        style={{
+                            flex: 1,
+                            padding: '14px 16px',
+                            borderRadius: '16px',
+                            fontWeight: 600,
+                            fontSize: '14px',
+                            transition: 'all 0.2s',
+                            border: timePeriod === period ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+                            background: timePeriod === period
+                                ? 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)'
+                                : 'rgba(255, 255, 255, 0.05)',
+                            color: timePeriod === period ? '#fff' : 'rgba(255, 255, 255, 0.6)',
+                            boxShadow: timePeriod === period ? '0 8px 20px rgba(236, 72, 153, 0.3)' : 'none',
+                        }}
                     >
                         {period === 'week' ? 'This Week' : period === 'month' ? 'This Month' : 'This Year'}
                     </button>
@@ -82,132 +95,185 @@ export const Analytics: React.FC = () => {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-4">
-                <Card variant="glass" className="p-4 flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-zinc-400 text-xs font-medium uppercase tracking-wider">
-                        <Activity size={14} className="text-blue-500" />
-                        Total Volume
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+                <div style={{
+                    background: 'rgba(30, 27, 50, 0.8)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <Activity size={18} style={{ color: '#fb923c' }} />
+                        <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '13px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Volume</span>
                     </div>
-                    <div className="text-2xl font-bold">{formatVolume(totalVolume)} kg</div>
-                </Card>
-                <Card variant="glass" className="p-4 flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-zinc-400 text-xs font-medium uppercase tracking-wider">
-                        <TrendingUp size={14} className="text-emerald-500" />
-                        Total Reps
+                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>{formatVolume(totalVolume)} kg</div>
+                </div>
+                <div style={{
+                    background: 'rgba(30, 27, 50, 0.8)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <TrendingUp size={18} style={{ color: '#10b981' }} />
+                        <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '13px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Reps</span>
                     </div>
-                    <div className="text-2xl font-bold">{totalReps}</div>
-                </Card>
+                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>{totalReps}</div>
+                </div>
             </div>
 
             {/* Workout Frequency by Type */}
-            <Card variant="glass" className="p-4">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <Calendar size={18} className="text-purple-500" />
-                    Workout Frequency
-                </h3>
-                <div className="text-3xl font-bold mb-4">{periodStats.total} workouts</div>
-                <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-blue-500/20 rounded-xl p-3 text-center">
-                        <Dumbbell size={20} className="text-blue-400 mx-auto mb-1" />
-                        <div className="text-xl font-bold text-blue-400">{periodStats.byType.STRENGTH || 0}</div>
-                        <div className="text-xs text-zinc-500">Strength</div>
+            <div style={{
+                background: 'rgba(30, 27, 50, 0.8)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '24px',
+                padding: '24px',
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                    <Calendar size={24} style={{ color: '#c084fc' }} />
+                    <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fff' }}>Workout Frequency</h3>
+                </div>
+                <div style={{ fontSize: '36px', fontWeight: 900, color: '#fff', marginBottom: '20px' }}>{periodStats.total} workouts</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                    <div style={{
+                        background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)',
+                        borderRadius: '16px',
+                        padding: '16px',
+                        textAlign: 'center',
+                    }}>
+                        <Dumbbell size={24} style={{ color: '#fb923c', margin: '0 auto 8px' }} />
+                        <div style={{ fontSize: '24px', fontWeight: 700, color: '#fb923c' }}>{periodStats.byType.STRENGTH || 0}</div>
+                        <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)' }}>Strength</div>
                     </div>
-                    <div className="bg-rose-500/20 rounded-xl p-3 text-center">
-                        <Heart size={20} className="text-rose-400 mx-auto mb-1" />
-                        <div className="text-xl font-bold text-rose-400">{periodStats.byType.CARDIO || 0}</div>
-                        <div className="text-xs text-zinc-500">Cardio</div>
+                    <div style={{
+                        background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(168, 85, 247, 0.1) 100%)',
+                        borderRadius: '16px',
+                        padding: '16px',
+                        textAlign: 'center',
+                    }}>
+                        <Heart size={24} style={{ color: '#f472b6', margin: '0 auto 8px' }} />
+                        <div style={{ fontSize: '24px', fontWeight: 700, color: '#f472b6' }}>{periodStats.byType.CARDIO || 0}</div>
+                        <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)' }}>Cardio</div>
                     </div>
-                    <div className="bg-amber-500/20 rounded-xl p-3 text-center">
-                        <Zap size={20} className="text-amber-400 mx-auto mb-1" />
-                        <div className="text-xl font-bold text-amber-400">{periodStats.byType.HIIT || 0}</div>
-                        <div className="text-xs text-zinc-500">HIIT</div>
+                    <div style={{
+                        background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(249, 115, 22, 0.1) 100%)',
+                        borderRadius: '16px',
+                        padding: '16px',
+                        textAlign: 'center',
+                    }}>
+                        <Zap size={24} style={{ color: '#c084fc', margin: '0 auto 8px' }} />
+                        <div style={{ fontSize: '24px', fontWeight: 700, color: '#c084fc' }}>{periodStats.byType.HIIT || 0}</div>
+                        <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)' }}>HIIT</div>
                     </div>
                 </div>
-            </Card>
+            </div>
 
             {/* Volume Chart */}
-            <Card variant="glass" className="p-4">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <TrendingUp size={18} className="text-emerald-500" />
-                    Weekly Volume Trend
-                </h3>
-                <div className="h-[200px] w-full">
+            <div style={{
+                background: 'rgba(30, 27, 50, 0.8)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '24px',
+                padding: '24px',
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                    <TrendingUp size={24} style={{ color: '#10b981' }} />
+                    <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fff' }}>Weekly Volume Trend</h3>
+                </div>
+                <div style={{ height: '200px', width: '100%' }}>
                     {weeklyVolumeData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={weeklyVolumeData}>
-                                <XAxis dataKey="week" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
+                                <XAxis dataKey="week" stroke="rgba(255, 255, 255, 0.4)" fontSize={11} tickLine={false} axisLine={false} />
                                 <Tooltip
-                                    contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px' }}
+                                    contentStyle={{ backgroundColor: 'rgba(30, 27, 50, 0.95)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px' }}
                                     itemStyle={{ color: '#fff' }}
                                     formatter={(value) => [`${formatVolume(Number(value) || 0)} kg`, 'Volume']}
                                 />
-                                <Bar dataKey="volume" radius={[4, 4, 0, 0]}>
+                                <Bar dataKey="volume" radius={[6, 6, 0, 0]}>
                                     {weeklyVolumeData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.volume > 0 ? '#10b981' : '#27272a'} />
+                                        <Cell key={`cell-${index}`} fill={entry.volume > 0 ? '#10b981' : 'rgba(255, 255, 255, 0.1)'} />
                                     ))}
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     ) : (
-                        <div className="h-full flex items-center justify-center text-zinc-500">
+                        <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255, 255, 255, 0.5)' }}>
                             No volume data yet
                         </div>
                     )}
                 </div>
-            </Card>
+            </div>
 
             {/* Exercise Progress */}
-            <Card variant="glass" className="p-4">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <Dumbbell size={18} className="text-blue-500" />
-                    Exercise Progress
-                </h3>
+            <div style={{
+                background: 'rgba(30, 27, 50, 0.8)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '24px',
+                padding: '24px',
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                    <Dumbbell size={24} style={{ color: '#3b82f6' }} />
+                    <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fff' }}>Exercise Progress</h3>
+                </div>
 
                 {/* Exercise Selector */}
-                <div className="relative mb-4">
+                <div style={{ position: 'relative', marginBottom: '20px' }}>
                     <select
                         value={selectedExercise}
                         onChange={(e) => setSelectedExercise(e.target.value)}
-                        className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-pink-500 backdrop-blur-sm transition-all"
+                        style={{
+                            width: '100%',
+                            appearance: 'none',
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '16px',
+                            padding: '14px 40px 14px 16px',
+                            color: '#fff',
+                            fontSize: '15px',
+                            fontWeight: 500,
+                            outline: 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                        }}
                     >
                         {strengthExercises.map(ex => (
-                            <option key={ex.id} value={ex.id} className="bg-slate-900">{ex.name}</option>
+                            <option key={ex.id} value={ex.id} style={{ background: '#1a1625' }}>{ex.name}</option>
                         ))}
                     </select>
-                    <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                    <ChevronDown size={18} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.5)', pointerEvents: 'none' }} />
                 </div>
 
-                <div className="h-[180px] w-full">
+                <div style={{ height: '180px', width: '100%' }}>
                     {exerciseProgressData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={exerciseProgressData}>
-                                <XAxis dataKey="date" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
-                                <YAxis stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} width={40} />
+                                <XAxis dataKey="date" stroke="rgba(255, 255, 255, 0.4)" fontSize={11} tickLine={false} axisLine={false} />
+                                <YAxis stroke="rgba(255, 255, 255, 0.4)" fontSize={11} tickLine={false} axisLine={false} width={40} />
                                 <Tooltip
-                                    contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px' }}
+                                    contentStyle={{ backgroundColor: 'rgba(30, 27, 50, 0.95)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px' }}
                                     itemStyle={{ color: '#fff' }}
                                     formatter={(value) => [`${Number(value) || 0} kg`, 'Max Weight']}
                                 />
                                 <Line
                                     type="monotone"
                                     dataKey="maxWeight"
-                                    stroke="#3b82f6"
-                                    strokeWidth={2}
-                                    dot={{ fill: '#3b82f6', strokeWidth: 0, r: 4 }}
-                                    activeDot={{ r: 6, fill: '#60a5fa' }}
+                                    stroke="#ec4899"
+                                    strokeWidth={3}
+                                    dot={{ fill: '#ec4899', strokeWidth: 0, r: 5 }}
+                                    activeDot={{ r: 7, fill: '#f472b6' }}
                                 />
                             </LineChart>
                         </ResponsiveContainer>
                     ) : (
-                        <div className="h-full flex items-center justify-center text-zinc-500 text-center">
+                        <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
                             <div>
-                                <p>No data for this exercise yet</p>
-                                <p className="text-xs mt-1">Complete some sets to see your progress!</p>
+                                <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '15px' }}>No data for this exercise yet</p>
+                                <p style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '13px', marginTop: '4px' }}>Complete some sets to see your progress!</p>
                             </div>
                         </div>
                     )}
                 </div>
-            </Card>
+            </div>
         </div>
     );
 };
