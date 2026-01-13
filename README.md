@@ -18,6 +18,7 @@ A mobile-first Progressive Web App for tracking strength training and cardio wor
 
 - React 19 + TypeScript
 - Vite
+- Vitest + React Testing Library (testing)
 - Framer Motion (animations)
 - Recharts (analytics charts)
 - Firebase Auth + Firestore (authentication & data persistence)
@@ -35,6 +36,21 @@ npm run dev
 # Build for production
 npm run build
 ```
+
+## Testing
+
+```bash
+# Run tests in watch mode
+npm test
+
+# Run tests once
+npm test -- --run
+
+# Run with coverage
+npm test -- --coverage
+```
+
+Tests cover auth service, components (Button, Card, Badge), and features (WorkoutLogger, WorkoutTypeSelector).
 
 ## Deployment
 

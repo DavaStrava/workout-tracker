@@ -20,6 +20,7 @@ workout-tracker/
 ├── package-lock.json
 ├── index.html
 ├── vite.config.ts
+├── vitest.config.ts
 ├── eslint.config.js
 ├── tsconfig.json
 ├── tsconfig.app.json
@@ -31,17 +32,26 @@ workout-tracker/
     ├── App.tsx
     ├── App.css
     ├── index.css
+    ├── test/
+    │   └── setup.ts
     ├── types/
     │   └── index.ts
     ├── hooks/
     │   └── useWorkoutStore.tsx
     ├── components/
+    │   ├── __tests__/
+    │   │   ├── Button.test.tsx
+    │   │   ├── Card.test.tsx
+    │   │   └── Badge.test.tsx
     │   ├── Layout.tsx
     │   ├── Button.tsx
     │   ├── Input.tsx
     │   ├── Card.tsx
     │   └── Badge.tsx
     ├── features/
+    │   ├── __tests__/
+    │   │   ├── WorkoutTypeSelector.test.tsx
+    │   │   └── WorkoutLogger.test.tsx
     │   ├── Auth.tsx
     │   ├── LandingPage.tsx
     │   ├── WorkoutTypeSelector.tsx
@@ -53,9 +63,11 @@ workout-tracker/
     │   └── exercises.ts
     ├── utils/
     │   ├── analyticsHelpers.ts
+    │   ├── analyticsHelpers.test.ts
     │   └── styles.ts
     ├── services/
     │   ├── auth.ts
+    │   ├── auth.test.ts
     │   └── firestore.ts
     ├── config/
     │   └── firebase.ts
@@ -111,6 +123,74 @@ npm run lint
 
 # Preview production build
 npm preview
+
+# Run tests
+npm test              # Watch mode
+npm test -- --run     # Run once
+npm test -- --coverage # With coverage report
+```
+
+## Testing
+
+Uses **Vitest** with **React Testing Library** for unit and integration tests.
+
+### Test File Locations
+
+```
+src/
+├── services/
+│   └── auth.test.ts              # Auth service tests
+├── components/__tests__/
+│   ├── Button.test.tsx           # Button component tests
+│   ├── Card.test.tsx             # Card component tests
+│   └── Badge.test.tsx            # Badge component tests
+├── features/__tests__/
+│   ├── WorkoutTypeSelector.test.tsx  # Workout type picker tests
+│   └── WorkoutLogger.test.tsx        # Workout logging tests
+├── utils/
+│   └── analyticsHelpers.test.ts  # Analytics helper tests
+└── test/
+    └── setup.ts                  # Test setup (jest-dom matchers)
+```
+
+### Test Coverage
+
+| Area | Tests | Coverage |
+|------|-------|----------|
+| Auth Service | 15 | signUp, signIn, signInWithGoogle, signOut, resetPassword |
+| WorkoutTypeSelector | 14 | Rendering, interactions, styling, accessibility |
+| WorkoutLogger | 27 | Active workout, save routine modal, set management |
+| Components | 40+ | Button, Card, Badge variants and interactions |
+| Analytics Helpers | 10+ | Volume calculation, frequency tracking |
+
+### Writing Tests
+
+**Component tests** follow this pattern:
+```typescript
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+describe('ComponentName', () => {
+  it('should do something', async () => {
+    const user = userEvent.setup();
+    render(<Component />);
+    await user.click(screen.getByText('Button'));
+    expect(screen.getByText('Result')).toBeInTheDocument();
+  });
+});
+```
+
+**Mocking the workout context**:
+```typescript
+vi.mock('../../hooks/useWorkoutStore', () => ({
+  useWorkout: () => ({
+    activeWorkout: mockWorkout,
+    history: [],
+    saveRoutine: vi.fn(),
+    // ... other methods
+  }),
+}));
 ```
 
 ## Architecture
