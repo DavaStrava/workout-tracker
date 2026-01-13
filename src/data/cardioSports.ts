@@ -1,0 +1,163 @@
+import type { CardioSportConfig } from '../types';
+
+export const CARDIO_SPORTS: CardioSportConfig[] = [
+  {
+    id: 'running',
+    name: 'Running',
+    icon: 'PersonStanding',
+    color: '#22c55e',
+    fields: [
+      { type: 'distance', label: 'Distance', unit: 'km', required: true, min: 0, max: 500, step: 0.1, placeholder: '5.0' },
+      { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '30' },
+      { type: 'pace', label: 'Pace', unit: 'min/km', required: false, isComputed: true },
+      { type: 'heartRate', label: 'Avg Heart Rate', unit: 'bpm', required: false, min: 40, max: 220, placeholder: '145' },
+      { type: 'calories', label: 'Calories', unit: 'kcal', required: false, min: 0, max: 5000, placeholder: '350' },
+      { type: 'elevation', label: 'Elevation Gain', unit: 'm', required: false, min: 0, max: 10000, placeholder: '100' },
+      { type: 'cadence', label: 'Cadence', unit: 'spm', required: false, min: 0, max: 250, placeholder: '175' },
+    ],
+  },
+  {
+    id: 'cycling',
+    name: 'Cycling',
+    icon: 'Bike',
+    color: '#f97316',
+    fields: [
+      { type: 'distance', label: 'Distance', unit: 'km', required: true, min: 0, max: 500, step: 0.1, placeholder: '25.0' },
+      { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '60' },
+      { type: 'speed', label: 'Avg Speed', unit: 'km/h', required: false, isComputed: true },
+      { type: 'heartRate', label: 'Avg Heart Rate', unit: 'bpm', required: false, min: 40, max: 220, placeholder: '135' },
+      { type: 'calories', label: 'Calories', unit: 'kcal', required: false, min: 0, max: 5000, placeholder: '500' },
+      { type: 'elevation', label: 'Elevation Gain', unit: 'm', required: false, min: 0, max: 10000, placeholder: '200' },
+      { type: 'cadence', label: 'Cadence', unit: 'rpm', required: false, min: 0, max: 150, placeholder: '85' },
+    ],
+  },
+  {
+    id: 'swimming',
+    name: 'Swimming',
+    icon: 'Waves',
+    color: '#3b82f6',
+    fields: [
+      { type: 'distance', label: 'Distance', unit: 'm', required: true, min: 0, max: 20000, step: 25, placeholder: '1500' },
+      { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '45' },
+      { type: 'laps', label: 'Laps', unit: '', required: false, min: 0, max: 500, placeholder: '60' },
+      { type: 'strokeType', label: 'Stroke Type', unit: '', required: false },
+      { type: 'strokeRate', label: 'Stroke Rate', unit: 'spm', required: false, min: 0, max: 100, placeholder: '25' },
+      { type: 'heartRate', label: 'Avg Heart Rate', unit: 'bpm', required: false, min: 40, max: 220, placeholder: '130' },
+      { type: 'calories', label: 'Calories', unit: 'kcal', required: false, min: 0, max: 5000, placeholder: '400' },
+    ],
+  },
+  {
+    id: 'rowing',
+    name: 'Rowing',
+    icon: 'Ship',
+    color: '#8b5cf6',
+    fields: [
+      { type: 'distance', label: 'Distance', unit: 'm', required: true, min: 0, max: 50000, step: 100, placeholder: '5000' },
+      { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '20' },
+      { type: 'pace', label: 'Pace', unit: '/500m', required: false, isComputed: true },
+      { type: 'strokes', label: 'Total Strokes', unit: '', required: false, min: 0, max: 10000, placeholder: '600' },
+      { type: 'strokeRate', label: 'Stroke Rate', unit: 'spm', required: false, min: 0, max: 50, placeholder: '28' },
+      { type: 'heartRate', label: 'Avg Heart Rate', unit: 'bpm', required: false, min: 40, max: 220, placeholder: '155' },
+      { type: 'calories', label: 'Calories', unit: 'kcal', required: false, min: 0, max: 5000, placeholder: '300' },
+    ],
+  },
+  {
+    id: 'walking',
+    name: 'Walking',
+    icon: 'Footprints',
+    color: '#10b981',
+    fields: [
+      { type: 'distance', label: 'Distance', unit: 'km', required: true, min: 0, max: 100, step: 0.1, placeholder: '3.0' },
+      { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '45' },
+      { type: 'pace', label: 'Pace', unit: 'min/km', required: false, isComputed: true },
+      { type: 'heartRate', label: 'Avg Heart Rate', unit: 'bpm', required: false, min: 40, max: 220, placeholder: '100' },
+      { type: 'calories', label: 'Calories', unit: 'kcal', required: false, min: 0, max: 2000, placeholder: '150' },
+      { type: 'cadence', label: 'Steps', unit: 'steps', required: false, min: 0, max: 50000, placeholder: '5000' },
+    ],
+  },
+  {
+    id: 'hiking',
+    name: 'Hiking',
+    icon: 'Mountain',
+    color: '#84cc16',
+    fields: [
+      { type: 'distance', label: 'Distance', unit: 'km', required: true, min: 0, max: 100, step: 0.1, placeholder: '8.0' },
+      { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '180' },
+      { type: 'pace', label: 'Pace', unit: 'min/km', required: false, isComputed: true },
+      { type: 'elevation', label: 'Elevation Gain', unit: 'm', required: false, min: 0, max: 10000, placeholder: '500' },
+      { type: 'heartRate', label: 'Avg Heart Rate', unit: 'bpm', required: false, min: 40, max: 220, placeholder: '120' },
+      { type: 'calories', label: 'Calories', unit: 'kcal', required: false, min: 0, max: 5000, placeholder: '600' },
+    ],
+  },
+  {
+    id: 'elliptical',
+    name: 'Elliptical',
+    icon: 'CircleDot',
+    color: '#ec4899',
+    fields: [
+      { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '30' },
+      { type: 'distance', label: 'Distance', unit: 'km', required: false, min: 0, max: 50, step: 0.1, placeholder: '5.0' },
+      { type: 'heartRate', label: 'Avg Heart Rate', unit: 'bpm', required: false, min: 40, max: 220, placeholder: '140' },
+      { type: 'calories', label: 'Calories', unit: 'kcal', required: false, min: 0, max: 2000, placeholder: '300' },
+      { type: 'cadence', label: 'Strides/min', unit: 'spm', required: false, min: 0, max: 200, placeholder: '150' },
+    ],
+  },
+  {
+    id: 'stair_climbing',
+    name: 'Stair Climbing',
+    icon: 'TrendingUp',
+    color: '#f59e0b',
+    fields: [
+      { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '20' },
+      { type: 'elevation', label: 'Floors', unit: 'floors', required: false, min: 0, max: 500, placeholder: '50' },
+      { type: 'heartRate', label: 'Avg Heart Rate', unit: 'bpm', required: false, min: 40, max: 220, placeholder: '150' },
+      { type: 'calories', label: 'Calories', unit: 'kcal', required: false, min: 0, max: 2000, placeholder: '250' },
+      { type: 'cadence', label: 'Steps/min', unit: 'spm', required: false, min: 0, max: 150, placeholder: '60' },
+    ],
+  },
+  {
+    id: 'indoor_cycling',
+    name: 'Indoor Cycling',
+    icon: 'Bike',
+    color: '#ef4444',
+    fields: [
+      { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '45' },
+      { type: 'distance', label: 'Distance', unit: 'km', required: false, min: 0, max: 100, step: 0.1, placeholder: '20.0' },
+      { type: 'speed', label: 'Avg Speed', unit: 'km/h', required: false, isComputed: true },
+      { type: 'heartRate', label: 'Avg Heart Rate', unit: 'bpm', required: false, min: 40, max: 220, placeholder: '145' },
+      { type: 'calories', label: 'Calories', unit: 'kcal', required: false, min: 0, max: 2000, placeholder: '450' },
+      { type: 'cadence', label: 'Cadence', unit: 'rpm', required: false, min: 0, max: 150, placeholder: '90' },
+    ],
+  },
+  {
+    id: 'cross_country_skiing',
+    name: 'XC Skiing',
+    icon: 'MountainSnow',
+    color: '#06b6d4',
+    fields: [
+      { type: 'distance', label: 'Distance', unit: 'km', required: true, min: 0, max: 100, step: 0.1, placeholder: '10.0' },
+      { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '60' },
+      { type: 'pace', label: 'Pace', unit: 'min/km', required: false, isComputed: true },
+      { type: 'elevation', label: 'Elevation Gain', unit: 'm', required: false, min: 0, max: 5000, placeholder: '300' },
+      { type: 'heartRate', label: 'Avg Heart Rate', unit: 'bpm', required: false, min: 40, max: 220, placeholder: '150' },
+      { type: 'calories', label: 'Calories', unit: 'kcal', required: false, min: 0, max: 5000, placeholder: '700' },
+    ],
+  },
+  {
+    id: 'jump_rope',
+    name: 'Jump Rope',
+    icon: 'Zap',
+    color: '#a855f7',
+    fields: [
+      { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 120, placeholder: '15' },
+      { type: 'strokes', label: 'Total Jumps', unit: '', required: false, min: 0, max: 10000, placeholder: '500' },
+      { type: 'heartRate', label: 'Avg Heart Rate', unit: 'bpm', required: false, min: 40, max: 220, placeholder: '160' },
+      { type: 'calories', label: 'Calories', unit: 'kcal', required: false, min: 0, max: 1000, placeholder: '200' },
+    ],
+  },
+];
+
+// Helper to get sport config by ID
+export function getSportConfig(sportId: string): CardioSportConfig | undefined {
+  return CARDIO_SPORTS.find(sport => sport.id === sportId);
+}

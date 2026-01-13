@@ -58,18 +58,91 @@ vi.mock('../../hooks/useWorkoutStore', () => ({
   }),
 }));
 
-// Mock the EXERCISES data
+// Mock the EXERCISES data with sportId
 vi.mock('../../data/exercises', () => ({
   EXERCISES: [
-    { id: 'running', name: 'Running', bodyArea: 'Cardio', isCardio: true },
-    { id: 'cycling', name: 'Cycling', bodyArea: 'Cardio', isCardio: true },
-    { id: 'swimming', name: 'Swimming', bodyArea: 'Cardio', isCardio: true },
+    { id: 'running', name: 'Running', bodyArea: 'Cardio', isCardio: true, sportId: 'running' },
+    { id: 'cycling', name: 'Cycling', bodyArea: 'Cardio', isCardio: true, sportId: 'cycling' },
+    { id: 'swimming', name: 'Swimming', bodyArea: 'Cardio', isCardio: true, sportId: 'swimming' },
   ],
 }));
 
-describe('CardioLogger', () => {
-  const mockOnBack = vi.fn();
+// Mock cardio sports config
+vi.mock('../../data/cardioSports', () => ({
+  CARDIO_SPORTS: [
+    {
+      id: 'running',
+      name: 'Running',
+      icon: 'PersonStanding',
+      color: '#22c55e',
+      fields: [
+        { type: 'distance', label: 'Distance', unit: 'km', required: true, min: 0, max: 500, step: 0.1, placeholder: '5.0' },
+        { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '30' },
+        { type: 'pace', label: 'Pace', unit: 'min/km', required: false, isComputed: true },
+        { type: 'heartRate', label: 'Avg Heart Rate', unit: 'bpm', required: false, min: 40, max: 220, placeholder: '145' },
+      ],
+    },
+    {
+      id: 'cycling',
+      name: 'Cycling',
+      icon: 'Bike',
+      color: '#f97316',
+      fields: [
+        { type: 'distance', label: 'Distance', unit: 'km', required: true, min: 0, max: 500, step: 0.1, placeholder: '25.0' },
+        { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '60' },
+      ],
+    },
+    {
+      id: 'swimming',
+      name: 'Swimming',
+      icon: 'Waves',
+      color: '#3b82f6',
+      fields: [
+        { type: 'distance', label: 'Distance', unit: 'm', required: true, min: 0, max: 20000, step: 25, placeholder: '1500' },
+        { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '45' },
+      ],
+    },
+  ],
+  getSportConfig: (sportId: string) => {
+    const sports: Record<string, unknown> = {
+      running: {
+        id: 'running',
+        name: 'Running',
+        icon: 'PersonStanding',
+        color: '#22c55e',
+        fields: [
+          { type: 'distance', label: 'Distance', unit: 'km', required: true, min: 0, max: 500, step: 0.1, placeholder: '5.0' },
+          { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '30' },
+          { type: 'pace', label: 'Pace', unit: 'min/km', required: false, isComputed: true },
+          { type: 'heartRate', label: 'Avg Heart Rate', unit: 'bpm', required: false, min: 40, max: 220, placeholder: '145' },
+        ],
+      },
+      cycling: {
+        id: 'cycling',
+        name: 'Cycling',
+        icon: 'Bike',
+        color: '#f97316',
+        fields: [
+          { type: 'distance', label: 'Distance', unit: 'km', required: true, min: 0, max: 500, step: 0.1, placeholder: '25.0' },
+          { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '60' },
+        ],
+      },
+      swimming: {
+        id: 'swimming',
+        name: 'Swimming',
+        icon: 'Waves',
+        color: '#3b82f6',
+        fields: [
+          { type: 'distance', label: 'Distance', unit: 'm', required: true, min: 0, max: 20000, step: 25, placeholder: '1500' },
+          { type: 'duration', label: 'Duration', unit: 'min', required: true, min: 0, max: 1440, placeholder: '45' },
+        ],
+      },
+    };
+    return sports[sportId];
+  },
+}));
 
+describe('CardioLogger', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockActiveWorkout = null;
@@ -79,7 +152,7 @@ describe('CardioLogger', () => {
     it('should return null when there is no active workout', () => {
       mockActiveWorkout = null;
 
-      const { container } = render(<CardioLogger onBack={mockOnBack} />);
+      const { container } = render(<CardioLogger />);
 
       expect(container.firstChild).toBeNull();
     });
@@ -93,35 +166,33 @@ describe('CardioLogger', () => {
     });
 
     it('should render the workout name', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
-      // The workout name "Cardio Session" appears in an h1 element
       const heading = screen.getByRole('heading', { level: 1 });
       expect(heading).toHaveTextContent('Cardio Session');
     });
 
     it('should display "Cardio Session" indicator', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
-      // There are multiple elements with "Cardio Session" - the h1 title and the indicator
       const elements = screen.getAllByText(/Cardio Session/);
       expect(elements.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should render the exercise name', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       expect(screen.getByText(/Running/)).toBeInTheDocument();
     });
 
     it('should render Cancel button', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       expect(screen.getByText('Cancel')).toBeInTheDocument();
     });
 
     it('should render Finish button', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       expect(screen.getByText('Finish')).toBeInTheDocument();
     });
@@ -129,7 +200,7 @@ describe('CardioLogger', () => {
     it('should call cancelWorkout when Cancel is clicked', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       await user.click(screen.getByText('Cancel'));
 
@@ -139,7 +210,7 @@ describe('CardioLogger', () => {
     it('should call finishWorkout when Finish is clicked', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       await user.click(screen.getByText('Finish'));
 
@@ -147,7 +218,7 @@ describe('CardioLogger', () => {
     });
 
     it('should render Add Activity button', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       expect(screen.getByText('Add Activity')).toBeInTheDocument();
     });
@@ -161,15 +232,16 @@ describe('CardioLogger', () => {
     });
 
     it('should render duration input with label', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
-      expect(screen.getByText('Duration (min)')).toBeInTheDocument();
+      // New label format from CardioFieldInput
+      expect(screen.getByText(/Duration/)).toBeInTheDocument();
     });
 
     it('should display current duration value', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
-      // Duration is 1800 seconds = 30 minutes
+      // Duration is 1800 seconds = 30 minutes, displayed in the input
       const durationInput = screen.getByPlaceholderText('30') as HTMLInputElement;
       expect(durationInput.value).toBe('30');
     });
@@ -177,13 +249,12 @@ describe('CardioLogger', () => {
     it('should call updateSet when duration changes', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       const durationInput = screen.getByPlaceholderText('30');
       await user.clear(durationInput);
       await user.type(durationInput, '45');
 
-      // Check that updateSet was called (it's called on each keystroke)
       expect(mockUpdateSet).toHaveBeenCalled();
     });
   });
@@ -196,29 +267,28 @@ describe('CardioLogger', () => {
     });
 
     it('should render distance input with label', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
-      expect(screen.getByText('Distance (km)')).toBeInTheDocument();
+      expect(screen.getByText(/Distance/)).toBeInTheDocument();
     });
 
     it('should display current distance value in km', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
-      // Distance is 5000 meters = 5.0 km
+      // Distance is 5000 meters = 5 km
       const distanceInput = screen.getByPlaceholderText('5.0') as HTMLInputElement;
-      expect(distanceInput.value).toBe('5.0');
+      expect(distanceInput.value).toBe('5');
     });
 
     it('should call updateSet when distance changes', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       const distanceInput = screen.getByPlaceholderText('5.0');
       await user.clear(distanceInput);
       await user.type(distanceInput, '10');
 
-      // Check that updateSet was called (it's called on each keystroke)
       expect(mockUpdateSet).toHaveBeenCalled();
     });
   });
@@ -231,7 +301,7 @@ describe('CardioLogger', () => {
     });
 
     it('should render all intensity buttons', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       expect(screen.getByText('low')).toBeInTheDocument();
       expect(screen.getByText('medium')).toBeInTheDocument();
@@ -241,7 +311,7 @@ describe('CardioLogger', () => {
     it('should call updateSet when intensity button is clicked', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       await user.click(screen.getByText('high'));
 
@@ -253,7 +323,7 @@ describe('CardioLogger', () => {
     it('should call updateSet with low intensity', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       await user.click(screen.getByText('low'));
 
@@ -271,7 +341,7 @@ describe('CardioLogger', () => {
     });
 
     it('should render Mark Complete button', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       expect(screen.getByText('Mark Complete')).toBeInTheDocument();
     });
@@ -279,7 +349,7 @@ describe('CardioLogger', () => {
     it('should call updateSet with completed true when clicked', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       await user.click(screen.getByText('Mark Complete'));
 
@@ -305,7 +375,7 @@ describe('CardioLogger', () => {
         ],
       });
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       expect(screen.getByText('Completed')).toBeInTheDocument();
     });
@@ -320,19 +390,19 @@ describe('CardioLogger', () => {
     });
 
     it('should render Session Notes section', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       expect(screen.getByText('Session Notes')).toBeInTheDocument();
     });
 
     it('should render notes textarea with placeholder', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       expect(screen.getByPlaceholderText('How did you feel? Any notes...')).toBeInTheDocument();
     });
 
     it('should display current notes value', () => {
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       const textarea = screen.getByPlaceholderText('How did you feel? Any notes...');
       expect(textarea).toHaveValue('Felt good today');
@@ -341,7 +411,7 @@ describe('CardioLogger', () => {
     it('should call updateNotes when notes change', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       const textarea = screen.getByPlaceholderText('How did you feel? Any notes...');
       await user.clear(textarea);
@@ -351,7 +421,7 @@ describe('CardioLogger', () => {
     });
   });
 
-  describe('exercise selector', () => {
+  describe('sport selector', () => {
     beforeEach(() => {
       mockActiveWorkout = createMockWorkout();
     });
@@ -359,7 +429,7 @@ describe('CardioLogger', () => {
     it('should show exercise selector when Add Activity is clicked', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       await user.click(screen.getByText('Add Activity'));
 
@@ -369,7 +439,7 @@ describe('CardioLogger', () => {
     it('should show cardio exercises in selector', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       await user.click(screen.getByText('Add Activity'));
 
@@ -381,10 +451,10 @@ describe('CardioLogger', () => {
     it('should call addExercise when activity is selected', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       await user.click(screen.getByText('Add Activity'));
-      await user.click(screen.getByText('Running'));
+      await user.click(screen.getByLabelText('Select Running'));
 
       expect(mockAddExercise).toHaveBeenCalledWith('running');
     });
@@ -392,10 +462,10 @@ describe('CardioLogger', () => {
     it('should hide selector after exercise is added', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       await user.click(screen.getByText('Add Activity'));
-      await user.click(screen.getByText('Running'));
+      await user.click(screen.getByLabelText('Select Running'));
 
       expect(screen.queryByText('Select Activity')).not.toBeInTheDocument();
     });
@@ -403,17 +473,17 @@ describe('CardioLogger', () => {
     it('should go back when back button is clicked', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       await user.click(screen.getByText('Add Activity'));
 
-      // Find back button (ChevronLeft icon button)
-      const buttons = screen.getAllByRole('button');
-      const backButton = buttons[0]; // First button is back
+      // Find back button by aria-label
+      const backButton = screen.getByLabelText('Go back');
 
       await user.click(backButton);
 
-      expect(screen.queryByText('Select Activity')).not.toBeInTheDocument();
+      // When no exercises, back cancels the workout
+      expect(mockCancelWorkout).toHaveBeenCalled();
     });
   });
 
@@ -426,7 +496,7 @@ describe('CardioLogger', () => {
         ],
       });
 
-      render(<CardioLogger onBack={mockOnBack} />);
+      render(<CardioLogger />);
 
       expect(screen.getByText(/Running/)).toBeInTheDocument();
       expect(screen.getByText(/Cycling/)).toBeInTheDocument();

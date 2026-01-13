@@ -74,11 +74,16 @@ export const EXERCISES: Exercise[] = [
   { id: 'side_plank', name: 'Side Plank', bodyArea: 'Obliques' },
   { id: 'woodchop', name: 'Cable Woodchop', bodyArea: 'Obliques' },
 
-  // Cardio (6 exercises)
-  { id: 'running', name: 'Running', bodyArea: 'Cardio', isCardio: true },
-  { id: 'cycling', name: 'Cycling', bodyArea: 'Cardio', isCardio: true },
-  { id: 'rowing', name: 'Rowing', bodyArea: 'Cardio', isCardio: true },
-  { id: 'swimming', name: 'Swimming', bodyArea: 'Cardio', isCardio: true },
-  { id: 'elliptical', name: 'Elliptical', bodyArea: 'Cardio', isCardio: true },
-  { id: 'jump_rope', name: 'Jump Rope', bodyArea: 'Cardio', isCardio: true },
+  // Cardio (11 exercises)
+  { id: 'running', name: 'Running', bodyArea: 'Cardio', isCardio: true, sportId: 'running' },
+  { id: 'cycling', name: 'Cycling', bodyArea: 'Cardio', isCardio: true, sportId: 'cycling' },
+  { id: 'swimming', name: 'Swimming', bodyArea: 'Cardio', isCardio: true, sportId: 'swimming' },
+  { id: 'rowing', name: 'Rowing', bodyArea: 'Cardio', isCardio: true, sportId: 'rowing' },
+  { id: 'walking', name: 'Walking', bodyArea: 'Cardio', isCardio: true, sportId: 'walking' },
+  { id: 'hiking', name: 'Hiking', bodyArea: 'Cardio', isCardio: true, sportId: 'hiking' },
+  { id: 'elliptical', name: 'Elliptical', bodyArea: 'Cardio', isCardio: true, sportId: 'elliptical' },
+  { id: 'stair_climbing', name: 'Stair Climbing', bodyArea: 'Cardio', isCardio: true, sportId: 'stair_climbing' },
+  { id: 'indoor_cycling', name: 'Indoor Cycling', bodyArea: 'Cardio', isCardio: true, sportId: 'indoor_cycling' },
+  { id: 'cross_country_skiing', name: 'XC Skiing', bodyArea: 'Cardio', isCardio: true, sportId: 'cross_country_skiing' },
+  { id: 'jump_rope', name: 'Jump Rope', bodyArea: 'Cardio', isCardio: true, sportId: 'jump_rope' },
 ];
