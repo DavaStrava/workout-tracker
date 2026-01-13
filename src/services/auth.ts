@@ -5,7 +5,8 @@ import {
   sendPasswordResetEmail,
   updateProfile,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   type User,
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -41,13 +42,29 @@ export const signIn = async (email: string, password: string) => {
 };
 
 /**
- * Sign in with Google
+ * Sign in with Google (uses redirect for better mobile/production support)
  */
 export const signInWithGoogle = async () => {
   try {
     const provider = new GoogleAuthProvider();
-    const userCredential = await signInWithPopup(auth, provider);
-    return { user: userCredential.user, error: null };
+    await signInWithRedirect(auth, provider);
+    // This won't return - page will redirect to Google
+    return { user: null, error: null };
+  } catch (error: any) {
+    return { user: null, error: error.message };
+  }
+};
+
+/**
+ * Handle Google redirect result (call on app load)
+ */
+export const handleGoogleRedirect = async () => {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result?.user) {
+      return { user: result.user, error: null };
+    }
+    return { user: null, error: null };
   } catch (error: any) {
     return { user: null, error: error.message };
   }
