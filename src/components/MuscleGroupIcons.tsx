@@ -232,41 +232,54 @@ export const TrapsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
 );
 
 // Biceps - Peaked muscle (front of arm)
-export const BicepsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="biceps" />
-    <g filter="url(#bicepsShadow)">
-      {/* Left biceps - peaked shape */}
-      <path
-        d="M10 25 C5 35 8 50 12 60 C16 70 25 78 35 78 C42 78 45 72 45 65 L45 40 C45 28 40 18 30 15 C20 12 14 18 10 25Z"
-        fill="url(#biceps)"
-      />
-      {/* Biceps peak */}
-      <path
-        d="M15 35 Q22 30 28 38 Q34 46 30 58"
-        stroke="url(#bicepsDark)"
-        strokeWidth="2"
-        fill="none"
-        opacity="0.5"
-      />
-      {/* Short head line */}
-      <path d="M35 22 L38 70" stroke="url(#bicepsDark)" strokeWidth="1.5" opacity="0.3" />
-      {/* Right biceps */}
-      <path
-        d="M90 25 C95 35 92 50 88 60 C84 70 75 78 65 78 C58 78 55 72 55 65 L55 40 C55 28 60 18 70 15 C80 12 86 18 90 25Z"
-        fill="url(#biceps)"
-      />
-      <path
-        d="M85 35 Q78 30 72 38 Q66 46 70 58"
-        stroke="url(#bicepsDark)"
-        strokeWidth="2"
-        fill="none"
-        opacity="0.5"
-      />
-      <path d="M65 22 L62 70" stroke="url(#bicepsDark)" strokeWidth="1.5" opacity="0.3" />
-    </g>
-  </svg>
-);
+export const BicepsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => {
+  const iconId = 'bicep-curl';
+  const colors = { start: '#ff6b35', end: '#f7418c' }; // Match app theme
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 100 100"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id={`${iconId}-gradient`} x1="10%" y1="90%" x2="90%" y2="10%">
+          <stop offset="0%" stopColor={colors.start} />
+          <stop offset="100%" stopColor={colors.end} />
+        </linearGradient>
+        <filter id={`${iconId}-shadow`} x="-25%" y="-25%" width="150%" height="150%">
+          <feDropShadow
+            dx="3"
+            dy="5"
+            stdDeviation="3"
+            floodColor="#000000"
+            floodOpacity="0.25"
+          />
+        </filter>
+      </defs>
+
+      <g filter={`url(#${iconId}-shadow)`}>
+        <path
+          d="M18 88 C 18 88, 22 55, 38 42 C 45 36, 55 38, 62 42 L 65 39 C 65 39, 62 35, 60 32 L 64 28 C 67 30, 70 34, 70 34 L 82 22 L 92 32 L 80 44 C 80 44, 77 47, 73 45 L 69 49 C 71 52, 75 55, 75 55 L 71 59 C 68 57, 65 54, 65 54 L 62 57 C 55 64, 45 66, 38 68 C 25 72, 22 88, 22 88 Z"
+          fill={`url(#${iconId}-gradient)`}
+          stroke="white"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M38 42 C 38 42, 48 50, 50 66 M 65 39 L 75 49 M 66 45 L 77 56"
+          stroke="white"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          opacity="0.4"
+        />
+      </g>
+    </svg>
+  );
+};
 
 // Forearms - Tapered shape
 export const ForearmsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
