@@ -431,15 +431,31 @@ describe('WorkoutLogger', () => {
       expect(screen.getByText('Select Muscle Group')).toBeInTheDocument();
     });
 
-    it('should show all 6 muscle group cards', () => {
+    it('should show all 15 muscle group cards', () => {
       render(<WorkoutLogger onNavigate={mockOnNavigate} />);
 
+      // Upper body - Push
       expect(screen.getByText('Chest')).toBeInTheDocument();
-      expect(screen.getByText('Back')).toBeInTheDocument();
-      expect(screen.getByText('Legs')).toBeInTheDocument();
       expect(screen.getByText('Shoulders')).toBeInTheDocument();
-      expect(screen.getByText('Arms')).toBeInTheDocument();
-      expect(screen.getByText('Core')).toBeInTheDocument();
+      expect(screen.getByText('Triceps')).toBeInTheDocument();
+
+      // Upper body - Pull
+      expect(screen.getByText('Lats')).toBeInTheDocument();
+      expect(screen.getByText('Upper Back')).toBeInTheDocument();
+      expect(screen.getByText('Traps')).toBeInTheDocument();
+      expect(screen.getByText('Biceps')).toBeInTheDocument();
+      expect(screen.getByText('Forearms')).toBeInTheDocument();
+
+      // Core
+      expect(screen.getByText('Abs')).toBeInTheDocument();
+      expect(screen.getByText('Obliques')).toBeInTheDocument();
+      expect(screen.getByText('Lower Back')).toBeInTheDocument();
+
+      // Lower body
+      expect(screen.getByText('Quads')).toBeInTheDocument();
+      expect(screen.getByText('Hamstrings')).toBeInTheDocument();
+      expect(screen.getByText('Glutes')).toBeInTheDocument();
+      expect(screen.getByText('Calves')).toBeInTheDocument();
     });
 
     it('should NOT show Cardio in muscle group selector', () => {

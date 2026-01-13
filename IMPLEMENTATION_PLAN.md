@@ -19,6 +19,13 @@ Build a mobile-first web application for tracking strength training workouts. Th
 - **Set**: `{ id, reps, weight, completed }`
 - **WorkoutLog**: `{ id, date, exercises: [{ exerciseId, sets: [] }] }`
 
+### Body Areas (15 muscle groups)
+**Upper Body - Push**: Chest, Shoulders, Triceps
+**Upper Body - Pull**: Lats, Upper Back, Traps, Biceps, Forearms
+**Core**: Abs, Obliques, Lower Back
+**Lower Body**: Quads, Hamstrings, Glutes, Calves
+**Cardio**: Running, Cycling, etc.
+
 ## Proposed Changes
 
 ### Project Structure

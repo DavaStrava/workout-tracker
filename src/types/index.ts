@@ -1,4 +1,20 @@
-export type BodyArea = 'Chest' | 'Back' | 'Legs' | 'Shoulders' | 'Arms' | 'Core' | 'Cardio';
+export type BodyArea =
+  | 'Chest'
+  | 'Upper Back'
+  | 'Lats'
+  | 'Traps'
+  | 'Lower Back'
+  | 'Shoulders'
+  | 'Biceps'
+  | 'Triceps'
+  | 'Forearms'
+  | 'Quads'
+  | 'Hamstrings'
+  | 'Glutes'
+  | 'Calves'
+  | 'Abs'
+  | 'Obliques'
+  | 'Cardio';
 
 export type WorkoutType = 'STRENGTH' | 'CARDIO' | 'HIIT';
 export type CardioIntensity = 'low' | 'medium' | 'high';

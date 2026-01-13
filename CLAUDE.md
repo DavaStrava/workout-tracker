@@ -228,10 +228,16 @@ Workout (workout session with metadata)
       └─ WorkoutSet[] (individual sets with reps/weight or distance/duration)
 ```
 
-- **Exercise definitions** live in `src/data/exercises.ts` (static catalog)
+- **Exercise definitions** live in `src/data/exercises.ts` (static catalog, ~45 exercises)
 - **WorkoutExercise** links to an exercise via `exerciseId` and contains the actual logged sets
 - **WorkoutSet** supports both strength (reps/weight) and cardio (distance/duration/intensity) data
 - **Routine** is a template that stores exercise IDs and set counts to quickly start workouts
+- **BodyArea** type defines 15 muscle groups for granular exercise categorization:
+  - Upper Body Push: Chest, Shoulders, Triceps
+  - Upper Body Pull: Lats, Upper Back, Traps, Biceps, Forearms
+  - Core: Abs, Obliques, Lower Back
+  - Lower Body: Quads, Hamstrings, Glutes, Calves
+  - Plus: Cardio
 
 ### Component Structure
 

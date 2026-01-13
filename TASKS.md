@@ -37,3 +37,9 @@
     - [x] Auto-show muscle groups when starting strength workout <!-- id: 27 -->
     - [x] Add back button navigation throughout exercise selection flow <!-- id: 28 -->
     - [x] Add MuscleGroupSelector tests (15 tests) <!-- id: 29 -->
+- [x] Expanded Muscle Groups
+    - [x] Expand BodyArea type from 6 to 15 muscle groups <!-- id: 30 -->
+    - [x] Reorganize exercises into granular muscle categories (45 exercises) <!-- id: 31 -->
+    - [x] Create 15 fitness silhouette SVG icons (80px, front/back body poses) <!-- id: 32 -->
+    - [x] Update MuscleGroupSelector with all 15 groups <!-- id: 33 -->
+    - [x] Update tests for new muscle group structure <!-- id: 34 -->
