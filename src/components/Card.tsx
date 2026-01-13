@@ -9,10 +9,10 @@ interface CardProps extends HTMLMotionProps<'div'> {
 }
 
 const gradientBackgrounds = {
-    'orange-pink': 'linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(236, 72, 153, 0.2) 50%, rgba(168, 85, 247, 0.1) 100%)',
-    'pink-purple': 'linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(168, 85, 247, 0.2) 50%, rgba(59, 130, 246, 0.1) 100%)',
-    'purple-blue': 'linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(59, 130, 246, 0.2) 50%, rgba(6, 182, 212, 0.1) 100%)',
-    'teal-cyan': 'linear-gradient(135deg, rgba(20, 184, 166, 0.2) 0%, rgba(6, 182, 212, 0.2) 50%, rgba(59, 130, 246, 0.1) 100%)',
+    'orange-pink': 'rgba(30, 27, 50, 0.8)',
+    'pink-purple': 'rgba(30, 27, 50, 0.8)',
+    'purple-blue': 'rgba(30, 27, 50, 0.8)',
+    'teal-cyan': 'rgba(30, 27, 50, 0.8)',
     'none': 'transparent',
 };
 
@@ -22,14 +22,6 @@ const gradientBorders = {
     'purple-blue': 'rgba(168, 85, 247, 0.3)',
     'teal-cyan': 'rgba(6, 182, 212, 0.3)',
     'none': 'rgba(255, 255, 255, 0.1)',
-};
-
-const gradientShadows = {
-    'orange-pink': '0 10px 30px rgba(249, 115, 22, 0.2)',
-    'pink-purple': '0 10px 30px rgba(236, 72, 153, 0.2)',
-    'purple-blue': '0 10px 30px rgba(168, 85, 247, 0.2)',
-    'teal-cyan': '0 10px 30px rgba(6, 182, 212, 0.2)',
-    'none': '0 4px 6px rgba(0, 0, 0, 0.1)',
 };
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
@@ -45,35 +37,28 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
 
         const variantStyle: React.CSSProperties =
             variant === 'glass' ? {
-                background: 'rgba(255, 255, 255, 0.05)',
-                backdropFilter: 'blur(12px)',
+                background: 'rgba(30, 27, 50, 0.8)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
             } :
             variant === 'default' ? {
-                background: 'rgba(24, 24, 27, 0.8)',
+                background: 'rgba(30, 27, 50, 0.8)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
             } :
             variant === 'outline' ? {
-                border: '2px solid rgba(255, 255, 255, 0.2)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
                 background: 'transparent',
             } :
             variant === 'elevated' ? {
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
-                backdropFilter: 'blur(16px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+                background: 'rgba(30, 27, 50, 0.9)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
             } :
             variant === 'floating' ? {
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                boxShadow: '0 20px 40px rgba(236, 72, 153, 0.2)',
+                background: 'rgba(30, 27, 50, 0.9)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
             } :
             variant === 'gradient' ? {
                 background: gradientBackgrounds[gradient],
-                backdropFilter: 'blur(12px)',
                 border: `1px solid ${gradientBorders[gradient]}`,
-                boxShadow: gradientShadows[gradient],
             } : {};
 
         return (

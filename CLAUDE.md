@@ -39,8 +39,10 @@ workout-tracker/
     │   ├── Layout.tsx
     │   ├── Button.tsx
     │   ├── Input.tsx
-    │   └── Card.tsx
+    │   ├── Card.tsx
+    │   └── Badge.tsx
     ├── features/
+    │   ├── Auth.tsx
     │   ├── LandingPage.tsx
     │   ├── WorkoutTypeSelector.tsx
     │   ├── WorkoutLogger.tsx
@@ -54,6 +56,15 @@ workout-tracker/
     │   └── styles.ts
     └── assets/
         └── react.svg
+```
+
+## Deployment
+
+**Production URL**: https://workout-tracker-blond-iota.vercel.app
+
+Deployed via Vercel. To deploy updates:
+```bash
+vercel --prod
 ```
 
 ## Development Commands
@@ -103,6 +114,7 @@ Workout (workout session with metadata)
 ### Component Structure
 
 **Feature-based organization** (`src/features/`):
+- `Auth.tsx` - Login/signup screen with email and Google authentication
 - `WorkoutLogger.tsx` - Main workout interface (exercise selection, set logging)
 - `WorkoutTypeSelector.tsx` - "Garmin-style" activity type picker
 - `History.tsx` - Chronological list of past workouts
@@ -112,6 +124,7 @@ Workout (workout session with metadata)
 **Shared components** (`src/components/`):
 - `Layout.tsx` - Bottom navigation wrapper
 - `Button.tsx`, `Input.tsx`, `Card.tsx` - Reusable UI primitives
+- `Badge.tsx` - Status badges and StatCard component for displaying metrics
 
 ### Analytics Helpers (`src/utils/analyticsHelpers.ts`)
 
@@ -127,7 +140,24 @@ Pure functions for computing workout stats:
 
 ### Styling
 
-Vanilla CSS with CSS variables for theming. Dark mode is default (defined in `src/index.css`). Uses Flexbox/Grid for layout. Framer Motion for animations. TailwindCSS utilities via `clsx` and `tailwind-merge` helpers.
+**Vibrant Sunset Theme**: The app uses a consistent dark purple theme:
+- **Background**: `#1a1625` - dark purple (set directly on body)
+- **Card backgrounds**: `rgba(30, 27, 50, 0.8)` - semi-transparent dark purple
+- **Brand colors**: Orange (`#f97316`) and Pink (`#ec4899`)
+
+**Key styling patterns**:
+- Primary buttons use orange-to-pink gradient with glow shadows
+- Focus states use purple (`#a855f7`) ring color
+- `.text-gradient` class applies orange-pink-purple gradient to headings
+- All Card/Button variants use solid dark backgrounds (no glassmorphism)
+
+**CSS Variables** (defined in `src/index.css`):
+- `--color-bg-app`: `#1a1625`
+- `--color-bg-card`: `#2d2640`
+- `--color-primary`: `#f97316` (orange)
+- `--color-accent`: `#ec4899` (pink)
+
+Uses Flexbox/Grid for layout, Framer Motion for animations, and TailwindCSS utilities via `clsx` and `tailwind-merge` helpers.
 
 ### Key Design Patterns
 

@@ -5,7 +5,6 @@ import { History } from './features/History';
 import { Analytics } from './features/Analytics';
 import { Auth } from './features/Auth';
 import { WorkoutProvider, useWorkout } from './hooks/useWorkoutStore';
-import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { Button } from './components/Button';
 import { signOut } from './services/auth';
 
@@ -47,8 +46,7 @@ const AppContent: React.FC = () => {
   // Show main app if authenticated
   return (
     <>
-      <ThemeSwitcher />
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-3">
+      <div className="absolute top-4 right-20 z-50 flex items-center gap-3">
         <span className="text-sm text-zinc-400">
           {user.displayName || user.email}
         </span>

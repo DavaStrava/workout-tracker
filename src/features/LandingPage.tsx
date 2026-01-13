@@ -127,7 +127,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                     <Dumbbell size={28} style={{ color: '#fb923c' }} />
                     <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#fff' }}>Your Routines</h2>
-                    <Badge variant="glow" color="orange" size="sm" style={{ marginLeft: 'auto' }}>
+                    <Badge variant="glow" color="orange" size="sm" className="ml-auto">
                         {routines.length}
                     </Badge>
                 </div>
@@ -157,13 +157,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                                     justifyContent: 'space-between',
                                     padding: '16px',
                                     borderRadius: '12px',
-                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    background: 'rgba(30, 27, 50, 0.8)',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s',
                                 }}
-                                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
-                                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(45, 38, 64, 0.9)'}
+                                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(30, 27, 50, 0.8)'}
                             >
                                 <span style={{ fontWeight: 700, color: '#fff' }}>{routine.name}</span>
                                 <Play size={20} style={{ color: '#fb923c' }} />
@@ -195,14 +195,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                         <div
                             key={workout.id}
                             style={{
-                                background: 'rgba(255, 255, 255, 0.1)',
+                                background: 'rgba(30, 27, 50, 0.8)',
                                 borderRadius: '12px',
                                 padding: '16px',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
                                 transition: 'all 0.2s',
                             }}
-                            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
-                            onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(45, 38, 64, 0.9)'}
+                            onMouseOut={(e) => e.currentTarget.style.background = 'rgba(30, 27, 50, 0.8)'}
                         >
                             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                                 <div style={{ flex: 1 }}>

@@ -58,7 +58,7 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                     <h2 className="text-xl font-bold">Add Exercise</h2>
                 </div>
 
-                <div className="sticky top-0 z-10 bg-bg-app/80 backdrop-blur-md pb-4 pt-2 -mt-2 space-y-4">
+                <div className="sticky top-0 z-10 backdrop-blur-md pb-4 pt-2 -mt-2 space-y-4" style={{ background: 'rgba(15, 23, 42, 0.8)' }}>
                     <div className="relative">
                         <Search className="absolute left-3 top-3 text-zinc-500" size={18} />
                         <Input
@@ -75,11 +75,15 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                                 key={area}
                                 onClick={() => setSelectedBodyArea(area)}
                                 className={cn(
-                                    "px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors border",
+                                    "px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all border",
                                     selectedBodyArea === area
-                                        ? "bg-blue-600 border-blue-500 text-white"
-                                        : "bg-zinc-800/50 border-white/10 text-zinc-400 hover:bg-zinc-800"
+                                        ? "text-white border-transparent"
+                                        : "bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10"
                                 )}
+                                style={selectedBodyArea === area ? {
+                                    background: 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)',
+                                    boxShadow: '0 4px 12px rgba(236, 72, 153, 0.3)'
+                                } : undefined}
                             >
                                 {area}
                             </button>

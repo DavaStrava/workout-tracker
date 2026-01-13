@@ -85,11 +85,10 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
         </div>
 
         <div
-          className="p-8 rounded-2xl backdrop-blur-lg"
+          className="p-8 rounded-2xl"
           style={{
-            background: 'rgba(255, 255, 255, 0.05)',
+            background: 'rgba(30, 27, 50, 0.9)',
             border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)',
           }}
         >
           <form onSubmit={handleSubmit} className="space-y-4">

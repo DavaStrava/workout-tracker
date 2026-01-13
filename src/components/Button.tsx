@@ -26,10 +26,9 @@ const buttonStyles: Record<string, React.CSSProperties> = {
         boxShadow: '0 10px 25px rgba(236, 72, 153, 0.3)',
     },
     secondary: {
-        background: 'rgba(255, 255, 255, 0.1)',
+        background: 'rgba(30, 27, 50, 0.8)',
         color: '#fff',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
-        backdropFilter: 'blur(8px)',
+        border: '1px solid rgba(255, 255, 255, 0.15)',
     },
     ghost: {
         background: 'transparent',
@@ -41,9 +40,9 @@ const buttonStyles: Record<string, React.CSSProperties> = {
         boxShadow: '0 10px 25px rgba(239, 68, 68, 0.3)',
     },
     glass: {
-        background: 'rgba(255, 255, 255, 0.05)',
+        background: 'rgba(30, 27, 50, 0.8)',
         backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        border: '1px solid rgba(255, 255, 255, 0.15)',
         color: '#fff',
     },
 };

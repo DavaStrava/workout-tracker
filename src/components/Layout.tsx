@@ -1,7 +1,6 @@
 import React from 'react';
 import { Dumbbell, History as HistoryIcon, BarChart2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '../utils/styles';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -11,7 +10,7 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => {
     return (
-        <div className="flex flex-col h-[100dvh] overflow-hidden bg-bg-app text-text-main relative">
+        <div className="flex flex-col h-[100dvh] overflow-hidden text-white relative">
             <main className="flex-1 overflow-y-auto overflow-x-hidden relative">
                 <div className="container min-h-full">
                     <AnimatePresence mode="wait" initial={false}>

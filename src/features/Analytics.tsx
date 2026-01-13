@@ -68,9 +68,13 @@ export const Analytics: React.FC = () => {
                         className={cn(
                             "flex-1 py-2.5 rounded-xl font-medium text-sm transition-all capitalize",
                             timePeriod === period
-                                ? "bg-blue-600 text-white"
-                                : "bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700/50"
+                                ? "text-white"
+                                : "bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10"
                         )}
+                        style={timePeriod === period ? {
+                            background: 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)',
+                            boxShadow: '0 4px 15px rgba(236, 72, 153, 0.3)'
+                        } : undefined}
                     >
                         {period === 'week' ? 'This Week' : period === 'month' ? 'This Month' : 'This Year'}
                     </button>
@@ -164,10 +168,10 @@ export const Analytics: React.FC = () => {
                     <select
                         value={selectedExercise}
                         onChange={(e) => setSelectedExercise(e.target.value)}
-                        className="w-full appearance-none bg-zinc-800/50 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:border-white/20"
+                        className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-pink-500 backdrop-blur-sm transition-all"
                     >
                         {strengthExercises.map(ex => (
-                            <option key={ex.id} value={ex.id}>{ex.name}</option>
+                            <option key={ex.id} value={ex.id} className="bg-slate-900">{ex.name}</option>
                         ))}
                     </select>
                     <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />

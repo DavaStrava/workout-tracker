@@ -91,10 +91,10 @@ interface StatCardProps {
 }
 
 const gradientMap = {
-    'orange-pink': 'linear-gradient(135deg, rgba(249, 115, 22, 0.3) 0%, rgba(236, 72, 153, 0.2) 100%)',
-    'pink-purple': 'linear-gradient(135deg, rgba(236, 72, 153, 0.3) 0%, rgba(168, 85, 247, 0.2) 100%)',
-    'purple-blue': 'linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(59, 130, 246, 0.2) 100%)',
-    'cyan-blue': 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(59, 130, 246, 0.2) 100%)',
+    'orange-pink': 'rgba(30, 27, 50, 0.8)',
+    'pink-purple': 'rgba(30, 27, 50, 0.8)',
+    'purple-blue': 'rgba(30, 27, 50, 0.8)',
+    'cyan-blue': 'rgba(30, 27, 50, 0.8)',
 };
 
 const borderColorMap = {

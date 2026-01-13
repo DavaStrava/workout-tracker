@@ -1,37 +1,26 @@
 :root {
-  /* Premium Dark Space/Glass Palette */
-  --color-bg-app: #09090b;
-  /* Zinc 950 - Deepest black/blue */
-  --color-bg-subtle: #18181b;
-  /* Zinc 900 */
-  --color-bg-card: rgba(24, 24, 27, 0.6);
-  /* Semi-transparent for glass */
-  --color-bg-elevated: rgba(39, 39, 42, 0.6);
-  /* Zinc 800 */
+  /* Vibrant Sunset Theme - Dark Purple */
+  --color-bg-app: #1a1625;
+  --color-bg-subtle: #2d2640;
+  --color-bg-card: #2d2640;
+  --color-bg-elevated: #3d3452;
 
   /* Brand Colors */
-  --color-primary: #3b82f6;
-  /* Blue 500 */
-  --color-primary-glow: rgba(59, 130, 246, 0.4);
-  --color-accent: #10b981;
-  /* Emerald 500 */
-  --color-accent-glow: rgba(16, 185, 129, 0.4);
+  --color-primary: #f97316;
+  --color-primary-glow: rgba(249, 115, 22, 0.4);
+  --color-accent: #ec4899;
+  --color-accent-glow: rgba(236, 72, 153, 0.4);
   --color-danger: #ef4444;
-  /* Red 500 */
-  --color-warn: #f59e0b;
-  /* Amber 500 */
+  --color-warn: #fbbf24;
 
   /* Text Colors */
-  --color-text-main: #fafafa;
-  /* Zinc 50 */
-  --color-text-secondary: #a1a1aa;
-  /* Zinc 400 */
-  --color-text-muted: #52525b;
-  /* Zinc 600 */
+  --color-text-main: #ffffff;
+  --color-text-secondary: #d1d5db;
+  --color-text-muted: #9ca3af;
 
   /* Borders */
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-hover: rgba(255, 255, 255, 0.15);
+  --color-border: rgba(236, 72, 153, 0.2);
+  --color-border-hover: rgba(236, 72, 153, 0.4);
 
   /* Spacing */
   --spacing-xs: 4px;
@@ -64,16 +53,12 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-bg-app);
   color: var(--color-text-main);
   line-height: 1.5;
   overflow-x: hidden;
   height: 100vh;
   width: 100vw;
-  /* Subtle gradient background */
-  background-image:
-    radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15), transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.1), transparent 30%);
+  background-color: #1a1625;
 }
 
 #root {
@@ -146,7 +131,7 @@ body {
 }
 
 .text-gradient {
-  background: linear-gradient(to right, #fff, #a1a1aa);
+  background: linear-gradient(135deg, #fb923c 0%, #f472b6 50%, #c084fc 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
