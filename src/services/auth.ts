@@ -5,8 +5,7 @@ import {
   sendPasswordResetEmail,
   updateProfile,
   GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   type User,
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -42,30 +41,18 @@ export const signIn = async (email: string, password: string) => {
 };
 
 /**
- * Sign in with Google (uses redirect for better mobile/production support)
+ * Sign in with Google (uses popup for better compatibility with Chrome's tracking protection)
  */
 export const signInWithGoogle = async () => {
   try {
     const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider);
-    // This won't return - page will redirect to Google
-    return { user: null, error: null };
+    const result = await signInWithPopup(auth, provider);
+    return { user: result.user, error: null };
   } catch (error: any) {
-    return { user: null, error: error.message };
-  }
-};
-
-/**
- * Handle Google redirect result (call on app load)
- */
-export const handleGoogleRedirect = async () => {
-  try {
-    const result = await getRedirectResult(auth);
-    if (result?.user) {
-      return { user: result.user, error: null };
+    // Handle popup closed by user
+    if (error.code === 'auth/popup-closed-by-user') {
+      return { user: null, error: null };
     }
-    return { user: null, error: null };
-  } catch (error: any) {
     return { user: null, error: error.message };
   }
 };

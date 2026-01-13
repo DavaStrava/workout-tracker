@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-A mobile-first Progressive Web App (PWA) for tracking strength training and cardio workouts. Built with React + TypeScript using Vite. Data persists locally using localStorage with no backend required.
+A mobile-first Progressive Web App (PWA) for tracking strength training and cardio workouts. Built with React + TypeScript using Vite. Uses Firebase for authentication and Firestore for cloud data persistence (falls back to localStorage when not authenticated).
 
 ## Project Structure
 
@@ -67,10 +67,32 @@ workout-tracker/
 
 **Production URL**: https://workout-tracker-blond-iota.vercel.app
 
-Deployed via Vercel. To deploy updates:
+### Deploying to Vercel
+
+The app is deployed via Vercel. To deploy updates:
+
 ```bash
+# Build locally first to catch any errors
+npm run build
+
+# Deploy to production
 vercel --prod
 ```
+
+**Important**: After running `vercel --prod`, changes typically propagate within 30 seconds. The command outputs the deployment URL - verify your changes are live by visiting the production URL.
+
+### Firebase Setup for Production
+
+For authentication to work in production, the domain must be authorized in Firebase:
+
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Select your project
+3. Navigate to: **Authentication → Settings → Authorized domains**
+4. Add: `workout-tracker-blond-iota.vercel.app`
+
+**Already configured domains**:
+- `localhost` (for development)
+- `workout-tracker-blond-iota.vercel.app` (production)
 
 ## Development Commands
 
@@ -148,13 +170,10 @@ Pure functions for computing workout stats:
 Firebase Authentication with email/password and Google Sign-in:
 - `signUp()` - Create new user with email/password
 - `signIn()` - Sign in with email/password
-- `signInWithGoogle()` - Initiates Google OAuth redirect flow
-- `handleGoogleRedirect()` - Processes redirect result on app load
+- `signInWithGoogle()` - Opens Google OAuth popup
 - `signOut()` - Sign out current user
 
-**Google Sign-in uses redirect flow** (not popup) for better mobile and production compatibility. The `handleGoogleRedirect()` function is called on app initialization in `useWorkoutStore.tsx` to complete the OAuth flow after redirect.
-
-**Firebase Console requirement**: The production domain must be added to Firebase Console → Authentication → Settings → Authorized domains.
+**Google Sign-in uses popup flow** for compatibility with Chrome's bounce tracking protection. The redirect flow was causing issues where Chrome would clear the auth state during the redirect chain.
 
 ### Firestore (`src/services/firestore.ts`)
 
@@ -209,7 +228,8 @@ Create a new helper in `analyticsHelpers.ts` that accepts `Workout[]` and return
 ## Technical Constraints
 
 - **Firebase backend**: Uses Firebase Auth for authentication and Firestore for data persistence. Falls back to localStorage when not authenticated.
-- **Environment variables**: Firebase config requires `VITE_FIREBASE_*` environment variables (see `.env.example` or Vercel dashboard).
+- **Environment variables**: Firebase config requires `VITE_FIREBASE_*` environment variables. These are configured in the Vercel dashboard for production.
+- **Authorized domains**: Production domains must be added to Firebase Console → Authentication → Settings → Authorized domains for sign-in to work.
 - **Mobile-first**: UI is optimized for mobile touch targets. Test in Chrome DevTools mobile view.
 - **PWA ready**: The app can be added to home screen. Ensure manifest and service worker (if added) are configured correctly.
 - **React 19**: Uses latest React features including automatic batching.

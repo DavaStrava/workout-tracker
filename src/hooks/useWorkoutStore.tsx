@@ -13,7 +13,6 @@ import {
     deleteRoutine as deleteRoutineFromFirestore,
     migrateLocalDataToFirestore,
 } from '../services/firestore';
-import { handleGoogleRedirect } from '../services/auth';
 
 interface WorkoutContextType {
     activeWorkout: Workout | null;
@@ -61,11 +60,8 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return localStorage.getItem('hasFirebaseMigration') === 'true';
     });
 
-    // Auth state listener + handle Google redirect
+    // Auth state listener
     useEffect(() => {
-        // Handle redirect result from Google sign-in
-        handleGoogleRedirect().catch(console.error);
-
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             setUser(user);
             setIsLoading(false);
