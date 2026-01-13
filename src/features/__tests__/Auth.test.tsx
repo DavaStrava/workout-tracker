@@ -7,11 +7,24 @@ import { Auth } from '../Auth';
 const mockSignIn = vi.fn();
 const mockSignUp = vi.fn();
 const mockSignInWithGoogle = vi.fn();
+const mockSignOut = vi.fn();
 
 vi.mock('../../services/auth', () => ({
   signIn: (...args: unknown[]) => mockSignIn(...args),
   signUp: (...args: unknown[]) => mockSignUp(...args),
   signInWithGoogle: () => mockSignInWithGoogle(),
+  signOut: () => mockSignOut(),
+}));
+
+// Mock firestore functions
+const mockIsUserLimitReached = vi.fn();
+const mockRegisterUser = vi.fn();
+const mockCheckUserExists = vi.fn();
+
+vi.mock('../../services/firestore', () => ({
+  isUserLimitReached: () => mockIsUserLimitReached(),
+  registerUser: (...args: unknown[]) => mockRegisterUser(...args),
+  checkUserExists: (...args: unknown[]) => mockCheckUserExists(...args),
 }));
 
 describe('Auth', () => {
@@ -22,6 +35,11 @@ describe('Auth', () => {
     mockSignIn.mockResolvedValue({ user: null, error: null });
     mockSignUp.mockResolvedValue({ user: null, error: null });
     mockSignInWithGoogle.mockResolvedValue({ user: null, error: null });
+    mockSignOut.mockResolvedValue({ error: null });
+    // Default: registration open, user does not exist
+    mockIsUserLimitReached.mockResolvedValue({ limitReached: false, error: null });
+    mockRegisterUser.mockResolvedValue({ error: null });
+    mockCheckUserExists.mockResolvedValue({ exists: false, error: null });
   });
 
   describe('initial render', () => {
@@ -222,7 +240,8 @@ describe('Auth', () => {
 
     it('should call onAuthSuccess when signup succeeds', async () => {
       const user = userEvent.setup();
-      mockSignUp.mockResolvedValue({ user: { id: '1' }, error: null });
+      mockSignUp.mockResolvedValue({ user: { uid: '1', email: 'john@example.com' }, error: null });
+      mockRegisterUser.mockResolvedValue({ error: null });
 
       render(<Auth onAuthSuccess={mockOnAuthSuccess} />);
 
@@ -233,6 +252,7 @@ describe('Auth', () => {
       await user.click(screen.getByRole('button', { name: 'Create Account' }));
 
       await waitFor(() => {
+        expect(mockRegisterUser).toHaveBeenCalledWith('1', 'john@example.com', 'John Doe');
         expect(mockOnAuthSuccess).toHaveBeenCalledTimes(1);
       });
     });
@@ -269,15 +289,44 @@ describe('Auth', () => {
       });
     });
 
-    it('should call onAuthSuccess when Google sign-in succeeds', async () => {
+    it('should call onAuthSuccess when Google sign-in succeeds for existing user', async () => {
       const user = userEvent.setup();
-      mockSignInWithGoogle.mockResolvedValue({ user: { id: '1' }, error: null });
+      mockSignInWithGoogle.mockResolvedValue({ user: { uid: '1', email: 'test@example.com' }, error: null });
+      mockCheckUserExists.mockResolvedValue({ exists: true, error: null });
 
       render(<Auth onAuthSuccess={mockOnAuthSuccess} />);
 
       await user.click(screen.getByText('Continue with Google'));
 
       await waitFor(() => {
+        expect(mockCheckUserExists).toHaveBeenCalledWith('1');
+        expect(mockRegisterUser).not.toHaveBeenCalled();
+        expect(mockOnAuthSuccess).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('should register new user on Google sign-in', async () => {
+      const user = userEvent.setup();
+      const creationTime = '2024-01-01T00:00:00Z';
+      mockSignInWithGoogle.mockResolvedValue({
+        user: {
+          uid: '1',
+          email: 'new@example.com',
+          displayName: 'New User',
+          metadata: { creationTime, lastSignInTime: creationTime } // Same time = new user
+        },
+        error: null
+      });
+      mockCheckUserExists.mockResolvedValue({ exists: false, error: null });
+      mockRegisterUser.mockResolvedValue({ error: null });
+
+      render(<Auth onAuthSuccess={mockOnAuthSuccess} />);
+
+      await user.click(screen.getByText('Continue with Google'));
+
+      await waitFor(() => {
+        expect(mockCheckUserExists).toHaveBeenCalledWith('1');
+        expect(mockRegisterUser).toHaveBeenCalledWith('1', 'new@example.com', 'New User', false);
         expect(mockOnAuthSuccess).toHaveBeenCalledTimes(1);
       });
     });
@@ -438,6 +487,327 @@ describe('Auth', () => {
       // Labels are rendered as text, not associated with htmlFor
       expect(screen.getByText('Email')).toBeInTheDocument();
       expect(screen.getByText('Password')).toBeInTheDocument();
+    });
+  });
+
+  describe('user limit', () => {
+    describe('registration closed banner', () => {
+      it('should show registration closed banner when limit is reached in signup mode', async () => {
+        const user = userEvent.setup();
+        mockIsUserLimitReached.mockResolvedValue({ limitReached: true, error: null });
+
+        render(<Auth />);
+
+        await user.click(screen.getByText('Sign up'));
+
+        await waitFor(() => {
+          expect(screen.getByText('Registration is currently closed')).toBeInTheDocument();
+          expect(screen.getByText('Maximum number of users reached. Please try again later.')).toBeInTheDocument();
+        });
+      });
+
+      it('should show "Registration closed" subtitle when limit is reached', async () => {
+        const user = userEvent.setup();
+        mockIsUserLimitReached.mockResolvedValue({ limitReached: true, error: null });
+
+        render(<Auth />);
+
+        await user.click(screen.getByText('Sign up'));
+
+        await waitFor(() => {
+          expect(screen.getByText('Registration closed')).toBeInTheDocument();
+        });
+      });
+
+      it('should not show registration closed banner in login mode', async () => {
+        mockIsUserLimitReached.mockResolvedValue({ limitReached: true, error: null });
+
+        render(<Auth />);
+
+        expect(screen.queryByText('Registration is currently closed')).not.toBeInTheDocument();
+      });
+
+      it('should not show banner when under limit', async () => {
+        const user = userEvent.setup();
+        mockIsUserLimitReached.mockResolvedValue({ limitReached: false, error: null });
+
+        render(<Auth />);
+
+        await user.click(screen.getByText('Sign up'));
+
+        await waitFor(() => {
+          expect(screen.queryByText('Registration is currently closed')).not.toBeInTheDocument();
+        });
+      });
+    });
+
+    describe('signup button state', () => {
+      it('should disable signup button when registration is closed', async () => {
+        const user = userEvent.setup();
+        mockIsUserLimitReached.mockResolvedValue({ limitReached: true, error: null });
+
+        render(<Auth />);
+
+        await user.click(screen.getByText('Sign up'));
+
+        await waitFor(() => {
+          expect(screen.getByRole('button', { name: 'Create Account' })).toBeDisabled();
+        });
+      });
+
+      it('should enable signup button when under limit', async () => {
+        const user = userEvent.setup();
+        mockIsUserLimitReached.mockResolvedValue({ limitReached: false, error: null });
+
+        render(<Auth />);
+
+        await user.click(screen.getByText('Sign up'));
+
+        await waitFor(() => {
+          expect(screen.getByRole('button', { name: 'Create Account' })).not.toBeDisabled();
+        });
+      });
+    });
+
+    describe('email signup with limit', () => {
+      it('should block signup when limit is reached during submission', async () => {
+        const user = userEvent.setup();
+        // First call (useEffect) returns false, second call (submission) returns true
+        mockIsUserLimitReached
+          .mockResolvedValueOnce({ limitReached: false, error: null })
+          .mockResolvedValueOnce({ limitReached: true, error: null });
+
+        render(<Auth />);
+
+        await user.click(screen.getByText('Sign up'));
+        await user.type(screen.getByPlaceholderText('Enter your name'), 'John Doe');
+        await user.type(screen.getByPlaceholderText('your@email.com'), 'john@example.com');
+        await user.type(screen.getByPlaceholderText('••••••••'), 'password123');
+        await user.click(screen.getByRole('button', { name: 'Create Account' }));
+
+        await waitFor(() => {
+          expect(screen.getByText('Registration is currently closed. Maximum number of users reached.')).toBeInTheDocument();
+          expect(mockSignUp).not.toHaveBeenCalled();
+        });
+      });
+
+      it('should sign out user if registerUser fails after signup', async () => {
+        const user = userEvent.setup();
+        mockSignUp.mockResolvedValue({ user: { uid: '1', email: 'john@example.com' }, error: null });
+        mockRegisterUser.mockResolvedValue({ error: 'Registration failed' });
+
+        render(<Auth />);
+
+        await user.click(screen.getByText('Sign up'));
+        await user.type(screen.getByPlaceholderText('Enter your name'), 'John Doe');
+        await user.type(screen.getByPlaceholderText('your@email.com'), 'john@example.com');
+        await user.type(screen.getByPlaceholderText('••••••••'), 'password123');
+        await user.click(screen.getByRole('button', { name: 'Create Account' }));
+
+        await waitFor(() => {
+          expect(mockSignOut).toHaveBeenCalled();
+          expect(screen.getByText('Registration failed')).toBeInTheDocument();
+        });
+      });
+
+      it('should show error when limit check fails', async () => {
+        const user = userEvent.setup();
+        mockIsUserLimitReached
+          .mockResolvedValueOnce({ limitReached: false, error: null })
+          .mockResolvedValueOnce({ limitReached: false, error: 'Database error' });
+
+        render(<Auth />);
+
+        await user.click(screen.getByText('Sign up'));
+        await user.type(screen.getByPlaceholderText('Enter your name'), 'John Doe');
+        await user.type(screen.getByPlaceholderText('your@email.com'), 'john@example.com');
+        await user.type(screen.getByPlaceholderText('••••••••'), 'password123');
+        await user.click(screen.getByRole('button', { name: 'Create Account' }));
+
+        await waitFor(() => {
+          expect(screen.getByText('Database error')).toBeInTheDocument();
+          expect(mockSignUp).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('Google sign-in with limit', () => {
+      it('should block new Google user when limit is reached', async () => {
+        const user = userEvent.setup();
+        const creationTime = '2024-01-01T00:00:00Z';
+        mockSignInWithGoogle.mockResolvedValue({
+          user: {
+            uid: '1',
+            email: 'new@example.com',
+            displayName: 'New User',
+            metadata: { creationTime, lastSignInTime: creationTime }
+          },
+          error: null
+        });
+        mockCheckUserExists.mockResolvedValue({ exists: false, error: null });
+        mockIsUserLimitReached.mockResolvedValue({ limitReached: true, error: null });
+
+        render(<Auth />);
+
+        await user.click(screen.getByText('Continue with Google'));
+
+        await waitFor(() => {
+          expect(mockSignOut).toHaveBeenCalled();
+          expect(screen.getByText('Registration is currently closed. Maximum number of users reached.')).toBeInTheDocument();
+        });
+      });
+
+      it('should allow existing Google user when limit is reached', async () => {
+        const user = userEvent.setup();
+        mockSignInWithGoogle.mockResolvedValue({
+          user: {
+            uid: '1',
+            email: 'existing@example.com',
+            metadata: { creationTime: '2024-01-01T00:00:00Z', lastSignInTime: '2024-06-01T00:00:00Z' }
+          },
+          error: null
+        });
+        mockCheckUserExists.mockResolvedValue({ exists: true, error: null });
+        mockIsUserLimitReached.mockResolvedValue({ limitReached: true, error: null });
+
+        render(<Auth onAuthSuccess={mockOnAuthSuccess} />);
+
+        await user.click(screen.getByText('Continue with Google'));
+
+        await waitFor(() => {
+          expect(mockSignOut).not.toHaveBeenCalled();
+          expect(mockOnAuthSuccess).toHaveBeenCalled();
+        });
+      });
+
+      it('should allow existing Firebase user without Firestore doc to login (migration)', async () => {
+        const user = userEvent.setup();
+        // Existing user: creationTime != lastSignInTime
+        mockSignInWithGoogle.mockResolvedValue({
+          user: {
+            uid: '1',
+            email: 'existing@example.com',
+            displayName: 'Existing User',
+            metadata: { creationTime: '2024-01-01T00:00:00Z', lastSignInTime: '2024-06-01T00:00:00Z' }
+          },
+          error: null
+        });
+        mockCheckUserExists.mockResolvedValue({ exists: false, error: null }); // No Firestore doc
+        mockIsUserLimitReached.mockResolvedValue({ limitReached: true, error: null }); // Limit reached
+        mockRegisterUser.mockResolvedValue({ error: null });
+
+        render(<Auth onAuthSuccess={mockOnAuthSuccess} />);
+
+        await user.click(screen.getByText('Continue with Google'));
+
+        await waitFor(() => {
+          // Should NOT check limit for existing user
+          expect(mockIsUserLimitReached).not.toHaveBeenCalled();
+          // Should register with skipLimitCheck=true
+          expect(mockRegisterUser).toHaveBeenCalledWith('1', 'existing@example.com', 'Existing User', true);
+          expect(mockSignOut).not.toHaveBeenCalled();
+          expect(mockOnAuthSuccess).toHaveBeenCalled();
+        });
+      });
+
+      it('should continue login even if checkUserExists fails', async () => {
+        const user = userEvent.setup();
+        mockSignInWithGoogle.mockResolvedValue({
+          user: {
+            uid: '1',
+            email: 'test@example.com',
+            metadata: { creationTime: '2024-01-01T00:00:00Z', lastSignInTime: '2024-06-01T00:00:00Z' }
+          },
+          error: null
+        });
+        mockCheckUserExists.mockResolvedValue({ exists: false, error: 'Database error' });
+
+        render(<Auth onAuthSuccess={mockOnAuthSuccess} />);
+
+        await user.click(screen.getByText('Continue with Google'));
+
+        await waitFor(() => {
+          // Should continue despite error - don't block login due to Firestore issues
+          expect(mockSignOut).not.toHaveBeenCalled();
+          expect(mockOnAuthSuccess).toHaveBeenCalled();
+        });
+      });
+
+      it('should sign out and show error when registerUser fails for new Google user', async () => {
+        const user = userEvent.setup();
+        const creationTime = '2024-01-01T00:00:00Z';
+        mockSignInWithGoogle.mockResolvedValue({
+          user: {
+            uid: '1',
+            email: 'new@example.com',
+            displayName: 'New User',
+            metadata: { creationTime, lastSignInTime: creationTime }
+          },
+          error: null
+        });
+        mockCheckUserExists.mockResolvedValue({ exists: false, error: null });
+        mockIsUserLimitReached.mockResolvedValue({ limitReached: false, error: null });
+        mockRegisterUser.mockResolvedValue({ error: 'Registration failed' });
+
+        render(<Auth />);
+
+        await user.click(screen.getByText('Continue with Google'));
+
+        await waitFor(() => {
+          expect(mockSignOut).toHaveBeenCalled();
+          expect(screen.getByText('Registration failed')).toBeInTheDocument();
+        });
+      });
+
+      it('should sign out and show error when limit check fails for new Google user', async () => {
+        const user = userEvent.setup();
+        const creationTime = '2024-01-01T00:00:00Z';
+        mockSignInWithGoogle.mockResolvedValue({
+          user: {
+            uid: '1',
+            email: 'new@example.com',
+            metadata: { creationTime, lastSignInTime: creationTime }
+          },
+          error: null
+        });
+        mockCheckUserExists.mockResolvedValue({ exists: false, error: null });
+        mockIsUserLimitReached.mockResolvedValue({ limitReached: false, error: 'Network error' });
+
+        render(<Auth />);
+
+        await user.click(screen.getByText('Continue with Google'));
+
+        await waitFor(() => {
+          expect(mockSignOut).toHaveBeenCalled();
+          expect(screen.getByText('Network error')).toBeInTheDocument();
+        });
+      });
+
+      it('should not block existing user migration if registerUser fails', async () => {
+        const user = userEvent.setup();
+        // Existing user: creationTime != lastSignInTime
+        mockSignInWithGoogle.mockResolvedValue({
+          user: {
+            uid: '1',
+            email: 'existing@example.com',
+            displayName: 'Existing User',
+            metadata: { creationTime: '2024-01-01T00:00:00Z', lastSignInTime: '2024-06-01T00:00:00Z' }
+          },
+          error: null
+        });
+        mockCheckUserExists.mockResolvedValue({ exists: false, error: null });
+        mockRegisterUser.mockResolvedValue({ error: 'Registration failed' });
+
+        render(<Auth onAuthSuccess={mockOnAuthSuccess} />);
+
+        await user.click(screen.getByText('Continue with Google'));
+
+        await waitFor(() => {
+          // Should continue despite registration failure for existing users
+          expect(mockSignOut).not.toHaveBeenCalled();
+          expect(mockOnAuthSuccess).toHaveBeenCalled();
+        });
+      });
     });
   });
 });

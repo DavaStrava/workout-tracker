@@ -72,7 +72,8 @@ workout-tracker/
     ├── services/
     │   ├── auth.ts
     │   ├── auth.test.ts
-    │   └── firestore.ts
+    │   ├── firestore.ts
+    │   └── firestore.test.ts
     ├── config/
     │   └── firebase.ts
     └── assets/
@@ -143,12 +144,14 @@ Uses **Vitest** with **React Testing Library** for unit and integration tests.
 ```
 src/
 ├── services/
-│   └── auth.test.ts              # Auth service tests
+│   ├── auth.test.ts              # Auth service tests
+│   └── firestore.test.ts         # Firestore service tests (user limit)
 ├── components/__tests__/
 │   ├── Button.test.tsx           # Button component tests
 │   ├── Card.test.tsx             # Card component tests
 │   └── Badge.test.tsx            # Badge component tests
 ├── features/__tests__/
+│   ├── Auth.test.tsx             # Auth UI tests (incl. user limit)
 │   ├── WorkoutTypeSelector.test.tsx  # Workout type picker tests
 │   └── WorkoutLogger.test.tsx        # Workout logging tests
 ├── utils/
@@ -162,7 +165,8 @@ src/
 | Area | Tests | Coverage |
 |------|-------|----------|
 | Auth Service | 15 | signUp, signIn, signInWithGoogle, signOut, resetPassword |
-| Auth UI | 37 | Login/signup forms, mode toggle, error display |
+| Auth UI | 55 | Login/signup forms, mode toggle, error display, user limit |
+| Firestore Service | 23 | User limit, registration, count, existence checks |
 | WorkoutTypeSelector | 14 | Rendering, interactions, styling, accessibility |
 | WorkoutLogger | 27 | Active workout, save routine modal, set management |
 | CardioLogger | 31 | Cardio exercise logging, intensity, duration tracking |
@@ -273,6 +277,21 @@ Cloud Firestore for persistent data storage:
 - Routines stored per user
 - Active workout state preserved
 - Automatic migration from localStorage on first login
+- User registration with limit enforcement
+
+**User Limit** (10 users max):
+- `getUserCount()` - Count registered users via `getCountFromServer()`
+- `checkUserExists(userId)` - Check if user document exists
+- `isUserLimitReached()` - Returns true if count >= 10
+- `registerUser(userId, email, displayName?, skipLimitCheck?)` - Create user document
+
+The limit is enforced at the application level in `Auth.tsx`:
+- New email signups check limit before creating Firebase Auth user
+- Google sign-in checks `user.metadata.creationTime === lastSignInTime` to distinguish new vs existing users
+- Existing users (different creation/login times) bypass limit and get migrated to Firestore
+- If Firestore checks fail, existing users can still log in (graceful degradation)
+
+**Note**: This is client-side enforcement only. For production security, add Firestore security rules.
 
 **Atomic Operations**: `finishWorkoutAtomic()` uses Firestore batch writes to save completed workout and clear active workout atomically, preventing race conditions.
 

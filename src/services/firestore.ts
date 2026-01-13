@@ -10,6 +10,7 @@ import {
   orderBy,
   Timestamp,
   writeBatch,
+  getCountFromServer,
   type FirestoreError,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
@@ -41,6 +42,8 @@ const COLLECTIONS = {
   ACTIVE_WORKOUT: 'activeWorkout',
 } as const;
 
+const MAX_USERS = 10;
+
 /**
  * Get reference to user's collection
  */
@@ -53,6 +56,85 @@ const getUserCollection = (userId: string, collectionName: string) => {
  */
 const getUserDoc = (userId: string, collectionName: string, docId: string) => {
   return doc(db, 'users', userId, collectionName, docId);
+};
+
+// ==================== USER LIMIT ====================
+
+/**
+ * Get the current count of registered users
+ */
+export const getUserCount = async (): Promise<{ count: number; error: string | null }> => {
+  try {
+    const usersRef = collection(db, 'users');
+    const snapshot = await getCountFromServer(usersRef);
+    return { count: snapshot.data().count, error: null };
+  } catch (error: unknown) {
+    console.error('Error getting user count:', error);
+    return { count: 0, error: getFirestoreErrorMessage(error) };
+  }
+};
+
+/**
+ * Check if a user is already registered in Firestore
+ */
+export const checkUserExists = async (userId: string): Promise<{ exists: boolean; error: string | null }> => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userRef);
+    return { exists: userDoc.exists(), error: null };
+  } catch (error: unknown) {
+    console.error('Error checking user exists:', error);
+    return { exists: false, error: getFirestoreErrorMessage(error) };
+  }
+};
+
+/**
+ * Check if user limit has been reached
+ */
+export const isUserLimitReached = async (): Promise<{ limitReached: boolean; error: string | null }> => {
+  const { count, error } = await getUserCount();
+  if (error) {
+    return { limitReached: false, error };
+  }
+  return { limitReached: count >= MAX_USERS, error: null };
+};
+
+/**
+ * Register a new user (creates user document in Firestore)
+ * @param userId - Firebase Auth user ID
+ * @param email - User's email
+ * @param displayName - User's display name (optional)
+ * @param skipLimitCheck - Skip the user limit check (for migrating existing users)
+ */
+export const registerUser = async (
+  userId: string,
+  email: string,
+  displayName?: string,
+  skipLimitCheck = false
+): Promise<{ error: string | null }> => {
+  try {
+    // Check limit before registering (unless skipped for migration)
+    if (!skipLimitCheck) {
+      const { limitReached, error: limitError } = await isUserLimitReached();
+      if (limitError) {
+        return { error: limitError };
+      }
+      if (limitReached) {
+        return { error: 'Registration is currently closed. Maximum number of users reached.' };
+      }
+    }
+
+    const userRef = doc(db, 'users', userId);
+    await setDoc(userRef, {
+      email,
+      displayName: displayName || null,
+      createdAt: Timestamp.now(),
+    });
+    return { error: null };
+  } catch (error: unknown) {
+    console.error('Error registering user:', error);
+    return { error: getFirestoreErrorMessage(error) };
+  }
 };
 
 // ==================== WORKOUTS ====================

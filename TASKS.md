@@ -25,3 +25,9 @@
     - [x] Add accessibility attributes (ARIA) <!-- id: 17 -->
     - [x] Fix unit consistency (kg throughout) <!-- id: 18 -->
     - [x] Expand test coverage (234 tests passing) <!-- id: 19 -->
+- [x] User Management
+    - [x] Implement 10-user registration limit <!-- id: 20 -->
+    - [x] Add user registration to Firestore users collection <!-- id: 21 -->
+    - [x] Handle existing user migration (no Firestore doc) <!-- id: 22 -->
+    - [x] Add registration closed UI banner <!-- id: 23 -->
+    - [x] Add Firestore service tests (23 tests) <!-- id: 24 -->

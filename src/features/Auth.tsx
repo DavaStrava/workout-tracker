@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
-import { signIn, signUp, signInWithGoogle } from '../services/auth';
+import { signIn, signUp, signInWithGoogle, signOut } from '../services/auth';
+import { isUserLimitReached, registerUser, checkUserExists } from '../services/firestore';
 
 interface AuthProps {
   onAuthSuccess?: () => void;
@@ -15,6 +16,16 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [registrationClosed, setRegistrationClosed] = useState(false);
+
+  // Check user limit when switching to signup mode
+  useEffect(() => {
+    if (mode === 'signup') {
+      isUserLimitReached().then(({ limitReached }) => {
+        setRegistrationClosed(limitReached);
+      });
+    }
+  }, [mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,10 +34,31 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
 
     try {
       if (mode === 'signup') {
+        // Check user limit before creating account
+        const { limitReached, error: limitError } = await isUserLimitReached();
+        if (limitError) {
+          setError(limitError);
+          return;
+        }
+        if (limitReached) {
+          setRegistrationClosed(true);
+          setError('Registration is currently closed. Maximum number of users reached.');
+          return;
+        }
+
         const { user, error } = await signUp(email, password, displayName);
         if (error) {
           setError(error);
         } else if (user) {
+          // Register user in Firestore
+          const { error: registerError } = await registerUser(user.uid, email, displayName);
+          if (registerError) {
+            // User was created in Firebase Auth but failed to register in Firestore
+            // Sign them out to prevent access without registration
+            await signOut();
+            setError(registerError);
+            return;
+          }
           onAuthSuccess?.();
         }
       } else {
@@ -50,7 +82,59 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
       const { user, error } = await signInWithGoogle();
       if (error) {
         setError(error);
-      } else if (user) {
+        return;
+      }
+
+      if (user) {
+        // Check if this user already exists in Firestore
+        const { exists, error: existsError } = await checkUserExists(user.uid);
+
+        if (!exists && !existsError) {
+          // User doesn't exist in Firestore - could be new or existing Firebase Auth user
+          // Check if this is their first sign-in by looking at metadata
+          // If metadata is missing, assume existing user (safer default - don't block)
+          const creationTime = user.metadata?.creationTime;
+          const lastSignInTime = user.metadata?.lastSignInTime;
+          const isNewUser = creationTime && lastSignInTime && creationTime === lastSignInTime;
+
+          if (isNewUser) {
+            // Truly new user - enforce limit
+            const { limitReached, error: limitError } = await isUserLimitReached();
+            if (limitError) {
+              await signOut();
+              setError(limitError);
+              return;
+            }
+            if (limitReached) {
+              await signOut();
+              setRegistrationClosed(true);
+              setError('Registration is currently closed. Maximum number of users reached.');
+              return;
+            }
+          }
+
+          // Register the user in Firestore (new or migrating existing user)
+          // Skip limit check for existing users being migrated
+          const { error: registerError } = await registerUser(
+            user.uid,
+            user.email || '',
+            user.displayName || undefined,
+            !isNewUser // skipLimitCheck for existing users
+          );
+          if (registerError) {
+            // For existing users, don't block login if registration fails
+            // Just log the error and continue
+            if (!isNewUser) {
+              console.warn('Failed to migrate existing user to Firestore:', registerError);
+            } else {
+              await signOut();
+              setError(registerError);
+              return;
+            }
+          }
+        }
+        // Note: If existsError occurred, we continue anyway - don't block login due to Firestore issues
+
         onAuthSuccess?.();
       }
     } finally {
@@ -93,9 +177,31 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
             Workout Tracker
           </h1>
           <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>
-            {mode === 'login' ? 'Welcome back!' : 'Start your fitness journey'}
+            {mode === 'login' ? 'Welcome back!' : (registrationClosed ? 'Registration closed' : 'Start your fitness journey')}
           </p>
         </div>
+
+        {mode === 'signup' && registrationClosed && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{
+              padding: '16px',
+              marginBottom: '16px',
+              borderRadius: '12px',
+              background: 'rgba(251, 146, 60, 0.1)',
+              border: '1px solid rgba(251, 146, 60, 0.3)',
+              textAlign: 'center',
+            }}
+          >
+            <p style={{ fontSize: '14px', color: '#fb923c', fontWeight: 500 }}>
+              Registration is currently closed
+            </p>
+            <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '4px' }}>
+              Maximum number of users reached. Please try again later.
+            </p>
+          </motion.div>
+        )}
 
         <div style={{
           padding: '32px',
@@ -163,6 +269,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
               variant="gradient"
               size="lg"
               isLoading={isLoading}
+              disabled={mode === 'signup' && registrationClosed}
               style={{ width: '100%' }}
             >
               {mode === 'login' ? 'Sign In' : 'Create Account'}
