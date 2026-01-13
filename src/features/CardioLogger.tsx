@@ -3,10 +3,8 @@ import { useWorkout } from '../hooks/useWorkoutStore';
 import { EXERCISES } from '../data/exercises';
 import { Plus, ChevronLeft, Check, Clock, Ruler, MessageSquare } from 'lucide-react';
 import { Button } from '../components/Button';
-import { Card } from '../components/Card';
 import { Input } from '../components/Input';
 import { AnimatePresence, motion } from 'framer-motion';
-import { cn } from '../utils/styles';
 import type { CardioIntensity } from '../types';
 
 interface CardioLoggerProps {
@@ -29,29 +27,41 @@ export const CardioLogger: React.FC<CardioLoggerProps> = ({ onBack: _onBack }) =
     // Exercise Selector
     if (showExerciseSelector) {
         return (
-            <div className="flex flex-col gap-6 pb-20">
-                <div className="flex items-center gap-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '80px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <Button variant="ghost" size="icon" onClick={() => setShowExerciseSelector(false)}>
                         <ChevronLeft size={24} />
                     </Button>
-                    <h2 className="text-xl font-bold">Select Activity</h2>
+                    <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff' }}>Select Activity</h2>
                 </div>
 
-                <div className="grid gap-3">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {cardioExercises.map((ex, index) => (
                         <motion.button
                             key={ex.id}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05 }}
+                            whileTap={{ scale: 0.98 }}
+                            whileHover={{ scale: 1.01 }}
                             onClick={() => {
                                 addExercise(ex.id);
                                 setShowExerciseSelector(false);
                             }}
-                            className="flex items-center justify-between p-4 rounded-xl bg-zinc-800/50 border border-white/5 hover:bg-zinc-700/50 transition-all"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '18px 20px',
+                                borderRadius: '16px',
+                                background: 'rgba(30, 27, 50, 0.8)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                            }}
                         >
-                            <span className="font-medium text-white">{ex.name}</span>
-                            <Plus size={18} className="text-zinc-500" />
+                            <span style={{ fontWeight: 600, color: '#fff', fontSize: '16px' }}>{ex.name}</span>
+                            <Plus size={20} style={{ color: 'rgba(255, 255, 255, 0.5)' }} />
                         </motion.button>
                     ))}
                 </div>
@@ -60,20 +70,27 @@ export const CardioLogger: React.FC<CardioLoggerProps> = ({ onBack: _onBack }) =
     }
 
     return (
-        <div className="flex flex-col gap-6 pb-24">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '96px' }}>
             {/* Header */}
-            <div className="flex justify-between items-start">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-400 to-rose-500">
+                    <h1 style={{
+                        fontSize: '28px',
+                        fontWeight: 700,
+                        background: 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
+                    }}>
                         {activeWorkout.name}
                     </h1>
-                    <div className="text-sm text-zinc-500 flex items-center gap-2 mt-1">
-                        <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                    <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.5)', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ec4899', animation: 'pulse 2s infinite' }} />
                         Cardio Session
                     </div>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="danger" size="sm" onClick={cancelWorkout}>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <Button variant="ghost" size="sm" onClick={cancelWorkout}>
                         Cancel
                     </Button>
                     <Button variant="primary" onClick={finishWorkout}>
@@ -89,19 +106,27 @@ export const CardioLogger: React.FC<CardioLoggerProps> = ({ onBack: _onBack }) =
                     if (!set) return null;
 
                     return (
-                        <Card key={exerciseInstance.id} variant="glass">
-                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                        <div
+                            key={exerciseInstance.id}
+                            style={{
+                                background: 'rgba(30, 27, 50, 0.8)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                borderRadius: '24px',
+                                padding: '24px',
+                            }}
+                        >
+                            <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', color: '#fff' }}>
                                 🏃 {getExerciseName(exerciseInstance.exerciseId)}
                             </h3>
 
-                            <div className="space-y-4">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                 {/* Duration */}
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center">
-                                        <Clock size={18} className="text-rose-400" />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                    <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(236, 72, 153, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Clock size={20} style={{ color: '#f472b6' }} />
                                     </div>
-                                    <div className="flex-1">
-                                        <label className="text-xs text-zinc-500 uppercase tracking-wider">Duration (min)</label>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Duration (min)</label>
                                         <Input
                                             type="number"
                                             className="mt-1 bg-zinc-900/50"
@@ -115,12 +140,12 @@ export const CardioLogger: React.FC<CardioLoggerProps> = ({ onBack: _onBack }) =
                                 </div>
 
                                 {/* Distance */}
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                                        <Ruler size={18} className="text-blue-400" />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                    <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Ruler size={20} style={{ color: '#60a5fa' }} />
                                     </div>
-                                    <div className="flex-1">
-                                        <label className="text-xs text-zinc-500 uppercase tracking-wider">Distance (km)</label>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Distance (km)</label>
                                         <Input
                                             type="number"
                                             className="mt-1 bg-zinc-900/50"
@@ -136,70 +161,125 @@ export const CardioLogger: React.FC<CardioLoggerProps> = ({ onBack: _onBack }) =
 
                                 {/* Intensity */}
                                 <div>
-                                    <label className="text-xs text-zinc-500 uppercase tracking-wider mb-2 block">Intensity</label>
-                                    <div className="flex gap-2">
-                                        {(['low', 'medium', 'high'] as CardioIntensity[]).map(level => (
-                                            <button
-                                                key={level}
-                                                onClick={() => updateSet(exerciseInstance.id, set.id, { intensity: level })}
-                                                className={cn(
-                                                    "flex-1 py-2.5 rounded-xl font-medium text-sm transition-all capitalize",
-                                                    set.intensity === level
-                                                        ? level === 'low' ? "bg-green-500/30 text-green-400 border border-green-500/50"
-                                                            : level === 'medium' ? "bg-amber-500/30 text-amber-400 border border-amber-500/50"
-                                                                : "bg-red-500/30 text-red-400 border border-red-500/50"
-                                                        : "bg-zinc-800/50 text-zinc-400 border border-white/5 hover:bg-zinc-700/50"
-                                                )}
-                                            >
-                                                {level}
-                                            </button>
-                                        ))}
+                                    <label style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px', display: 'block' }}>Intensity</label>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        {(['low', 'medium', 'high'] as CardioIntensity[]).map(level => {
+                                            const isActive = set.intensity === level;
+                                            const colors = {
+                                                low: { bg: 'rgba(34, 197, 94, 0.2)', border: 'rgba(34, 197, 94, 0.5)', text: '#22c55e' },
+                                                medium: { bg: 'rgba(245, 158, 11, 0.2)', border: 'rgba(245, 158, 11, 0.5)', text: '#f59e0b' },
+                                                high: { bg: 'rgba(239, 68, 68, 0.2)', border: 'rgba(239, 68, 68, 0.5)', text: '#ef4444' },
+                                            };
+                                            return (
+                                                <button
+                                                    key={level}
+                                                    onClick={() => updateSet(exerciseInstance.id, set.id, { intensity: level })}
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '12px 16px',
+                                                        borderRadius: '12px',
+                                                        fontWeight: 600,
+                                                        fontSize: '14px',
+                                                        textTransform: 'capitalize',
+                                                        transition: 'all 0.2s',
+                                                        cursor: 'pointer',
+                                                        background: isActive ? colors[level].bg : 'rgba(255, 255, 255, 0.05)',
+                                                        border: isActive ? `1px solid ${colors[level].border}` : '1px solid rgba(255, 255, 255, 0.1)',
+                                                        color: isActive ? colors[level].text : 'rgba(255, 255, 255, 0.6)',
+                                                    }}
+                                                >
+                                                    {level}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
                                 {/* Completed toggle */}
                                 <button
                                     onClick={() => updateSet(exerciseInstance.id, set.id, { completed: !set.completed })}
-                                    className={cn(
-                                        "w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all",
-                                        set.completed
-                                            ? "bg-emerald-500 text-white"
-                                            : "bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700/50"
-                                    )}
+                                    style={{
+                                        width: '100%',
+                                        padding: '14px 20px',
+                                        borderRadius: '16px',
+                                        fontWeight: 600,
+                                        fontSize: '15px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '10px',
+                                        transition: 'all 0.2s',
+                                        cursor: 'pointer',
+                                        border: 'none',
+                                        background: set.completed
+                                            ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                                            : 'rgba(255, 255, 255, 0.05)',
+                                        color: set.completed ? '#fff' : 'rgba(255, 255, 255, 0.6)',
+                                        boxShadow: set.completed ? '0 8px 20px rgba(16, 185, 129, 0.3)' : 'none',
+                                    }}
                                 >
                                     <Check size={18} />
                                     {set.completed ? 'Completed' : 'Mark Complete'}
                                 </button>
                             </div>
-                        </Card>
+                        </div>
                     );
                 })}
             </AnimatePresence>
 
             {/* Notes Section */}
-            <Card variant="glass">
-                <div className="flex items-center gap-2 mb-3">
-                    <MessageSquare size={16} className="text-zinc-500" />
-                    <label className="text-sm font-medium text-zinc-400">Session Notes</label>
+            <div style={{
+                background: 'rgba(30, 27, 50, 0.8)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '24px',
+                padding: '24px',
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                    <MessageSquare size={18} style={{ color: 'rgba(255, 255, 255, 0.5)' }} />
+                    <label style={{ fontSize: '14px', fontWeight: 600, color: 'rgba(255, 255, 255, 0.6)' }}>Session Notes</label>
                 </div>
                 <textarea
-                    className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white placeholder:text-zinc-600 resize-none focus:outline-none focus:border-white/20"
+                    style={{
+                        width: '100%',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '12px',
+                        padding: '14px',
+                        color: '#fff',
+                        fontSize: '15px',
+                        resize: 'none',
+                        outline: 'none',
+                    }}
                     rows={3}
                     placeholder="How did you feel? Any notes..."
                     value={activeWorkout.notes || ''}
                     onChange={(e) => updateNotes(e.target.value)}
                 />
-            </Card>
+            </div>
 
             {/* Add Activity */}
-            <Button
-                variant="glass"
-                className="w-full h-14 border-dashed border-white/20 text-zinc-400 hover:text-white gap-2"
+            <button
                 onClick={() => setShowExerciseSelector(true)}
+                style={{
+                    width: '100%',
+                    height: '60px',
+                    borderRadius: '20px',
+                    background: 'rgba(30, 27, 50, 0.8)',
+                    border: '2px dashed rgba(255, 255, 255, 0.15)',
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                }}
             >
-                <Plus size={20} />
+                <Plus size={22} />
                 Add Activity
-            </Button>
+            </button>
         </div>
     );
 };

@@ -67,31 +67,43 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '16px',
+      background: 'linear-gradient(135deg, #1a1625 0%, #1e1b4b 100%)',
     }}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        style={{ width: '100%', maxWidth: '420px' }}
       >
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h1 style={{
+            fontSize: '40px',
+            fontWeight: 900,
+            marginBottom: '12px',
+            background: 'linear-gradient(135deg, #fb923c 0%, #f472b6 50%, #c084fc 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}>
             Workout Tracker
           </h1>
-          <p className="text-zinc-400">
+          <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>
             {mode === 'login' ? 'Welcome back!' : 'Start your fitness journey'}
           </p>
         </div>
 
-        <div
-          className="p-8 rounded-2xl"
-          style={{
-            background: 'rgba(30, 27, 50, 0.9)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-          }}
-        >
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div style={{
+          padding: '32px',
+          borderRadius: '24px',
+          background: 'rgba(30, 27, 50, 0.9)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+        }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <AnimatePresence mode="wait">
               {mode === 'signup' && (
                 <motion.div
@@ -135,9 +147,14 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-3 rounded-lg bg-red-500/10 border border-red-500/20"
+                style={{
+                  padding: '14px',
+                  borderRadius: '12px',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                }}
               >
-                <p className="text-sm text-red-500">{error}</p>
+                <p style={{ fontSize: '14px', color: '#ef4444' }}>{error}</p>
               </motion.div>
             )}
 
@@ -146,18 +163,18 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
               variant="gradient"
               size="lg"
               isLoading={isLoading}
-              className="w-full"
+              style={{ width: '100%' }}
             >
               {mode === 'login' ? 'Sign In' : 'Create Account'}
             </Button>
           </form>
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10"></div>
+          <div style={{ position: 'relative', margin: '28px 0' }}>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center' }}>
+              <div style={{ width: '100%', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}></div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 text-zinc-400 bg-zinc-900/50">or</span>
+            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+              <span style={{ padding: '0 16px', fontSize: '14px', color: 'rgba(255, 255, 255, 0.5)', background: 'rgba(30, 27, 50, 0.9)' }}>or</span>
             </div>
           </div>
 
@@ -166,9 +183,9 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
             variant="glass"
             size="lg"
             isLoading={isLoading}
-            className="w-full"
+            style={{ width: '100%' }}
           >
-            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+            <svg style={{ width: '20px', height: '20px', marginRight: '10px' }} viewBox="0 0 24 24">
               <path
                 fill="currentColor"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -189,21 +206,28 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
             Continue with Google
           </Button>
 
-          <div className="mt-6 text-center">
+          <div style={{ marginTop: '24px', textAlign: 'center' }}>
             <button
               type="button"
               onClick={toggleMode}
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
+              style={{
+                fontSize: '14px',
+                color: 'rgba(255, 255, 255, 0.6)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'color 0.2s',
+              }}
             >
               {mode === 'login' ? (
                 <>
                   Don't have an account?{' '}
-                  <span className="text-pink-500 font-medium">Sign up</span>
+                  <span style={{ color: '#f472b6', fontWeight: 600 }}>Sign up</span>
                 </>
               ) : (
                 <>
                   Already have an account?{' '}
-                  <span className="text-pink-500 font-medium">Sign in</span>
+                  <span style={{ color: '#f472b6', fontWeight: 600 }}>Sign in</span>
                 </>
               )}
             </button>
