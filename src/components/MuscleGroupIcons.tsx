@@ -4,399 +4,502 @@ interface MuscleIconProps {
   size?: number;
 }
 
-// Shared gradient definitions
+// Shared gradient definitions with glow effect
 const GradientDefs: React.FC<{ id: string }> = ({ id }) => (
   <defs>
     <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#f97316" />
-      <stop offset="100%" stopColor="#ec4899" />
+      <stop offset="0%" stopColor="#ff6b35" />
+      <stop offset="50%" stopColor="#f7418c" />
+      <stop offset="100%" stopColor="#fc5c7d" />
     </linearGradient>
-    <linearGradient id={`${id}Light`} x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#f97316" stopOpacity="0.5" />
-      <stop offset="100%" stopColor="#ec4899" stopOpacity="0.5" />
+    <linearGradient id={`${id}Dark`} x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#cc4a20" />
+      <stop offset="100%" stopColor="#b8305f" />
     </linearGradient>
+    <filter id={`${id}Glow`} x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id={`${id}Shadow`} x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#f7418c" floodOpacity="0.4" />
+    </filter>
   </defs>
 );
 
-// Athletic front body silhouette - muscular male figure
-const FrontBodyOutline: React.FC = () => (
-  <g stroke="rgba(255, 255, 255, 0.15)" strokeWidth="1" fill="none">
-    {/* Head */}
-    <ellipse cx="50" cy="10" rx="7" ry="8" />
-    {/* Neck */}
-    <path d="M45 18 L45 22 M55 18 L55 22" />
-    {/* Shoulders and torso */}
-    <path d="M45 22 L30 26 L22 28 L18 30 M55 22 L70 26 L78 28 L82 30" />
-    {/* Arms */}
-    <path d="M18 30 L14 42 L12 55 L14 58 L18 56 L22 42 L24 34" />
-    <path d="M82 30 L86 42 L88 55 L86 58 L82 56 L78 42 L76 34" />
-    {/* Forearms */}
-    <path d="M14 58 L16 72 L20 74 L22 72 L18 56" />
-    <path d="M86 58 L84 72 L80 74 L78 72 L82 56" />
-    {/* Torso sides */}
-    <path d="M30 26 L28 35 L26 50 L28 62 L32 70 L38 78" />
-    <path d="M70 26 L72 35 L74 50 L72 62 L68 70 L62 78" />
-    {/* Inner torso */}
-    <path d="M38 78 L42 82 L50 84 L58 82 L62 78" />
-    {/* Legs */}
-    <path d="M38 78 L36 88 L34 96" />
-    <path d="M62 78 L64 88 L66 96" />
-    <path d="M42 82 L44 92 L46 96" />
-    <path d="M58 82 L56 92 L54 96" />
-  </g>
-);
+// ============ ISOLATED MUSCLE ICONS ============
 
-// Athletic back body silhouette
-const BackBodyOutline: React.FC = () => (
-  <g stroke="rgba(255, 255, 255, 0.15)" strokeWidth="1" fill="none">
-    {/* Head */}
-    <ellipse cx="50" cy="10" rx="7" ry="8" />
-    {/* Neck */}
-    <path d="M45 18 L45 22 M55 18 L55 22" />
-    {/* Shoulders and upper back */}
-    <path d="M45 22 L30 26 L22 28 L18 30 M55 22 L70 26 L78 28 L82 30" />
-    {/* Arms */}
-    <path d="M18 30 L14 42 L12 55 L14 58 L18 56 L22 42 L24 34" />
-    <path d="M82 30 L86 42 L88 55 L86 58 L82 56 L78 42 L76 34" />
-    {/* Forearms */}
-    <path d="M14 58 L16 72 L20 74 L22 72 L18 56" />
-    <path d="M86 58 L84 72 L80 74 L78 72 L82 56" />
-    {/* Back sides (lats area) */}
-    <path d="M30 26 L26 35 L24 50 L26 62 L30 70 L38 78" />
-    <path d="M70 26 L74 35 L76 50 L74 62 L70 70 L62 78" />
-    {/* Spine */}
-    <path d="M50 22 L50 75" strokeDasharray="2,2" />
-    {/* Glutes */}
-    <path d="M38 78 L42 82 L50 84 L58 82 L62 78" />
-    {/* Legs */}
-    <path d="M38 78 L36 88 L34 96" />
-    <path d="M62 78 L64 88 L66 96" />
-    <path d="M42 82 L44 92 L46 96" />
-    <path d="M58 82 L56 92 L54 96" />
-  </g>
-);
-
-// ============ FRONT VIEW ICONS ============
-
-// Chest - Pectoralis major
+// Chest - Pectoralis major (fan-shaped chest muscles)
 export const ChestIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
   <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="chestGrad" />
-    <FrontBodyOutline />
-    {/* Left pectoral */}
-    <path
-      d="M32 28 C28 30 26 34 28 40 L30 46 C34 50 42 50 46 46 L48 38 C48 32 44 28 38 26 C35 25 32 26 32 28Z"
-      fill="url(#chestGrad)"
-    />
-    {/* Right pectoral */}
-    <path
-      d="M68 28 C72 30 74 34 72 40 L70 46 C66 50 58 50 54 46 L52 38 C52 32 56 28 62 26 C65 25 68 26 68 28Z"
-      fill="url(#chestGrad)"
-    />
-    {/* Muscle definition lines */}
-    <path d="M50 30 L50 48" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-    <path d="M34 36 Q40 42 46 38" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" fill="none" />
-    <path d="M66 36 Q60 42 54 38" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" fill="none" />
+    <GradientDefs id="chest" />
+    <g filter="url(#chestShadow)">
+      {/* Left pec - fan shape */}
+      <path
+        d="M8 25 C5 30 5 45 10 55 C15 65 30 70 45 65 C48 64 50 60 50 55 L50 35 C50 28 45 22 35 20 C25 18 15 20 8 25Z"
+        fill="url(#chest)"
+      />
+      {/* Left pec definition */}
+      <path
+        d="M15 35 Q25 45 40 42"
+        stroke="url(#chestDark)"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.5"
+      />
+      {/* Right pec - fan shape */}
+      <path
+        d="M92 25 C95 30 95 45 90 55 C85 65 70 70 55 65 C52 64 50 60 50 55 L50 35 C50 28 55 22 65 20 C75 18 85 20 92 25Z"
+        fill="url(#chest)"
+      />
+      {/* Right pec definition */}
+      <path
+        d="M85 35 Q75 45 60 42"
+        stroke="url(#chestDark)"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.5"
+      />
+      {/* Center line */}
+      <path
+        d="M50 22 L50 68"
+        stroke="rgba(0,0,0,0.2)"
+        strokeWidth="1"
+      />
+    </g>
   </svg>
 );
 
-// Shoulders - Deltoids (all three heads)
+// Shoulders - Deltoid (3D cap shape)
 export const ShouldersIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
   <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="shouldersGrad" />
-    <FrontBodyOutline />
-    {/* Left deltoid - rounded cap */}
-    <path
-      d="M30 26 C24 24 18 26 16 32 C14 38 16 44 20 48 L24 46 C28 42 30 36 30 30 L30 26Z"
-      fill="url(#shouldersGrad)"
-    />
-    {/* Right deltoid */}
-    <path
-      d="M70 26 C76 24 82 26 84 32 C86 38 84 44 80 48 L76 46 C72 42 70 36 70 30 L70 26Z"
-      fill="url(#shouldersGrad)"
-    />
-    {/* Muscle separation lines */}
-    <path d="M22 32 L24 42" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
-    <path d="M78 32 L76 42" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
+    <GradientDefs id="shoulders" />
+    <g filter="url(#shouldersShadow)">
+      {/* Left deltoid - rounded cap */}
+      <path
+        d="M5 40 C2 30 8 18 20 15 C32 12 42 20 45 35 L45 60 C42 65 35 68 25 65 C12 62 5 52 5 40Z"
+        fill="url(#shoulders)"
+      />
+      {/* Left deltoid striations */}
+      <path d="M15 25 L25 55" stroke="url(#shouldersDark)" strokeWidth="1.5" opacity="0.4" />
+      <path d="M25 20 L30 50" stroke="url(#shouldersDark)" strokeWidth="1.5" opacity="0.3" />
+      {/* Right deltoid */}
+      <path
+        d="M95 40 C98 30 92 18 80 15 C68 12 58 20 55 35 L55 60 C58 65 65 68 75 65 C88 62 95 52 95 40Z"
+        fill="url(#shoulders)"
+      />
+      {/* Right deltoid striations */}
+      <path d="M85 25 L75 55" stroke="url(#shouldersDark)" strokeWidth="1.5" opacity="0.4" />
+      <path d="M75 20 L70 50" stroke="url(#shouldersDark)" strokeWidth="1.5" opacity="0.3" />
+    </g>
   </svg>
 );
 
-// Biceps - Front of upper arm
-export const BicepsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="bicepsGrad" />
-    <FrontBodyOutline />
-    {/* Left biceps */}
-    <path
-      d="M20 32 C16 34 14 40 14 48 C14 52 16 54 20 54 C24 54 26 50 26 44 L26 36 C26 32 24 30 20 32Z"
-      fill="url(#bicepsGrad)"
-    />
-    {/* Right biceps */}
-    <path
-      d="M80 32 C84 34 86 40 86 48 C86 52 84 54 80 54 C76 54 74 50 74 44 L74 36 C74 32 76 30 80 32Z"
-      fill="url(#bicepsGrad)"
-    />
-    {/* Biceps peak definition */}
-    <path d="M18 40 Q20 44 18 48" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" fill="none" />
-    <path d="M82 40 Q80 44 82 48" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" fill="none" />
-  </svg>
-);
-
-// Forearms - Lower arm muscles
-export const ForearmsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="forearmsGrad" />
-    <FrontBodyOutline />
-    {/* Left forearm */}
-    <path
-      d="M14 56 C12 58 12 64 14 70 C16 74 20 74 22 70 L22 60 C22 56 18 54 14 56Z"
-      fill="url(#forearmsGrad)"
-    />
-    {/* Right forearm */}
-    <path
-      d="M86 56 C88 58 88 64 86 70 C84 74 80 74 78 70 L78 60 C78 56 82 54 86 56Z"
-      fill="url(#forearmsGrad)"
-    />
-    {/* Brachioradialis definition */}
-    <path d="M16 60 L18 68" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
-    <path d="M84 60 L82 68" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
-  </svg>
-);
-
-// Quads - Front thigh muscles
-export const QuadsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="quadsGrad" />
-    <FrontBodyOutline />
-    {/* Left quad group */}
-    <path
-      d="M36 78 C32 80 30 86 32 94 L46 94 C48 86 46 80 42 78 L36 78Z"
-      fill="url(#quadsGrad)"
-    />
-    {/* Right quad group */}
-    <path
-      d="M64 78 C68 80 70 86 68 94 L54 94 C52 86 54 80 58 78 L64 78Z"
-      fill="url(#quadsGrad)"
-    />
-    {/* Quad separation (4 heads) */}
-    <path d="M38 82 L40 92" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
-    <path d="M62 82 L60 92" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
-    {/* Rectus femoris line */}
-    <path d="M40 80 L42 90" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-    <path d="M60 80 L58 90" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-  </svg>
-);
-
-// Abs - Rectus abdominis (6-pack)
-export const AbsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="absGrad" />
-    <FrontBodyOutline />
-    {/* Six-pack muscles */}
-    {/* Top row */}
-    <rect x="40" y="36" width="8" height="10" rx="2" fill="url(#absGrad)" />
-    <rect x="52" y="36" width="8" height="10" rx="2" fill="url(#absGrad)" />
-    {/* Middle row */}
-    <rect x="40" y="48" width="8" height="10" rx="2" fill="url(#absGrad)" />
-    <rect x="52" y="48" width="8" height="10" rx="2" fill="url(#absGrad)" />
-    {/* Bottom row */}
-    <rect x="40" y="60" width="8" height="10" rx="2" fill="url(#absGrad)" />
-    <rect x="52" y="60" width="8" height="10" rx="2" fill="url(#absGrad)" />
-    {/* Linea alba (center line) */}
-    <path d="M50 34 L50 72" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-  </svg>
-);
-
-// Obliques - Side abdominal muscles
-export const ObliquesIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="obliquesGrad" />
-    <FrontBodyOutline />
-    {/* Left obliques */}
-    <path
-      d="M28 38 C26 42 26 54 28 64 L32 68 C34 64 36 54 34 44 L32 38 C30 36 28 36 28 38Z"
-      fill="url(#obliquesGrad)"
-    />
-    {/* Right obliques */}
-    <path
-      d="M72 38 C74 42 74 54 72 64 L68 68 C66 64 64 54 66 44 L68 38 C70 36 72 36 72 38Z"
-      fill="url(#obliquesGrad)"
-    />
-    {/* Oblique fiber direction lines */}
-    <path d="M30 44 L32 50" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-    <path d="M30 54 L32 60" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-    <path d="M70 44 L68 50" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-    <path d="M70 54 L68 60" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-  </svg>
-);
-
-// ============ BACK VIEW ICONS ============
-
-// Lats - Latissimus dorsi (V-taper)
-export const LatsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="latsGrad" />
-    <BackBodyOutline />
-    {/* Left lat - wing shape */}
-    <path
-      d="M30 28 C24 32 22 42 24 54 L28 62 C32 64 38 62 42 56 L44 44 C44 36 40 28 34 26 L30 28Z"
-      fill="url(#latsGrad)"
-    />
-    {/* Right lat */}
-    <path
-      d="M70 28 C76 32 78 42 76 54 L72 62 C68 64 62 62 58 56 L56 44 C56 36 60 28 66 26 L70 28Z"
-      fill="url(#latsGrad)"
-    />
-    {/* Lat fiber lines */}
-    <path d="M28 36 Q34 46 30 56" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" fill="none" />
-    <path d="M72 36 Q66 46 70 56" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" fill="none" />
-  </svg>
-);
-
-// Upper Back - Rhomboids and mid traps
-export const UpperBackIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="upperBackGrad" />
-    <BackBodyOutline />
-    {/* Left rhomboid/mid back */}
-    <path
-      d="M36 28 C32 30 30 36 32 44 L36 50 C40 52 46 50 48 44 L48 34 C46 28 40 26 36 28Z"
-      fill="url(#upperBackGrad)"
-    />
-    {/* Right rhomboid/mid back */}
-    <path
-      d="M64 28 C68 30 70 36 68 44 L64 50 C60 52 54 50 52 44 L52 34 C54 28 60 26 64 28Z"
-      fill="url(#upperBackGrad)"
-    />
-    {/* Scapula hints */}
-    <path d="M38 34 Q42 40 38 46" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" fill="none" />
-    <path d="M62 34 Q58 40 62 46" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" fill="none" />
-  </svg>
-);
-
-// Traps - Upper trapezius
-export const TrapsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="trapsGrad" />
-    <BackBodyOutline />
-    {/* Trapezius - diamond shape from neck to shoulders */}
-    <path
-      d="M50 18 L30 26 C28 28 28 32 30 36 L42 40 L50 42 L58 40 L70 36 C72 32 72 28 70 26 L50 18Z"
-      fill="url(#trapsGrad)"
-    />
-    {/* Trap fiber lines */}
-    <path d="M50 22 L38 32" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-    <path d="M50 22 L62 32" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-    <path d="M50 28 L50 38" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-  </svg>
-);
-
-// Lower Back - Erector spinae
-export const LowerBackIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="lowerBackGrad" />
-    <BackBodyOutline />
-    {/* Left erector spinae column */}
-    <path
-      d="M42 52 C40 56 40 66 42 74 L46 76 C48 74 48 64 46 56 L42 52Z"
-      fill="url(#lowerBackGrad)"
-    />
-    {/* Right erector spinae column */}
-    <path
-      d="M58 52 C60 56 60 66 58 74 L54 76 C52 74 52 64 54 56 L58 52Z"
-      fill="url(#lowerBackGrad)"
-    />
-    {/* Spine highlight */}
-    <path d="M50 50 L50 76" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-    {/* Muscle fiber lines */}
-    <path d="M44 58 L44 70" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-    <path d="M56 58 L56 70" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-  </svg>
-);
-
-// Triceps - Back of upper arm
+// Triceps - Horseshoe shape (back of arm)
 export const TricepsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
   <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="tricepsGrad" />
-    <BackBodyOutline />
-    {/* Left triceps (3 heads) */}
-    <path
-      d="M18 32 C14 36 12 44 14 52 C16 56 20 56 24 52 L26 42 C26 36 24 30 18 32Z"
-      fill="url(#tricepsGrad)"
-    />
-    {/* Right triceps */}
-    <path
-      d="M82 32 C86 36 88 44 86 52 C84 56 80 56 76 52 L74 42 C74 36 76 30 82 32Z"
-      fill="url(#tricepsGrad)"
-    />
-    {/* Triceps head separation */}
-    <path d="M18 38 L20 48" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
-    <path d="M82 38 L80 48" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
-    <path d="M22 36 L22 46" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-    <path d="M78 36 L78 46" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
+    <GradientDefs id="triceps" />
+    <g filter="url(#tricepsShadow)">
+      {/* Left triceps - horseshoe */}
+      <path
+        d="M10 15 C5 20 5 35 8 50 C10 60 15 70 25 75 C32 78 38 75 40 68 L42 45 C42 30 38 18 28 12 C20 8 14 10 10 15Z"
+        fill="url(#triceps)"
+      />
+      {/* Lateral head */}
+      <path
+        d="M12 25 C10 35 12 50 18 60"
+        stroke="url(#tricepsDark)"
+        strokeWidth="2"
+        opacity="0.5"
+        fill="none"
+      />
+      {/* Long head */}
+      <path
+        d="M30 18 L32 65"
+        stroke="url(#tricepsDark)"
+        strokeWidth="2"
+        opacity="0.4"
+      />
+      {/* Right triceps */}
+      <path
+        d="M90 15 C95 20 95 35 92 50 C90 60 85 70 75 75 C68 78 62 75 60 68 L58 45 C58 30 62 18 72 12 C80 8 86 10 90 15Z"
+        fill="url(#triceps)"
+      />
+      <path
+        d="M88 25 C90 35 88 50 82 60"
+        stroke="url(#tricepsDark)"
+        strokeWidth="2"
+        opacity="0.5"
+        fill="none"
+      />
+      <path
+        d="M70 18 L68 65"
+        stroke="url(#tricepsDark)"
+        strokeWidth="2"
+        opacity="0.4"
+      />
+    </g>
   </svg>
 );
 
-// Hamstrings - Back of thigh
+// Lats - Wing shape (latissimus dorsi)
+export const LatsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
+    <GradientDefs id="lats" />
+    <g filter="url(#latsShadow)">
+      {/* Left lat - wing shape */}
+      <path
+        d="M45 10 C35 12 20 18 10 35 C5 48 8 65 15 78 C20 85 30 88 42 85 L48 80 L48 15 C48 12 46 10 45 10Z"
+        fill="url(#lats)"
+      />
+      {/* Lat fiber lines */}
+      <path d="M20 40 Q35 55 45 75" stroke="url(#latsDark)" strokeWidth="1.5" opacity="0.4" fill="none" />
+      <path d="M15 50 Q30 62 42 78" stroke="url(#latsDark)" strokeWidth="1.5" opacity="0.3" fill="none" />
+      {/* Right lat */}
+      <path
+        d="M55 10 C65 12 80 18 90 35 C95 48 92 65 85 78 C80 85 70 88 58 85 L52 80 L52 15 C52 12 54 10 55 10Z"
+        fill="url(#lats)"
+      />
+      <path d="M80 40 Q65 55 55 75" stroke="url(#latsDark)" strokeWidth="1.5" opacity="0.4" fill="none" />
+      <path d="M85 50 Q70 62 58 78" stroke="url(#latsDark)" strokeWidth="1.5" opacity="0.3" fill="none" />
+    </g>
+  </svg>
+);
+
+// Upper Back - Rhomboids (mid-back muscles)
+export const UpperBackIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
+    <GradientDefs id="upperBack" />
+    <g filter="url(#upperBackShadow)">
+      {/* Left rhomboid - diamond shape */}
+      <path
+        d="M15 20 L45 15 L48 50 L45 80 L15 70 L10 45 Z"
+        fill="url(#upperBack)"
+      />
+      {/* Scapula outline */}
+      <path
+        d="M20 30 L40 28 L42 50 L38 68 L18 62 Z"
+        stroke="url(#upperBackDark)"
+        strokeWidth="2"
+        fill="none"
+        opacity="0.4"
+      />
+      {/* Right rhomboid */}
+      <path
+        d="M85 20 L55 15 L52 50 L55 80 L85 70 L90 45 Z"
+        fill="url(#upperBack)"
+      />
+      <path
+        d="M80 30 L60 28 L58 50 L62 68 L82 62 Z"
+        stroke="url(#upperBackDark)"
+        strokeWidth="2"
+        fill="none"
+        opacity="0.4"
+      />
+      {/* Spine indication */}
+      <path d="M50 12 L50 85" stroke="rgba(0,0,0,0.15)" strokeWidth="2" strokeDasharray="4,4" />
+    </g>
+  </svg>
+);
+
+// Traps - Diamond/trapezoid shape
+export const TrapsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
+    <GradientDefs id="traps" />
+    <g filter="url(#trapsShadow)">
+      {/* Trapezius - kite/diamond shape */}
+      <path
+        d="M50 5 L15 30 C10 35 10 45 15 55 L30 70 L50 75 L70 70 L85 55 C90 45 90 35 85 30 L50 5Z"
+        fill="url(#traps)"
+      />
+      {/* Upper trap fibers */}
+      <path d="M50 10 L25 35" stroke="url(#trapsDark)" strokeWidth="1.5" opacity="0.4" />
+      <path d="M50 10 L75 35" stroke="url(#trapsDark)" strokeWidth="1.5" opacity="0.4" />
+      {/* Mid trap fibers */}
+      <path d="M50 25 L20 45" stroke="url(#trapsDark)" strokeWidth="1.5" opacity="0.3" />
+      <path d="M50 25 L80 45" stroke="url(#trapsDark)" strokeWidth="1.5" opacity="0.3" />
+      {/* Lower trap fibers */}
+      <path d="M50 45 L35 65" stroke="url(#trapsDark)" strokeWidth="1.5" opacity="0.3" />
+      <path d="M50 45 L65 65" stroke="url(#trapsDark)" strokeWidth="1.5" opacity="0.3" />
+      {/* Spine */}
+      <path d="M50 8 L50 72" stroke="rgba(0,0,0,0.2)" strokeWidth="1.5" />
+    </g>
+  </svg>
+);
+
+// Biceps - Peaked muscle (front of arm)
+export const BicepsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
+    <GradientDefs id="biceps" />
+    <g filter="url(#bicepsShadow)">
+      {/* Left biceps - peaked shape */}
+      <path
+        d="M10 25 C5 35 8 50 12 60 C16 70 25 78 35 78 C42 78 45 72 45 65 L45 40 C45 28 40 18 30 15 C20 12 14 18 10 25Z"
+        fill="url(#biceps)"
+      />
+      {/* Biceps peak */}
+      <path
+        d="M15 35 Q22 30 28 38 Q34 46 30 58"
+        stroke="url(#bicepsDark)"
+        strokeWidth="2"
+        fill="none"
+        opacity="0.5"
+      />
+      {/* Short head line */}
+      <path d="M35 22 L38 70" stroke="url(#bicepsDark)" strokeWidth="1.5" opacity="0.3" />
+      {/* Right biceps */}
+      <path
+        d="M90 25 C95 35 92 50 88 60 C84 70 75 78 65 78 C58 78 55 72 55 65 L55 40 C55 28 60 18 70 15 C80 12 86 18 90 25Z"
+        fill="url(#biceps)"
+      />
+      <path
+        d="M85 35 Q78 30 72 38 Q66 46 70 58"
+        stroke="url(#bicepsDark)"
+        strokeWidth="2"
+        fill="none"
+        opacity="0.5"
+      />
+      <path d="M65 22 L62 70" stroke="url(#bicepsDark)" strokeWidth="1.5" opacity="0.3" />
+    </g>
+  </svg>
+);
+
+// Forearms - Tapered shape
+export const ForearmsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
+    <GradientDefs id="forearms" />
+    <g filter="url(#forearmsShadow)">
+      {/* Left forearm - tapered cylinder */}
+      <path
+        d="M12 10 C8 12 5 20 5 30 L8 70 C10 80 15 88 22 90 C30 92 35 88 38 78 L42 30 C42 18 38 10 30 8 C22 6 16 8 12 10Z"
+        fill="url(#forearms)"
+      />
+      {/* Brachioradialis */}
+      <path d="M15 20 Q20 45 18 75" stroke="url(#forearmsDark)" strokeWidth="2" opacity="0.4" fill="none" />
+      {/* Flexor muscles */}
+      <path d="M28 15 L30 80" stroke="url(#forearmsDark)" strokeWidth="1.5" opacity="0.3" />
+      {/* Right forearm */}
+      <path
+        d="M88 10 C92 12 95 20 95 30 L92 70 C90 80 85 88 78 90 C70 92 65 88 62 78 L58 30 C58 18 62 10 70 8 C78 6 84 8 88 10Z"
+        fill="url(#forearms)"
+      />
+      <path d="M85 20 Q80 45 82 75" stroke="url(#forearmsDark)" strokeWidth="2" opacity="0.4" fill="none" />
+      <path d="M72 15 L70 80" stroke="url(#forearmsDark)" strokeWidth="1.5" opacity="0.3" />
+    </g>
+  </svg>
+);
+
+// Abs - 6-pack grid
+export const AbsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
+    <GradientDefs id="abs" />
+    <g filter="url(#absShadow)">
+      {/* Outer shape - tapered torso */}
+      <path
+        d="M25 8 C20 10 18 15 18 22 L20 78 C22 88 30 95 50 95 C70 95 78 88 80 78 L82 22 C82 15 80 10 75 8 C65 5 55 5 50 5 C45 5 35 5 25 8Z"
+        fill="url(#abs)"
+      />
+      {/* 6-pack segments */}
+      {/* Top row */}
+      <rect x="28" y="15" width="18" height="20" rx="4" fill="url(#absDark)" opacity="0.3" />
+      <rect x="54" y="15" width="18" height="20" rx="4" fill="url(#absDark)" opacity="0.3" />
+      {/* Middle row */}
+      <rect x="27" y="40" width="19" height="20" rx="4" fill="url(#absDark)" opacity="0.3" />
+      <rect x="54" y="40" width="19" height="20" rx="4" fill="url(#absDark)" opacity="0.3" />
+      {/* Bottom row */}
+      <rect x="28" y="65" width="18" height="20" rx="4" fill="url(#absDark)" opacity="0.3" />
+      <rect x="54" y="65" width="18" height="20" rx="4" fill="url(#absDark)" opacity="0.3" />
+      {/* Linea alba (center line) */}
+      <path d="M50 10 L50 90" stroke="rgba(0,0,0,0.25)" strokeWidth="3" />
+      {/* Horizontal lines */}
+      <path d="M30 38 L70 38" stroke="rgba(0,0,0,0.15)" strokeWidth="2" />
+      <path d="M28 63 L72 63" stroke="rgba(0,0,0,0.15)" strokeWidth="2" />
+    </g>
+  </svg>
+);
+
+// Obliques - Side abs (diagonal strips)
+export const ObliquesIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
+    <GradientDefs id="obliques" />
+    <g filter="url(#obliquesShadow)">
+      {/* Left oblique - curved strip */}
+      <path
+        d="M8 20 C5 28 5 45 8 60 C12 75 20 85 30 88 C38 90 42 85 42 75 L42 25 C42 15 38 10 30 10 C20 10 12 14 8 20Z"
+        fill="url(#obliques)"
+      />
+      {/* Diagonal fiber lines - left */}
+      <path d="M12 30 L35 50" stroke="url(#obliquesDark)" strokeWidth="2" opacity="0.4" />
+      <path d="M10 45 L38 68" stroke="url(#obliquesDark)" strokeWidth="2" opacity="0.4" />
+      <path d="M12 60 L35 80" stroke="url(#obliquesDark)" strokeWidth="2" opacity="0.4" />
+      {/* Right oblique */}
+      <path
+        d="M92 20 C95 28 95 45 92 60 C88 75 80 85 70 88 C62 90 58 85 58 75 L58 25 C58 15 62 10 70 10 C80 10 88 14 92 20Z"
+        fill="url(#obliques)"
+      />
+      {/* Diagonal fiber lines - right */}
+      <path d="M88 30 L65 50" stroke="url(#obliquesDark)" strokeWidth="2" opacity="0.4" />
+      <path d="M90 45 L62 68" stroke="url(#obliquesDark)" strokeWidth="2" opacity="0.4" />
+      <path d="M88 60 L65 80" stroke="url(#obliquesDark)" strokeWidth="2" opacity="0.4" />
+    </g>
+  </svg>
+);
+
+// Lower Back - Erector spinae (vertical columns)
+export const LowerBackIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
+    <GradientDefs id="lowerBack" />
+    <g filter="url(#lowerBackShadow)">
+      {/* Left erector column */}
+      <path
+        d="M22 10 C15 12 12 20 12 30 L15 75 C18 88 25 95 35 95 C42 95 46 88 45 78 L42 25 C40 15 35 10 28 8 C25 7 22 8 22 10Z"
+        fill="url(#lowerBack)"
+      />
+      {/* Muscle fiber lines */}
+      <path d="M25 20 L28 85" stroke="url(#lowerBackDark)" strokeWidth="2" opacity="0.4" />
+      <path d="M35 15 L36 88" stroke="url(#lowerBackDark)" strokeWidth="1.5" opacity="0.3" />
+      {/* Right erector column */}
+      <path
+        d="M78 10 C85 12 88 20 88 30 L85 75 C82 88 75 95 65 95 C58 95 54 88 55 78 L58 25 C60 15 65 10 72 8 C75 7 78 8 78 10Z"
+        fill="url(#lowerBack)"
+      />
+      <path d="M75 20 L72 85" stroke="url(#lowerBackDark)" strokeWidth="2" opacity="0.4" />
+      <path d="M65 15 L64 88" stroke="url(#lowerBackDark)" strokeWidth="1.5" opacity="0.3" />
+      {/* Spine indication */}
+      <path d="M50 5 L50 95" stroke="rgba(0,0,0,0.2)" strokeWidth="2" strokeDasharray="5,3" />
+    </g>
+  </svg>
+);
+
+// Quads - Four-headed thigh (front)
+export const QuadsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
+    <GradientDefs id="quads" />
+    <g filter="url(#quadsShadow)">
+      {/* Left quad group */}
+      <path
+        d="M8 8 C5 12 5 25 8 45 L15 85 C18 92 25 95 32 95 C40 95 45 90 45 82 L45 20 C45 12 40 6 30 5 C20 4 12 5 8 8Z"
+        fill="url(#quads)"
+      />
+      {/* Quad head separations - vastus lateralis, rectus femoris, vastus medialis */}
+      <path d="M12 20 L18 80" stroke="url(#quadsDark)" strokeWidth="2" opacity="0.4" />
+      <path d="M25 12 L28 88" stroke="url(#quadsDark)" strokeWidth="2" opacity="0.4" />
+      <path d="M38 15 L40 85" stroke="url(#quadsDark)" strokeWidth="1.5" opacity="0.3" />
+      {/* Right quad group */}
+      <path
+        d="M92 8 C95 12 95 25 92 45 L85 85 C82 92 75 95 68 95 C60 95 55 90 55 82 L55 20 C55 12 60 6 70 5 C80 4 88 5 92 8Z"
+        fill="url(#quads)"
+      />
+      <path d="M88 20 L82 80" stroke="url(#quadsDark)" strokeWidth="2" opacity="0.4" />
+      <path d="M75 12 L72 88" stroke="url(#quadsDark)" strokeWidth="2" opacity="0.4" />
+      <path d="M62 15 L60 85" stroke="url(#quadsDark)" strokeWidth="1.5" opacity="0.3" />
+    </g>
+  </svg>
+);
+
+// Hamstrings - Back of thigh (3 muscles)
 export const HamstringsIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
   <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="hamstringsGrad" />
-    <BackBodyOutline />
-    {/* Left hamstrings */}
-    <path
-      d="M36 80 C32 82 30 88 32 96 L44 96 C46 90 44 82 40 80 L36 80Z"
-      fill="url(#hamstringsGrad)"
-    />
-    {/* Right hamstrings */}
-    <path
-      d="M64 80 C68 82 70 88 68 96 L56 96 C54 90 56 82 60 80 L64 80Z"
-      fill="url(#hamstringsGrad)"
-    />
-    {/* Hamstring separation (biceps femoris, semitendinosus) */}
-    <path d="M38 84 L40 94" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
-    <path d="M62 84 L60 94" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
+    <GradientDefs id="hamstrings" />
+    <g filter="url(#hamstringsShadow)">
+      {/* Left hamstring group */}
+      <path
+        d="M10 5 C5 10 5 25 8 45 L15 88 C18 94 25 98 35 98 C42 98 45 92 45 85 L45 15 C45 8 40 4 30 4 C20 4 14 4 10 5Z"
+        fill="url(#hamstrings)"
+      />
+      {/* Biceps femoris (lateral) */}
+      <path d="M12 15 L18 90" stroke="url(#hamstringsDark)" strokeWidth="2" opacity="0.5" />
+      {/* Semitendinosus (middle) */}
+      <path d="M28 10 L30 92" stroke="url(#hamstringsDark)" strokeWidth="2" opacity="0.4" />
+      {/* Semimembranosus (medial) */}
+      <path d="M40 12 L42 88" stroke="url(#hamstringsDark)" strokeWidth="1.5" opacity="0.3" />
+      {/* Right hamstring */}
+      <path
+        d="M90 5 C95 10 95 25 92 45 L85 88 C82 94 75 98 65 98 C58 98 55 92 55 85 L55 15 C55 8 60 4 70 4 C80 4 86 4 90 5Z"
+        fill="url(#hamstrings)"
+      />
+      <path d="M88 15 L82 90" stroke="url(#hamstringsDark)" strokeWidth="2" opacity="0.5" />
+      <path d="M72 10 L70 92" stroke="url(#hamstringsDark)" strokeWidth="2" opacity="0.4" />
+      <path d="M60 12 L58 88" stroke="url(#hamstringsDark)" strokeWidth="1.5" opacity="0.3" />
+    </g>
   </svg>
 );
 
-// Glutes - Gluteus maximus
+// Glutes - Rounded shape (gluteus maximus)
 export const GlutesIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
   <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="glutesGrad" />
-    <BackBodyOutline />
-    {/* Left glute */}
-    <path
-      d="M32 68 C28 72 28 78 32 82 L42 84 C46 82 48 78 46 74 L42 70 C38 68 34 66 32 68Z"
-      fill="url(#glutesGrad)"
-    />
-    {/* Right glute */}
-    <path
-      d="M68 68 C72 72 72 78 68 82 L58 84 C54 82 52 78 54 74 L58 70 C62 68 66 66 68 68Z"
-      fill="url(#glutesGrad)"
-    />
-    {/* Glute definition curves */}
-    <path d="M36 72 Q40 76 38 80" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" fill="none" />
-    <path d="M64 72 Q60 76 62 80" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" fill="none" />
+    <GradientDefs id="glutes" />
+    <g filter="url(#glutesShadow)">
+      {/* Left glute - rounded */}
+      <path
+        d="M8 25 C2 35 2 55 10 70 C18 85 32 92 45 88 C48 87 50 82 50 75 L50 35 C50 25 45 18 35 15 C22 12 14 16 8 25Z"
+        fill="url(#glutes)"
+      />
+      {/* Glute definition curves */}
+      <path
+        d="M15 35 Q25 50 22 70"
+        stroke="url(#glutesDark)"
+        strokeWidth="2"
+        opacity="0.4"
+        fill="none"
+      />
+      <path
+        d="M30 25 Q38 45 35 75"
+        stroke="url(#glutesDark)"
+        strokeWidth="1.5"
+        opacity="0.3"
+        fill="none"
+      />
+      {/* Right glute */}
+      <path
+        d="M92 25 C98 35 98 55 90 70 C82 85 68 92 55 88 C52 87 50 82 50 75 L50 35 C50 25 55 18 65 15 C78 12 86 16 92 25Z"
+        fill="url(#glutes)"
+      />
+      <path
+        d="M85 35 Q75 50 78 70"
+        stroke="url(#glutesDark)"
+        strokeWidth="2"
+        opacity="0.4"
+        fill="none"
+      />
+      <path
+        d="M70 25 Q62 45 65 75"
+        stroke="url(#glutesDark)"
+        strokeWidth="1.5"
+        opacity="0.3"
+        fill="none"
+      />
+    </g>
   </svg>
 );
 
-// Calves - Gastrocnemius and soleus
+// Calves - Diamond shape (gastrocnemius)
 export const CalvesIcon: React.FC<MuscleIconProps> = ({ size = 80 }) => (
   <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <GradientDefs id="calvesGrad" />
-    <BackBodyOutline />
-    {/* Note: Calves shown at different position for visibility */}
-    {/* Left calf - diamond shape */}
-    <path
-      d="M36 86 C34 88 34 92 36 96 L42 96 C44 94 44 90 42 86 L36 86Z"
-      fill="url(#calvesGrad)"
-    />
-    {/* Right calf */}
-    <path
-      d="M64 86 C66 88 66 92 64 96 L58 96 C56 94 56 90 58 86 L64 86Z"
-      fill="url(#calvesGrad)"
-    />
-    {/* Gastrocnemius heads */}
-    <path d="M38 88 L40 94" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
-    <path d="M62 88 L60 94" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
+    <GradientDefs id="calves" />
+    <g filter="url(#calvesShadow)">
+      {/* Left calf - diamond/inverted teardrop */}
+      <path
+        d="M15 8 C8 12 5 25 8 42 C12 60 18 72 25 82 C30 90 35 95 40 95 C45 95 48 88 45 75 L42 35 C40 18 35 8 28 5 C22 3 18 5 15 8Z"
+        fill="url(#calves)"
+      />
+      {/* Gastrocnemius heads */}
+      <path d="M18 18 Q22 40 22 70" stroke="url(#calvesDark)" strokeWidth="2" opacity="0.5" fill="none" />
+      <path d="M32 12 L35 75" stroke="url(#calvesDark)" strokeWidth="2" opacity="0.4" />
+      {/* Soleus hint */}
+      <path d="M25 55 Q30 70 32 88" stroke="url(#calvesDark)" strokeWidth="1.5" opacity="0.3" fill="none" />
+      {/* Right calf */}
+      <path
+        d="M85 8 C92 12 95 25 92 42 C88 60 82 72 75 82 C70 90 65 95 60 95 C55 95 52 88 55 75 L58 35 C60 18 65 8 72 5 C78 3 82 5 85 8Z"
+        fill="url(#calves)"
+      />
+      <path d="M82 18 Q78 40 78 70" stroke="url(#calvesDark)" strokeWidth="2" opacity="0.5" fill="none" />
+      <path d="M68 12 L65 75" stroke="url(#calvesDark)" strokeWidth="2" opacity="0.4" />
+      <path d="M75 55 Q70 70 68 88" stroke="url(#calvesDark)" strokeWidth="1.5" opacity="0.3" fill="none" />
+    </g>
   </svg>
 );

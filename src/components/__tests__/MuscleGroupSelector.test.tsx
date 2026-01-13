@@ -133,7 +133,7 @@ describe('MuscleGroupSelector', () => {
 
       const buttons = container.querySelectorAll('button');
       buttons.forEach((button) => {
-        expect(button.style.borderRadius).toBe('24px');
+        expect(button.style.borderRadius).toBe('20px');
       });
     });
 

@@ -88,21 +88,23 @@ export const MuscleGroupSelector: React.FC<MuscleGroupSelectorProps> = ({
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '16px 12px',
-              borderRadius: '24px',
-              background: 'rgba(30, 27, 50, 0.8)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              padding: '12px 8px 16px',
+              borderRadius: '20px',
+              background: 'rgba(15, 12, 30, 0.9)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
               cursor: 'pointer',
-              minHeight: '160px',
+              minHeight: '140px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
             }}
           >
-            <IconComponent size={80} />
+            <IconComponent size={72} />
             <span
               style={{
-                marginTop: '8px',
-                fontSize: '14px',
+                marginTop: '4px',
+                fontSize: '13px',
                 fontWeight: 600,
                 color: '#fff',
+                letterSpacing: '0.3px',
               }}
             >
               {group.label}
@@ -110,8 +112,8 @@ export const MuscleGroupSelector: React.FC<MuscleGroupSelectorProps> = ({
             <span
               style={{
                 marginTop: '2px',
-                fontSize: '11px',
-                color: 'rgba(255, 255, 255, 0.5)',
+                fontSize: '10px',
+                color: 'rgba(255, 255, 255, 0.45)',
               }}
             >
               {exerciseCount} exercise{exerciseCount !== 1 ? 's' : ''}
