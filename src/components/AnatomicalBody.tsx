@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { BodyArea } from '../types';
 import type { MuscleRecoveryData } from '../utils/recoveryHelpers';
@@ -10,52 +10,48 @@ interface AnatomicalBodyProps {
   showBadges?: boolean;
 }
 
-// Badge positions (relative to viewBox 0 0 200 400)
-const BADGE_POSITIONS: Partial<Record<BodyArea, { x: number; y: number }>> = {
-  'Chest': { x: 100, y: 105 },
-  'Shoulders': { x: 52, y: 82 },
-  'Biceps': { x: 38, y: 135 },
-};
-
-interface MuscleRegionProps {
+// Muscle region definitions with click areas positioned over the body SVG
+// Coordinates are percentages relative to the container
+interface MuscleRegion {
   bodyArea: BodyArea;
-  paths: string[];
-  recovery: MuscleRecoveryData;
-  onSelect: () => void;
+  label: string;
+  // Position as percentage of container
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
-const MuscleRegion: React.FC<MuscleRegionProps> = ({ bodyArea, paths, recovery, onSelect }) => {
-  const colors = getRecoveryColor(recovery.recoveryPercent);
+const MUSCLE_REGIONS: MuscleRegion[] = [
+  // Upper body
+  { bodyArea: 'Traps', label: 'Traps', x: 38, y: 12, width: 24, height: 6 },
+  { bodyArea: 'Shoulders', label: 'Shoulders', x: 25, y: 14, width: 12, height: 8 },
+  { bodyArea: 'Chest', label: 'Chest', x: 37, y: 18, width: 26, height: 10 },
+  { bodyArea: 'Biceps', label: 'Biceps', x: 22, y: 22, width: 10, height: 10 },
+  { bodyArea: 'Triceps', label: 'Triceps', x: 68, y: 22, width: 10, height: 10 },
+  { bodyArea: 'Forearms', label: 'Forearms', x: 18, y: 32, width: 10, height: 12 },
 
-  return (
-    <motion.g
-      onClick={onSelect}
-      style={{ cursor: 'pointer' }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      aria-label={`${bodyArea}, ${recovery.recoveryPercent}% recovered`}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
-    >
-      {paths.map((d, i) => (
-        <path
-          key={i}
-          d={d}
-          fill={colors.fill}
-          style={{
-            filter: recovery.isFresh ? `drop-shadow(0 0 6px ${colors.glow})` : 'none',
-            transition: 'fill 0.3s ease',
-          }}
-        />
-      ))}
-    </motion.g>
-  );
+  // Core
+  { bodyArea: 'Abs', label: 'Abs', x: 40, y: 28, width: 20, height: 14 },
+  { bodyArea: 'Obliques', label: 'Obliques', x: 32, y: 30, width: 8, height: 12 },
+
+  // Back (shown on right side mirror)
+  { bodyArea: 'Lats', label: 'Lats', x: 63, y: 14, width: 12, height: 8 },
+  { bodyArea: 'Upper Back', label: 'Upper Back', x: 38, y: 14, width: 24, height: 4 },
+  { bodyArea: 'Lower Back', label: 'Lower Back', x: 60, y: 30, width: 8, height: 12 },
+
+  // Lower body
+  { bodyArea: 'Glutes', label: 'Glutes', x: 38, y: 42, width: 24, height: 8 },
+  { bodyArea: 'Quads', label: 'Quads', x: 35, y: 50, width: 30, height: 18 },
+  { bodyArea: 'Hamstrings', label: 'Hamstrings', x: 35, y: 52, width: 30, height: 14 },
+  { bodyArea: 'Calves', label: 'Calves', x: 36, y: 70, width: 28, height: 14 },
+];
+
+// Badge positions for key muscle groups (percentages)
+const BADGE_POSITIONS: Partial<Record<BodyArea, { x: number; y: number }>> = {
+  'Chest': { x: 50, y: 22 },
+  'Shoulders': { x: 28, y: 17 },
+  'Biceps': { x: 24, y: 26 },
 };
 
 export const AnatomicalBody: React.FC<AnatomicalBodyProps> = ({
@@ -63,213 +59,154 @@ export const AnatomicalBody: React.FC<AnatomicalBodyProps> = ({
   onSelectMuscle,
   showBadges = true,
 }) => {
-  // Define muscle region paths (front view anatomical body)
-  const muscleRegions: Record<BodyArea, string[]> = {
-    // Traps - upper back/neck area
-    'Traps': [
-      'M85 62 Q100 55 115 62 L112 72 Q100 68 88 72 Z',
-    ],
-    // Shoulders - deltoids
-    'Shoulders': [
-      // Left deltoid
-      'M58 72 Q45 70 40 82 Q38 95 45 105 Q52 108 60 100 Q65 90 62 78 Z',
-      // Right deltoid
-      'M142 72 Q155 70 160 82 Q162 95 155 105 Q148 108 140 100 Q135 90 138 78 Z',
-    ],
-    // Chest - pectorals
-    'Chest': [
-      // Left pec
-      'M62 88 Q65 82 85 80 L98 82 L98 115 Q90 122 75 118 Q62 112 60 100 Z',
-      // Right pec
-      'M138 88 Q135 82 115 80 L102 82 L102 115 Q110 122 125 118 Q138 112 140 100 Z',
-    ],
-    // Biceps
-    'Biceps': [
-      // Left bicep
-      'M45 108 Q40 115 38 135 Q38 150 42 160 Q50 162 55 155 Q58 140 56 120 Q55 110 50 105 Z',
-      // Right bicep
-      'M155 108 Q160 115 162 135 Q162 150 158 160 Q150 162 145 155 Q142 140 144 120 Q145 110 150 105 Z',
-    ],
-    // Triceps (visible from front as outer arm)
-    'Triceps': [
-      // Left tricep
-      'M38 135 Q32 145 30 160 Q30 172 35 180 Q42 178 45 165 Q46 150 42 138 Z',
-      // Right tricep
-      'M162 135 Q168 145 170 160 Q170 172 165 180 Q158 178 155 165 Q154 150 158 138 Z',
-    ],
-    // Forearms
-    'Forearms': [
-      // Left forearm
-      'M35 182 Q30 195 28 215 Q28 235 32 250 Q40 252 45 245 Q50 225 48 200 Q46 185 42 180 Z',
-      // Right forearm
-      'M165 182 Q170 195 172 215 Q172 235 168 250 Q160 252 155 245 Q150 225 152 200 Q154 185 158 180 Z',
-    ],
-    // Lats - side torso
-    'Lats': [
-      // Left lat
-      'M58 105 Q52 115 50 135 Q52 155 58 165 Q62 160 65 145 Q66 125 64 110 Z',
-      // Right lat
-      'M142 105 Q148 115 150 135 Q148 155 142 165 Q138 160 135 145 Q134 125 136 110 Z',
-    ],
-    // Upper Back (shown behind traps area)
-    'Upper Back': [
-      'M75 70 Q100 65 125 70 L122 82 Q100 78 78 82 Z',
-    ],
-    // Abs - rectus abdominis
-    'Abs': [
-      // 6-pack segments
-      'M88 118 L112 118 L112 138 L88 138 Z',
-      'M88 142 L112 142 L112 162 L88 162 Z',
-      'M88 166 L112 166 L112 186 L88 186 Z',
-    ],
-    // Obliques
-    'Obliques': [
-      // Left oblique
-      'M65 125 Q62 145 64 170 Q68 185 75 190 Q82 185 85 170 Q86 145 84 125 Z',
-      // Right oblique
-      'M135 125 Q138 145 136 170 Q132 185 125 190 Q118 185 115 170 Q114 145 116 125 Z',
-    ],
-    // Lower Back
-    'Lower Back': [
-      'M85 175 Q100 172 115 175 L115 195 Q100 200 85 195 Z',
-    ],
-    // Quads - front thighs
-    'Quads': [
-      // Left quad
-      'M72 200 Q65 210 62 240 Q60 275 65 310 Q75 318 88 310 Q95 280 95 240 Q92 210 88 200 Z',
-      // Right quad
-      'M128 200 Q135 210 138 240 Q140 275 135 310 Q125 318 112 310 Q105 280 105 240 Q108 210 112 200 Z',
-    ],
-    // Hamstrings (shown as inner/back thigh from front view)
-    'Hamstrings': [
-      // Left hamstring (inner thigh visible)
-      'M88 205 Q95 220 98 250 Q98 285 95 310 Q90 315 85 310 Q82 280 85 245 Q86 220 88 205 Z',
-      // Right hamstring
-      'M112 205 Q105 220 102 250 Q102 285 105 310 Q110 315 115 310 Q118 280 115 245 Q114 220 112 205 Z',
-    ],
-    // Glutes
-    'Glutes': [
-      // Left glute
-      'M72 190 Q65 195 62 205 Q68 215 78 212 Q85 205 85 195 Q82 190 72 190 Z',
-      // Right glute
-      'M128 190 Q135 195 138 205 Q132 215 122 212 Q115 205 115 195 Q118 190 128 190 Z',
-    ],
-    // Calves
-    'Calves': [
-      // Left calf
-      'M65 315 Q60 330 58 355 Q60 380 68 395 Q78 398 85 390 Q88 370 85 345 Q82 325 78 315 Z',
-      // Right calf
-      'M135 315 Q140 330 142 355 Q140 380 132 395 Q122 398 115 390 Q112 370 115 345 Q118 325 122 315 Z',
-    ],
-    // Cardio is not rendered
-    'Cardio': [],
-  };
+  const [hoveredMuscle, setHoveredMuscle] = useState<BodyArea | null>(null);
 
   return (
-    <div style={{ position: 'relative', width: '100%', maxWidth: '280px', margin: '0 auto' }}>
+    <div style={{ position: 'relative', width: '100%', maxWidth: '320px', margin: '0 auto' }}>
+      {/* Professional anatomical body SVG - Front View */}
       <svg
-        viewBox="0 0 200 420"
+        viewBox="0 0 100000 100000"
         width="100%"
         height="auto"
         style={{ display: 'block' }}
         aria-label="Muscle recovery body map"
       >
         <defs>
-          {/* Gradient for fresh muscles */}
-          <linearGradient id="freshGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          {/* Fresh muscle gradient */}
+          <linearGradient id="freshMuscle" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#ff6b35" />
             <stop offset="100%" stopColor="#f7418c" />
           </linearGradient>
-          {/* Body silhouette gradient */}
-          <linearGradient id="bodyBg" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#2d2640" />
-            <stop offset="100%" stopColor="#1a1625" />
+          {/* Recovering muscle gradient */}
+          <linearGradient id="recoveringMuscle" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#8b5a8b" />
+            <stop offset="100%" stopColor="#6b4a6b" />
+          </linearGradient>
+          {/* Fatigued muscle gradient */}
+          <linearGradient id="fatiguedMuscle" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#4a3d5a" />
+            <stop offset="100%" stopColor="#2d2640" />
           </linearGradient>
         </defs>
 
-        {/* Body silhouette/outline */}
-        <g opacity="0.6">
-          {/* Head */}
-          <ellipse cx="100" cy="35" rx="22" ry="28" fill="#2d2640" />
-          {/* Neck */}
-          <rect x="90" y="58" width="20" height="15" fill="#2d2640" />
-          {/* Torso */}
-          <path
-            d="M60 72 Q40 75 35 95 Q30 120 32 160 Q35 190 40 200 L50 200 Q55 195 60 200
-               L75 200 Q85 198 100 200 Q115 198 125 200 L140 200 Q145 195 150 200 L160 200
-               Q165 190 168 160 Q170 120 165 95 Q160 75 140 72 Z"
-            fill="#2d2640"
-          />
-          {/* Arms */}
-          <path d="M35 95 Q25 130 25 170 Q25 210 30 250" stroke="#2d2640" strokeWidth="20" strokeLinecap="round" fill="none" />
-          <path d="M165 95 Q175 130 175 170 Q175 210 170 250" stroke="#2d2640" strokeWidth="20" strokeLinecap="round" fill="none" />
-          {/* Hands */}
-          <ellipse cx="30" cy="265" rx="12" ry="18" fill="#2d2640" />
-          <ellipse cx="170" cy="265" rx="12" ry="18" fill="#2d2640" />
-          {/* Legs */}
-          <path d="M75 200 Q65 250 60 310 Q58 360 65 400" stroke="#2d2640" strokeWidth="30" strokeLinecap="round" fill="none" />
-          <path d="M125 200 Q135 250 140 310 Q142 360 135 400" stroke="#2d2640" strokeWidth="30" strokeLinecap="round" fill="none" />
-          {/* Feet */}
-          <ellipse cx="65" cy="410" rx="18" ry="8" fill="#2d2640" />
-          <ellipse cx="135" cy="410" rx="18" ry="8" fill="#2d2640" />
-        </g>
-
-        {/* Muscle regions - render each group */}
-        {(Object.entries(muscleRegions) as [BodyArea, string[]][]).map(([bodyArea, paths]) => {
-          if (bodyArea === 'Cardio' || paths.length === 0) return null;
-          const recovery = muscleData[bodyArea];
-          if (!recovery) return null;
-
-          return (
-            <MuscleRegion
-              key={bodyArea}
-              bodyArea={bodyArea}
-              paths={paths}
-              recovery={recovery}
-              onSelect={() => onSelectMuscle(bodyArea)}
-            />
-          );
-        })}
+        {/* Body silhouette from Noun Project SVG */}
+        <path
+          d="M49640.04 14692.38c-435.73,0 -840.16,-47.61 -1215.49,-161.81 395.02,641.2 724.77,1466.02 984,2394.72 202.71,726.25 363.75,1519.5 480.21,2339.64 117.53,-749.06 274.56,-1524.98 465.78,-2265.07 254.85,-986.38 572.54,-1914.62 941.66,-2641.56 -494.41,240.28 -1044.47,334.08 -1656.16,334.08zm5264.08 77789.59c-38.13,262.15 -78.01,523.64 -121.5,779.6 -76.48,450.21 -164.26,888.58 -273.15,1294.98 -324.26,1210.19 -634.55,2386.34 -269.66,3158.16 360.45,762.42 1446.57,1261.08 3968.22,1261.08 319.28,0 620.82,-22.07 892.45,-67.74 417.33,-70.16 767.11,-192.46 1001.22,-371.73 177.19,-135.69 281.85,-311.96 281.85,-531.66l-2.01 0c0,-53.55 -4.26,-106.46 -13.02,-158.56 -143.07,-851.04 -647.46,-1461.47 -1185.65,-2112.82 -742.89,-899.08 -1541.62,-1865.8 -1774.11,-3614.53 -405.3,165.05 -870.49,170.21 -1333.23,175.24 -435.33,4.74 -867.81,9.47 -1171.41,187.98zm3509.93 -583.8c181.56,1511.77 896.25,2376.86 1560.15,3180.34 628.42,760.56 1217.36,1473.31 1406.59,2598.88 19.58,116.49 29.1,225.52 29.1,327.27l-2.01 0c-0.01,573 -253.83,1018.01 -683.56,1347.09 -372.83,285.5 -878.53,471.62 -1455.13,568.57 -336.13,56.52 -694.22,83.82 -1061.16,83.82 -3006.78,0 -4366.91,-732.15 -4896.13,-1851.58 -524.79,-1110.01 -168.19,-2466.88 205.39,-3861.13 101.3,-378.09 182.55,-783.43 253.07,-1198.57 73.01,-429.89 134.47,-865.53 194.47,-1293.36 69.61,-774.74 55.68,-1601.73 41.71,-2431.73 -1.7,-101.83 -3.4,-202.22 -5.41,-334.87 -17.83,-1180.99 -113.4,-2386.07 -290.51,-3551.56 -166.25,-1094.08 -404.73,-2143.33 -718.54,-3092.3 -148.1,-447.81 -197.47,-593.88 -243.85,-731.12 -746.63,-2209.18 -999.2,-2956.51 -400.41,-5963.37 3.35,-16.83 34.93,-168.56 68.84,-331.53 173.33,-833.23 432.29,-2078.03 239.98,-2692.14 -115.31,-368.23 -240.71,-665.73 -362.75,-955.27 -249.78,-592.64 -487.08,-1155.6 -606.05,-2085.51 -247.6,-1935.42 -377.86,-3700.42 -508.16,-5465.95 -175.79,-2382.01 -351.67,-4765.09 -802.2,-7457.99 -46.3,-276.72 -167.32,-1307.97 -310.22,-2525.65 -61.21,-521.68 -66.86,-1087.07 -50.18,-1635.26l-27.97 -208.87c-78.87,-588.84 -144.06,-1075.45 -197.01,-1478.15 -31.94,1077.98 -18.62,2690.73 -176.12,3942.06 -120.97,961.2 -216.32,1718.67 -247.63,1905.87 -450.52,2692.89 -626.4,5075.96 -802.2,7457.96 -130.3,1765.56 -260.57,3530.56 -508.16,5465.98 -118.97,929.91 -356.27,1492.87 -606.06,2085.51 -122.04,289.54 -247.43,587.04 -362.74,955.27 -192.31,614.11 66.65,1858.91 239.98,2692.14 33.91,162.97 65.49,314.7 68.83,331.53 598.79,3006.86 346.23,3754.19 -400.4,5963.37 -46.38,137.24 -95.76,283.31 -243.85,731.12 -313.81,948.97 -552.29,1998.22 -718.54,3092.3 -177.11,1165.49 -272.69,2370.57 -290.52,3551.56 -7.36,487.21 -0.97,975.61 18.29,1460.45 19.46,490.18 52.12,971.49 97.03,1439.23 15.49,161.34 37.03,356.04 64.44,583.25 23.57,195.44 48.81,384.89 75.63,568 32.05,218.98 67.91,430.61 108.41,635.03 39.72,200.47 83.47,391.38 132.02,572.57l13.05 48.7c238.05,888.19 471.4,1758.77 471.4,2562.14 0,1794.75 -1026.01,3101.87 -5116.68,3101.87 -532.27,0 -1052.63,-59.07 -1510.28,-180.43 -463.66,-122.96 -867.42,-312.94 -1165.05,-574.26 -346.73,-304.46 -549.74,-691.52 -549.74,-1166.19 0,-142.29 20.17,-292.96 62.35,-452.07 198.29,-747.74 689.8,-1352.29 1232.19,-2019.42 748.05,-920.07 1606.81,-1976.36 1687.66,-3613.08 19.18,-388.43 28.16,-810.74 28.64,-1271.02 0.47,-461.62 -7.29,-971.97 -21.63,-1532.87l-0.63 0.04c-141.34,-2003.6 -531.33,-3799.89 -913.25,-5559.06 -607.81,-2799.54 -1195.72,-5507.51 -780.9,-8884.53l4.02 -18.08c770.4,-4852.73 663.98,-5536.15 20.63,-9667.16 -107.9,-692.8 -226.61,-1454.97 -263.39,-1698.05 -132.37,-874.82 -163.24,-1073.41 -193.96,-1271.3 -872.85,-5621.83 -1400.03,-9017.28 1099.16,-20714.61 391.04,-1830.26 592.15,-2913.22 580.4,-4184.65 -11.02,-1190.78 -207.54,-2593.04 -607.74,-4963.96 -116.15,-688.08 -130.2,-430.47 -390.51,-170.16l-8.04 12.05 -1159.45 1629.8 -78.15 109.5c-221.93,310.49 -462.87,647.56 -687.19,1070.78 -161.44,304.58 -306.12,628.89 -440.16,964.49 -132.73,332.34 -264.01,700.75 -394.23,1081.25 -158.71,463.71 -238.85,705.22 -312.86,928.31 -654.37,1972.28 -961.28,2897.3 -2464.01,4181.46 -875.81,748.44 -1527.42,1368.74 -2103.57,2073.19 -572.64,700.14 -1075.96,1492.08 -1658.83,2588.2 -6.89,12.99 -14.29,25.54 -22.12,37.69 -191.75,360.8 -306.09,710.33 -372.76,1033.04 -69.98,338.79 -88.41,649.14 -88.45,913.23 -0.11,576.33 -28.84,1312.08 -164.77,2293.49 -135.93,981.3 -377.14,2208.26 -800.44,3767.08 -285.22,1050.37 -1430.02,2170.47 -2476.82,1468.3 -564.49,484.68 -1372.92,455.51 -1911.58,-44.79 -852.81,749.46 -2169.39,268.82 -2335.38,-835.78 -995.75,3.83 -2011.86,-1191.25 -1508.93,-2113.39l1682.2 -3084.28 -31.35 9.71c-1361.82,422.08 -2314.2,-1246.31 -1157.29,-2111.17l28.13 -18.07 2328.81 -1518.82c498.85,-366.11 928.38,-571.48 1311.57,-754.66 702.84,-336 1213.67,-580.46 1711.06,-2029.94 280.79,-855.11 511.95,-1640.38 729.18,-2378.36 915.44,-3109.96 1593.5,-5413.48 4260.38,-7625.52 236.89,-196.49 476,-353.48 694.81,-497.15 455.38,-298.98 785.25,-515.58 740.8,-1209.74 -91.54,-1429.51 39.57,-2728.55 350.18,-3894.64 335.3,-1258.79 879.38,-2361.78 1578.53,-3306.42 121.74,-164.48 264.01,-442.65 369.85,-746.6 84.55,-242.81 141.66,-490.24 138.2,-687.38 -83.05,-4717.47 3985.6,-6103.02 7291.51,-7228.79 382.95,-130.41 756.09,-257.48 1014.78,-350.41 815.61,-293 1516.61,-583.05 1973.13,-1026.51 402.73,-391.21 635.55,-940.75 618.93,-1794.21 -195.08,-342.81 -368.69,-746.46 -521.24,-1220.11 -107.6,-334.04 -203.31,-509.48 -288.32,-591.61 -11.06,-10.69 -15.15,-13.32 -16.68,-13.23 -654.52,41.04 -1167.25,-363.86 -1519.99,-953.49 -206.48,-345.13 -358.23,-755.61 -447.24,-1163.58 -89.45,-410 -118.08,-828.51 -77.64,-1186.17 64.06,-566.56 305.02,-1012.83 753.77,-1170.99 45.91,-16.18 79.93,-31.62 88.38,-44.54 11.18,-17.07 12.23,-62.39 -2.5,-150.03 -88.58,-526.82 -126.95,-1024.11 -120.34,-1491.56 20.31,-1437.61 471.2,-2563 1202.05,-3381.77 732.84,-820.99 1737.22,-1321.66 2864.74,-1511.24 369.62,-62.15 755.88,-90.42 1153.13,-85.15 397.23,-5.27 783.52,23 1153.14,85.15 1127.52,189.58 2131.89,690.25 2864.74,1511.24 730.84,818.76 1181.73,1944.16 1202.04,3381.77 6.62,467.45 -31.75,964.74 -120.34,1491.56 -14.73,87.65 -13.69,132.96 -2.51,150.03 8.45,12.92 42.47,28.36 88.38,44.54 448.73,158.15 689.73,604.42 753.78,1170.99 40.44,357.67 11.81,776.17 -77.64,1186.16 -89.01,407.97 -240.76,818.44 -447.23,1163.57 -352.75,589.64 -865.48,994.55 -1520.01,953.51 -1.52,-0.09 -5.6,2.53 -16.68,13.23 -85.02,82.14 -180.72,257.57 -288.31,591.61 -129.23,401.22 -273.56,752.21 -433.24,1058.56 35.42,501.61 186.75,907.24 385.13,1228.2 313.13,506.59 741.15,804.24 1013.19,934.01 644.99,307.68 1415.83,585.95 2239.87,883.43 3431.14,1238.63 7721.13,2787.33 7637.91,7515.83 -3.47,197.14 53.66,444.57 138.2,687.38 105.84,303.93 248.11,582.13 369.84,746.6 699.16,944.64 1243.24,2047.63 1578.53,3306.42 310.62,1166.09 441.72,2465.13 350.18,3894.64 -44.45,694.16 285.43,910.75 740.79,1209.73 218.83,143.67 457.93,300.67 694.83,497.16 2836.88,2353.05 3612.34,4829.44 4687.86,8264.12 163.17,521.11 333.43,1064.8 516.85,1626.84l0.33 0.96 0.01 0.03c509.38,1549.35 1028.12,1797.37 1748.72,2141.87 383.19,183.19 812.72,388.55 1311.57,754.66l2328.81 1518.82 28.13 18.07c344.53,257.57 501.15,592.51 515.5,925.78 9.03,209.5 -40.8,413.72 -137.71,594.6 -94.7,176.71 -233.41,330.79 -404.66,444.55 -299.68,199.02 -698.37,280.15 -1130.43,146.24l-31.35 -9.72 1682.21 3084.29c253.23,464.31 102.01,1051.66 -258.79,1485.22 -129.46,155.56 -285.75,293.6 -457.79,398.74 -182.49,111.51 -387.48,189.35 -604.39,217.47 -62.47,8.09 -125.22,12.2 -187.97,11.96 -41.2,274.2 -163.37,521.49 -338.05,720.07 -143.09,162.67 -323.28,291.93 -524.48,375.68 -202.35,84.22 -427.02,121.53 -657.88,99.63 -280.44,-26.62 -563.79,-138.87 -814.96,-359.6 -134.01,124.46 -292.9,225.26 -465.84,293.15 -188.62,74.04 -395.83,110.07 -608.24,96.59 -288.27,-18.32 -580.03,-123.89 -837.5,-344.94 -133.69,89.67 -287.32,150.95 -452.14,180.19 -185.45,32.92 -389.87,25.21 -598.49,-28.99 -562.47,-146.11 -1161.15,-643.48 -1426.2,-1619.51 -423.3,-1558.82 -664.51,-2785.78 -800.43,-3767.08 -135.93,-981.4 -164.67,-1717.15 -164.77,-2293.49 -0.05,-264.08 -18.47,-574.43 -88.46,-913.23 -40.51,-196.09 -98.63,-402.08 -181.01,-614.48 -897.32,-1635.56 -1841.45,-2569.45 -2781.13,-3498.81 -1457.98,-1441.97 -2905.87,-2873.96 -4225.15,-6728.6 -130.23,-380.51 -261.51,-748.93 -394.25,-1081.25 -134.03,-335.6 -278.71,-659.92 -440.14,-964.49 -224.32,-423.22 -465.26,-760.29 -687.19,-1070.78l-78.16 -109.5 -1159.44 -1629.8 -8.04 -12.05c-216.27,-322.61 -303.92,-342.77 -391.44,175.73 -399.64,2367.55 -595.82,3768.54 -606.81,4958.39 -11.76,1271.43 189.36,2354.39 580.4,4184.65 2499.18,11697.33 1972,15092.78 1099.15,20714.61 -30.71,197.89 -61.58,396.48 -193.95,1271.3 -36.78,243.08 -155.49,1005.25 -263.39,1698.05 -643.36,4131.01 -749.78,4814.43 20.63,9667.16l4.02 18.08c414.82,3377.02 -173.09,6084.99 -780.9,8884.53 -381.92,1759.17 -771.91,3555.46 -913.26,5559.06l-0.62 -0.04c-15.78,613.59 -25.53,1124.17 -21.82,1557.46 3.62,421.36 20.83,778.19 59.18,1102.06 1.74,14.7 2.8,29.32 3.28,43.85z"
+          fill="#2d2640"
+          transform="scale(1) translate(0, 0)"
+        />
       </svg>
 
-      {/* Recovery badges */}
-      {showBadges && (
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
-          {(Object.entries(BADGE_POSITIONS) as [BodyArea, { x: number; y: number }][]).map(([bodyArea, pos]) => {
-            const recovery = muscleData[bodyArea];
-            if (!recovery) return null;
+      {/* Clickable muscle region overlays */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+        }}
+      >
+        {MUSCLE_REGIONS.map((region) => {
+          const recovery = muscleData[region.bodyArea];
+          if (!recovery) return null;
 
-            // Convert viewBox coordinates to percentage positions
-            const leftPercent = (pos.x / 200) * 100;
-            const topPercent = (pos.y / 420) * 100;
+          const colors = getRecoveryColor(recovery.recoveryPercent);
+          const isHovered = hoveredMuscle === region.bodyArea;
 
-            return (
-              <div
-                key={bodyArea}
+          return (
+            <motion.button
+              key={region.bodyArea}
+              onClick={() => onSelectMuscle(region.bodyArea)}
+              onMouseEnter={() => setHoveredMuscle(region.bodyArea)}
+              onMouseLeave={() => setHoveredMuscle(null)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                position: 'absolute',
+                left: `${region.x}%`,
+                top: `${region.y}%`,
+                width: `${region.width}%`,
+                height: `${region.height}%`,
+                background: colors.fill,
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                opacity: isHovered ? 1 : 0.85,
+                boxShadow: recovery.isFresh
+                  ? `0 0 12px ${colors.glow}, 0 0 24px ${colors.glow}`
+                  : '0 2px 8px rgba(0,0,0,0.3)',
+                transition: 'opacity 0.2s, box-shadow 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '2px',
+              }}
+              aria-label={`${region.label}, ${recovery.recoveryPercent}% recovered`}
+            >
+              <span
                 style={{
-                  position: 'absolute',
-                  left: `${leftPercent}%`,
-                  top: `${topPercent}%`,
-                  transform: 'translate(-50%, -50%)',
-                  background: recovery.isFresh
-                    ? 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)'
-                    : 'rgba(45, 38, 64, 0.95)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '10px',
-                  padding: '2px 8px',
-                  fontSize: '11px',
+                  fontSize: '8px',
                   fontWeight: 700,
                   color: '#fff',
-                  boxShadow: recovery.isFresh
-                    ? '0 2px 8px rgba(249, 115, 22, 0.4)'
-                    : '0 2px 4px rgba(0, 0, 0, 0.3)',
-                  whiteSpace: 'nowrap',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                  textAlign: 'center',
+                  lineHeight: 1.1,
                 }}
               >
-                {recovery.recoveryPercent}%
-              </div>
-            );
-          })}
+                {region.label}
+              </span>
+            </motion.button>
+          );
+        })}
+      </div>
+
+      {/* Recovery badges for key muscles */}
+      {showBadges && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+          }}
+        >
+          {(Object.entries(BADGE_POSITIONS) as [BodyArea, { x: number; y: number }][]).map(
+            ([bodyArea, pos]) => {
+              const recovery = muscleData[bodyArea];
+              if (!recovery) return null;
+
+              return (
+                <div
+                  key={bodyArea}
+                  style={{
+                    position: 'absolute',
+                    left: `${pos.x}%`,
+                    top: `${pos.y}%`,
+                    transform: 'translate(-50%, -50%)',
+                    background: recovery.isFresh
+                      ? 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)'
+                      : 'rgba(45, 38, 64, 0.95)',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '12px',
+                    padding: '4px 10px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#fff',
+                    boxShadow: recovery.isFresh
+                      ? '0 2px 12px rgba(249, 115, 22, 0.5)'
+                      : '0 2px 8px rgba(0, 0, 0, 0.4)',
+                    whiteSpace: 'nowrap',
+                    zIndex: 10,
+                  }}
+                >
+                  {recovery.recoveryPercent}%
+                </div>
+              );
+            }
+          )}
         </div>
       )}
     </div>
