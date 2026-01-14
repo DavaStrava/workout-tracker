@@ -23,35 +23,35 @@ interface MuscleRegion {
 }
 
 const MUSCLE_REGIONS: MuscleRegion[] = [
-  // Upper body
-  { bodyArea: 'Traps', label: 'Traps', x: 38, y: 12, width: 24, height: 6 },
-  { bodyArea: 'Shoulders', label: 'Shoulders', x: 25, y: 14, width: 12, height: 8 },
-  { bodyArea: 'Chest', label: 'Chest', x: 37, y: 18, width: 26, height: 10 },
-  { bodyArea: 'Biceps', label: 'Biceps', x: 22, y: 22, width: 10, height: 10 },
-  { bodyArea: 'Triceps', label: 'Triceps', x: 68, y: 22, width: 10, height: 10 },
-  { bodyArea: 'Forearms', label: 'Forearms', x: 18, y: 32, width: 10, height: 12 },
+  // Upper body - aligned to the body silhouette
+  { bodyArea: 'Traps', label: 'Traps', x: 42, y: 17, width: 16, height: 4 },
+  { bodyArea: 'Shoulders', label: 'Shoulders', x: 30, y: 20, width: 10, height: 6 },
+  { bodyArea: 'Chest', label: 'Chest', x: 40, y: 22, width: 20, height: 8 },
+  { bodyArea: 'Biceps', label: 'Biceps', x: 27, y: 27, width: 8, height: 8 },
+  { bodyArea: 'Triceps', label: 'Triceps', x: 65, y: 27, width: 8, height: 8 },
+  { bodyArea: 'Forearms', label: 'Forearms', x: 23, y: 36, width: 7, height: 10 },
 
   // Core
-  { bodyArea: 'Abs', label: 'Abs', x: 40, y: 28, width: 20, height: 14 },
-  { bodyArea: 'Obliques', label: 'Obliques', x: 32, y: 30, width: 8, height: 12 },
+  { bodyArea: 'Abs', label: 'Abs', x: 43, y: 31, width: 14, height: 12 },
+  { bodyArea: 'Obliques', label: 'Obliques', x: 36, y: 33, width: 7, height: 8 },
 
-  // Back (shown on right side mirror)
-  { bodyArea: 'Lats', label: 'Lats', x: 63, y: 14, width: 12, height: 8 },
-  { bodyArea: 'Upper Back', label: 'Upper Back', x: 38, y: 14, width: 24, height: 4 },
-  { bodyArea: 'Lower Back', label: 'Lower Back', x: 60, y: 30, width: 8, height: 12 },
+  // Back muscles (positioned on sides)
+  { bodyArea: 'Lats', label: 'Lats', x: 57, y: 28, width: 8, height: 10 },
+  { bodyArea: 'Upper Back', label: 'Back', x: 60, y: 20, width: 10, height: 6 },
+  { bodyArea: 'Lower Back', label: 'Lower Back', x: 70, y: 36, width: 7, height: 10 },
 
   // Lower body
-  { bodyArea: 'Glutes', label: 'Glutes', x: 38, y: 42, width: 24, height: 8 },
-  { bodyArea: 'Quads', label: 'Quads', x: 35, y: 50, width: 30, height: 18 },
-  { bodyArea: 'Hamstrings', label: 'Hamstrings', x: 35, y: 52, width: 30, height: 14 },
-  { bodyArea: 'Calves', label: 'Calves', x: 36, y: 70, width: 28, height: 14 },
+  { bodyArea: 'Glutes', label: 'Glutes', x: 40, y: 44, width: 20, height: 6 },
+  { bodyArea: 'Quads', label: 'Quads', x: 35, y: 51, width: 13, height: 14 },
+  { bodyArea: 'Hamstrings', label: 'Hamstrings', x: 52, y: 51, width: 13, height: 14 },
+  { bodyArea: 'Calves', label: 'Calves', x: 38, y: 68, width: 24, height: 12 },
 ];
 
 // Badge positions for key muscle groups (percentages)
 const BADGE_POSITIONS: Partial<Record<BodyArea, { x: number; y: number }>> = {
-  'Chest': { x: 50, y: 22 },
-  'Shoulders': { x: 28, y: 17 },
-  'Biceps': { x: 24, y: 26 },
+  'Chest': { x: 50, y: 26 },
+  'Shoulders': { x: 32, y: 22 },
+  'Quads': { x: 42, y: 58 },
 };
 
 export const AnatomicalBody: React.FC<AnatomicalBodyProps> = ({
@@ -62,7 +62,7 @@ export const AnatomicalBody: React.FC<AnatomicalBodyProps> = ({
   const [hoveredMuscle, setHoveredMuscle] = useState<BodyArea | null>(null);
 
   return (
-    <div style={{ position: 'relative', width: '100%', maxWidth: '320px', margin: '0 auto' }}>
+    <div style={{ position: 'relative', width: '100%', maxWidth: '500px', margin: '0 auto' }}>
       {/* Professional anatomical body SVG - Front View */}
       <svg
         viewBox="0 0 100000 100000"
