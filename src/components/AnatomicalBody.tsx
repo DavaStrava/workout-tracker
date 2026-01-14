@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { motion } from 'framer-motion';
 import type { BodyArea } from '../types';
 import type { MuscleRecoveryData } from '../utils/recoveryHelpers';
@@ -48,13 +48,16 @@ const MUSCLE_REGIONS: MuscleRegion[] = [
 ];
 
 // Badge positions for key muscle groups (percentages)
-const BADGE_POSITIONS: Partial<Record<BodyArea, { x: number; y: number }>> = {
+// Using a const assertion for type-safe keys
+const BADGE_POSITIONS = {
   'Chest': { x: 50, y: 26 },
   'Shoulders': { x: 32, y: 22 },
   'Quads': { x: 42, y: 58 },
-};
+} as const satisfies Partial<Record<BodyArea, { x: number; y: number }>>;
 
-export const AnatomicalBody: React.FC<AnatomicalBodyProps> = ({
+type BadgeBodyArea = keyof typeof BADGE_POSITIONS;
+
+export const AnatomicalBody: React.FC<AnatomicalBodyProps> = memo(({
   muscleData,
   onSelectMuscle,
   showBadges = true,
@@ -156,8 +159,8 @@ export const AnatomicalBody: React.FC<AnatomicalBodyProps> = ({
             pointerEvents: 'none',
           }}
         >
-          {(Object.entries(BADGE_POSITIONS) as [BodyArea, { x: number; y: number }][]).map(
-            ([bodyArea, pos]) => {
+          {(Object.keys(BADGE_POSITIONS) as BadgeBodyArea[]).map((bodyArea) => {
+              const pos = BADGE_POSITIONS[bodyArea];
               const recovery = muscleData[bodyArea];
               if (!recovery) return null;
 
@@ -188,10 +191,12 @@ export const AnatomicalBody: React.FC<AnatomicalBodyProps> = ({
                   {recovery.recoveryPercent}%
                 </div>
               );
-            }
-          )}
+            })}
         </div>
       )}
     </div>
   );
-};
+});
+
+// Add display name for debugging
+AnatomicalBody.displayName = 'AnatomicalBody';

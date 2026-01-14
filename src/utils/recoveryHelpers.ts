@@ -2,7 +2,13 @@ import type { Workout, BodyArea } from '../types';
 import { EXERCISES } from '../data/exercises';
 
 // Recovery constants
-const FULL_RECOVERY_HOURS = 72; // 3 days for full recovery
+// Based on exercise science: muscle protein synthesis typically completes within 48-72 hours.
+// Using 72 hours (3 days) as a conservative estimate for full recovery.
+// Source: https://pubmed.ncbi.nlm.nih.gov/8563679/
+const FULL_RECOVERY_HOURS = 72;
+
+// Pre-compute exercise lookup map for O(1) access instead of O(n) find()
+const EXERCISE_MAP = new Map(EXERCISES.map(e => [e.id, e]));
 
 // All strength-training muscle groups (excludes Cardio)
 const STRENGTH_BODY_AREAS: BodyArea[] = [
@@ -52,7 +58,7 @@ export function calculateMuscleRecovery(history: Workout[]): RecoveryStats {
     if (workout.type !== 'STRENGTH' || workout.status !== 'completed') continue;
 
     for (const exercise of workout.exercises) {
-      const exerciseInfo = EXERCISES.find(e => e.id === exercise.exerciseId);
+      const exerciseInfo = EXERCISE_MAP.get(exercise.exerciseId);
       if (!exerciseInfo || exerciseInfo.bodyArea === 'Cardio') continue;
 
       // Only count exercises with at least one completed set
