@@ -113,7 +113,7 @@ export const MuscleRecoveryMap: React.FC<MuscleRecoveryMapProps> = ({ onSelect }
                 fontSize: '18px',
                 fontWeight: 700,
                 color: recoveryStats.freshMuscleCount === recoveryStats.totalMuscleGroups
-                  ? '#f7418c'
+                  ? '#ff4d6d'
                   : '#fff',
               }}
             >

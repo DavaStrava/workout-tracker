@@ -71,23 +71,6 @@ export const AnatomicalBody: React.FC<AnatomicalBodyProps> = ({
         style={{ display: 'block' }}
         aria-label="Muscle recovery body map"
       >
-        <defs>
-          {/* Fresh muscle gradient */}
-          <linearGradient id="freshMuscle" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#ff6b35" />
-            <stop offset="100%" stopColor="#f7418c" />
-          </linearGradient>
-          {/* Recovering muscle gradient */}
-          <linearGradient id="recoveringMuscle" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#8b5a8b" />
-            <stop offset="100%" stopColor="#6b4a6b" />
-          </linearGradient>
-          {/* Fatigued muscle gradient */}
-          <linearGradient id="fatiguedMuscle" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#4a3d5a" />
-            <stop offset="100%" stopColor="#2d2640" />
-          </linearGradient>
-        </defs>
 
         {/* Body silhouette from Noun Project SVG */}
         <path
@@ -187,7 +170,7 @@ export const AnatomicalBody: React.FC<AnatomicalBodyProps> = ({
                     top: `${pos.y}%`,
                     transform: 'translate(-50%, -50%)',
                     background: recovery.isFresh
-                      ? 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)'
+                      ? '#ff4d6d'
                       : 'rgba(45, 38, 64, 0.95)',
                     border: '2px solid rgba(255, 255, 255, 0.3)',
                     borderRadius: '12px',
@@ -196,7 +179,7 @@ export const AnatomicalBody: React.FC<AnatomicalBodyProps> = ({
                     fontWeight: 700,
                     color: '#fff',
                     boxShadow: recovery.isFresh
-                      ? '0 2px 12px rgba(249, 115, 22, 0.5)'
+                      ? '0 2px 12px rgba(255, 77, 109, 0.5)'
                       : '0 2px 8px rgba(0, 0, 0, 0.4)',
                     whiteSpace: 'nowrap',
                     zIndex: 10,
