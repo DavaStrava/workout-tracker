@@ -135,7 +135,6 @@ export const MuscleRecoveryMap: React.FC<MuscleRecoveryMapProps> = ({ onSelect }
         <AnatomicalBody
           muscleData={recoveryStats.muscleData}
           onSelectMuscle={onSelect}
-          showBadges={true}
         />
 
         {/* Tap hint */}
