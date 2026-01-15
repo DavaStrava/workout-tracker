@@ -80,3 +80,7 @@ For authentication to work, ensure your domain is added to Firebase:
 ## Project Structure
 
 See [CLAUDE.md](./CLAUDE.md) for detailed architecture documentation.
+
+## Attributions
+
+Muscle group icons are sourced from [The Noun Project](https://thenounproject.com/) and used under the [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) license. See [ATTRIBUTIONS.md](./ATTRIBUTIONS.md) for full creator credits.

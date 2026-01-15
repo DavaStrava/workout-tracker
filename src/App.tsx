@@ -7,6 +7,7 @@ import { Auth } from './features/Auth';
 import { WorkoutProvider, useWorkout } from './hooks/useWorkoutStore';
 import { Button } from './components/Button';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { Credits } from './components/Credits';
 import { signOut } from './services/auth';
 
 const AppContent: React.FC = () => {
@@ -47,10 +48,11 @@ const AppContent: React.FC = () => {
   // Show main app if authenticated
   return (
     <>
-      <div className="absolute top-4 right-20 z-50 flex items-center gap-3">
-        <span className="text-sm text-zinc-400">
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+        <span className="text-sm text-zinc-400 hidden sm:inline">
           {user.displayName || user.email}
         </span>
+        <Credits />
         <Button
           onClick={handleSignOut}
           variant="ghost"
