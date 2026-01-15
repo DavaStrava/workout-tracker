@@ -7,7 +7,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-    ({ className, label, error, ...props }, ref) => {
+    ({ className, label, error, style, ...props }, ref) => {
         return (
             <div className="w-full space-y-2">
                 {label && (
@@ -25,6 +25,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     style={{
                         background: 'rgba(30, 27, 50, 0.8)',
                         border: '1px solid rgba(255, 255, 255, 0.15)',
+                        color: 'white',
+                        ...style,
                     }}
                     {...props}
                 />

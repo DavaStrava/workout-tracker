@@ -1,23 +1,32 @@
 import React, { useState } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
-import { Play, ArrowLeft, Dumbbell, TrendingUp, Clock, Target } from 'lucide-react';
+import { Play, ArrowLeft, Dumbbell, TrendingUp, Clock, Target, Trash2 } from 'lucide-react';
 import { WorkoutTypeSelector } from './WorkoutTypeSelector';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { StatCard, Badge } from '../components/Badge';
-import type { WorkoutType } from '../types';
+import { AnimatePresence, motion } from 'framer-motion';
+import type { WorkoutType, Routine } from '../types';
 
 interface LandingPageProps {
     onNavigate: (tab: 'workout' | 'history' | 'analytics') => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
-    const { routines, history, startWorkout, startRoutine } = useWorkout();
+    const { routines, history, startWorkout, startRoutine, deleteRoutine } = useWorkout();
     const [showTypeSelector, setShowTypeSelector] = useState(false);
+    const [routineToDelete, setRoutineToDelete] = useState<Routine | null>(null);
 
     const handleSelectType = (type: WorkoutType) => {
         startWorkout('New Workout', type);
         setShowTypeSelector(false);
+    };
+
+    const handleDeleteRoutine = () => {
+        if (routineToDelete) {
+            deleteRoutine(routineToDelete.id);
+            setRoutineToDelete(null);
+        }
     };
 
     // Analytics Calculations
@@ -147,9 +156,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {routines.slice(0, 3).map(routine => (
-                            <button
+                            <div
                                 key={routine.id}
-                                onClick={() => startRoutine(routine.id)}
                                 style={{
                                     width: '100%',
                                     display: 'flex',
@@ -159,15 +167,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                                     borderRadius: '12px',
                                     background: 'rgba(30, 27, 50, 0.8)',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    cursor: 'pointer',
                                     transition: 'all 0.2s',
                                 }}
-                                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(45, 38, 64, 0.9)'}
-                                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(30, 27, 50, 0.8)'}
                             >
-                                <span style={{ fontWeight: 700, color: '#fff' }}>{routine.name}</span>
-                                <Play size={20} style={{ color: '#fb923c' }} />
-                            </button>
+                                <button
+                                    onClick={() => startRoutine(routine.id)}
+                                    className="routine-start-btn"
+                                    style={{
+                                        flex: 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        padding: 0,
+                                    }}
+                                >
+                                    <span style={{ fontWeight: 700, color: '#fff' }}>{routine.name}</span>
+                                    <Play size={20} style={{ color: '#fb923c' }} />
+                                </button>
+                                <button
+                                    onClick={() => setRoutineToDelete(routine)}
+                                    className="routine-delete-btn"
+                                    aria-label={`Delete ${routine.name} routine`}
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            </div>
                         ))}
                         {routines.length > 3 && (
                             <p style={{ textAlign: 'center', fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)', marginTop: '12px' }}>
@@ -234,6 +261,67 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     </Button>
                 )}
             </Card>
+
+            {/* Delete Routine Confirmation Modal */}
+            <AnimatePresence>
+                {routineToDelete && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{
+                            position: 'fixed',
+                            inset: 0,
+                            zIndex: 50,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '16px',
+                            background: 'rgba(0, 0, 0, 0.75)',
+                        }}
+                        onClick={() => setRoutineToDelete(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            style={{
+                                width: '100%',
+                                maxWidth: '380px',
+                                padding: '28px',
+                                borderRadius: '24px',
+                                background: 'rgba(30, 27, 50, 0.98)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <h3 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '12px', color: '#fff' }}>
+                                Delete Routine?
+                            </h3>
+                            <p style={{ color: 'rgba(255, 255, 255, 0.6)', marginBottom: '24px' }}>
+                                Are you sure you want to delete "<strong style={{ color: '#fff' }}>{routineToDelete.name}</strong>"? This action cannot be undone.
+                            </p>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <Button
+                                    variant="ghost"
+                                    style={{ flex: 1 }}
+                                    onClick={() => setRoutineToDelete(null)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    style={{ flex: 1, background: '#ef4444' }}
+                                    onClick={handleDeleteRoutine}
+                                >
+                                    Delete
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

@@ -22,7 +22,7 @@ interface WorkoutContextType {
     isLoading: boolean;
     startWorkout: (name?: string, type?: WorkoutType) => void;
     finishWorkout: () => Promise<void>;
-    cancelWorkout: () => void;
+    cancelWorkout: () => Promise<void>;
     addExercise: (exerciseId: string) => Promise<void>;
     updateSet: (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; distance: number; duration: number; intensity: CardioIntensity; completed: boolean }>) => Promise<void>;
     updateNotes: (notes: string) => Promise<void>;
@@ -36,6 +36,9 @@ interface WorkoutContextType {
 }
 
 const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
+
+// Time to wait for Firestore subscription to settle after optimistic updates (ms)
+const SUBSCRIPTION_SETTLE_DELAY_MS = 2000;
 
 export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
@@ -66,6 +69,21 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         routines: routines,
         activeWorkout: activeWorkout,
     });
+
+    // Track when we're finishing a workout to prevent subscription race conditions
+    const isFinishingWorkoutRef = useRef(false);
+
+    // Track timeout IDs for cleanup on unmount
+    const settleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Cleanup timeouts on unmount
+    useEffect(() => {
+        return () => {
+            if (settleTimeoutRef.current) {
+                clearTimeout(settleTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // Auth state listener
     useEffect(() => {
@@ -139,6 +157,11 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const unsubscribeActiveWorkout = subscribeToActiveWorkout(
             user.uid,
             (workout) => {
+                // Ignore subscription updates while we're finishing a workout
+                // This prevents race conditions where stale data overwrites our optimistic update
+                if (isFinishingWorkoutRef.current) {
+                    return;
+                }
                 setActiveWorkout(workout);
                 // Also update localStorage for offline support
                 if (workout) {
@@ -157,28 +180,22 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         };
     }, [user]);
 
-    // Fallback: Save to localStorage when not authenticated
+    // Always sync state to localStorage for offline support and persistence
     useEffect(() => {
-        if (!user) {
-            if (activeWorkout) {
-                localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
-            } else {
-                localStorage.removeItem('activeWorkout');
-            }
+        if (activeWorkout) {
+            localStorage.setItem('activeWorkout', JSON.stringify(activeWorkout));
+        } else {
+            localStorage.removeItem('activeWorkout');
         }
-    }, [activeWorkout, user]);
+    }, [activeWorkout]);
 
     useEffect(() => {
-        if (!user) {
-            localStorage.setItem('workoutHistory', JSON.stringify(history));
-        }
-    }, [history, user]);
+        localStorage.setItem('workoutHistory', JSON.stringify(history));
+    }, [history]);
 
     useEffect(() => {
-        if (!user) {
-            localStorage.setItem('routines', JSON.stringify(routines));
-        }
-    }, [routines, user]);
+        localStorage.setItem('routines', JSON.stringify(routines));
+    }, [routines]);
 
     const startWorkout = (name: string = 'New Workout', type: WorkoutType = 'STRENGTH') => {
         const newWorkout: Workout = {
@@ -194,19 +211,66 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const finishWorkout = async () => {
         if (!activeWorkout) return;
+        const previousWorkout = activeWorkout;
         const completedWorkout = { ...activeWorkout, endTime: Date.now(), status: 'completed' as const };
 
+        // Set flag to prevent subscription from overwriting our optimistic update
+        isFinishingWorkoutRef.current = true;
+
+        // Optimistic update - update local state immediately for responsive UI
+        setHistory(prev => [completedWorkout, ...prev]);
+        setActiveWorkout(null);
+
         if (user) {
-            // Use atomic batch operation to prevent race conditions
-            await finishWorkoutAtomic(user.uid, completedWorkout);
-        } else {
-            // Fallback to local state
-            setHistory(prev => [completedWorkout, ...prev]);
-            setActiveWorkout(null);
+            // Sync to Firestore
+            const { error } = await finishWorkoutAtomic(user.uid, completedWorkout);
+            if (error) {
+                // Rollback optimistic update on failure
+                console.error('Failed to finish workout:', error);
+                setHistory(prev => prev.filter(w => w.id !== completedWorkout.id));
+                setActiveWorkout(previousWorkout);
+                isFinishingWorkoutRef.current = false;
+                return;
+            }
         }
+
+        // Clear the flag after a short delay to allow Firestore subscription to settle
+        if (settleTimeoutRef.current) {
+            clearTimeout(settleTimeoutRef.current);
+        }
+        settleTimeoutRef.current = setTimeout(() => {
+            isFinishingWorkoutRef.current = false;
+        }, SUBSCRIPTION_SETTLE_DELAY_MS);
     };
 
-    const cancelWorkout = () => setActiveWorkout(null);
+    const cancelWorkout = async () => {
+        const previousWorkout = activeWorkout;
+
+        // Set flag to prevent subscription from overwriting our update
+        isFinishingWorkoutRef.current = true;
+
+        setActiveWorkout(null);
+
+        if (user) {
+            // Delete from Firestore
+            const { error } = await saveActiveWorkoutToFirestore(user.uid, null);
+            if (error) {
+                // Rollback on failure
+                console.error('Failed to cancel workout:', error);
+                setActiveWorkout(previousWorkout);
+                isFinishingWorkoutRef.current = false;
+                return;
+            }
+        }
+
+        // Clear the flag after a short delay
+        if (settleTimeoutRef.current) {
+            clearTimeout(settleTimeoutRef.current);
+        }
+        settleTimeoutRef.current = setTimeout(() => {
+            isFinishingWorkoutRef.current = false;
+        }, SUBSCRIPTION_SETTLE_DELAY_MS);
+    };
 
     const addExercise = async (exerciseId: string) => {
         if (!activeWorkout) return;
@@ -217,10 +281,11 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         };
         const updatedWorkout = { ...activeWorkout, exercises: [...activeWorkout.exercises, newExercise] };
 
+        // Optimistic update
+        setActiveWorkout(updatedWorkout);
+
         if (user) {
             await saveActiveWorkoutToFirestore(user.uid, updatedWorkout);
-        } else {
-            setActiveWorkout(updatedWorkout);
         }
     };
 
@@ -245,10 +310,11 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
             })
         };
 
+        // Optimistic update
+        setActiveWorkout(updatedWorkout);
+
         if (user) {
             await saveActiveWorkoutToFirestore(user.uid, updatedWorkout);
-        } else {
-            setActiveWorkout(updatedWorkout);
         }
     }
 
@@ -263,10 +329,11 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }).filter(e => e.sets.length > 0)
         };
 
+        // Optimistic update
+        setActiveWorkout(updatedWorkout);
+
         if (user) {
             await saveActiveWorkoutToFirestore(user.uid, updatedWorkout);
-        } else {
-            setActiveWorkout(updatedWorkout);
         }
     };
 
@@ -284,10 +351,11 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
             })
         };
 
+        // Optimistic update
+        setActiveWorkout(updatedWorkout);
+
         if (user) {
             await saveActiveWorkoutToFirestore(user.uid, updatedWorkout);
-        } else {
-            setActiveWorkout(updatedWorkout);
         }
     };
 
@@ -296,10 +364,11 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         const updatedWorkout = { ...activeWorkout, notes };
 
+        // Optimistic update
+        setActiveWorkout(updatedWorkout);
+
         if (user) {
             await saveActiveWorkoutToFirestore(user.uid, updatedWorkout);
-        } else {
-            setActiveWorkout(updatedWorkout);
         }
     };
 
@@ -319,10 +388,11 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }))
         };
 
+        // Optimistic update
+        setRoutines(prev => [...prev, newRoutine]);
+
         if (user) {
             await saveRoutineToFirestore(user.uid, newRoutine);
-        } else {
-            setRoutines(prev => [...prev, newRoutine]);
         }
     };
 
@@ -348,19 +418,20 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
             status: 'active'
         };
 
+        // Optimistic update
+        setActiveWorkout(newWorkout);
+
         if (user) {
-            // Persist to Firestore when authenticated
             await saveActiveWorkoutToFirestore(user.uid, newWorkout);
-        } else {
-            setActiveWorkout(newWorkout);
         }
     };
 
     const deleteRoutine = async (id: string) => {
+        // Optimistic update
+        setRoutines(prev => prev.filter(r => r.id !== id));
+
         if (user) {
             await deleteRoutineFromFirestore(user.uid, id);
-        } else {
-            setRoutines(prev => prev.filter(r => r.id !== id));
         }
     };
 

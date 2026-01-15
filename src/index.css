@@ -229,3 +229,33 @@ body {
   opacity: 0.5;
   pointer-events: none;
 }
+
+/* Routine Delete Button - with proper hover and focus states */
+.routine-delete-btn {
+  margin-left: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.4);
+  transition: all 0.2s ease;
+}
+
+.routine-delete-btn:hover,
+.routine-delete-btn:focus-visible {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+  outline: none;
+}
+
+.routine-delete-btn:focus-visible {
+  box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.5);
+}
+
+/* Routine Start Button - with proper focus states */
+.routine-start-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.5);
+  border-radius: 8px;
+}
