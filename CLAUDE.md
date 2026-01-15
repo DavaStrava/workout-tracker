@@ -28,15 +28,21 @@ workout-tracker/
 ├── public/
 │   └── vite.svg
 ├── SVGs/                        # Noun Project SVG assets for muscle icons
-│   ├── noun-chest-7994440.svg
-│   ├── noun-muscle-7994436.svg
-│   ├── noun-back-muscle-7977964.svg
-│   ├── noun-male-shoulder-3826963.svg
-│   ├── noun-tricep-brachii-7874542.svg
-│   ├── noun-hamstring-7874535.svg
-│   ├── noun-quads-4050080.svg
-│   ├── noun-gastrocnemius-7874531.svg
-│   └── noun-sartorius-7874532.svg
+│   ├── noun-chest-7994440.svg           # Chest
+│   ├── noun-muscle-7994436.svg          # Biceps
+│   ├── noun-back-muscle-7977964.svg     # Lats
+│   ├── noun-male-shoulder-3826963.svg   # Shoulders
+│   ├── noun-tricep-brachii-7874542.svg  # Triceps
+│   ├── noun-hamstring-7874535.svg       # Hamstrings
+│   ├── noun-quads-4050080.svg           # Quads
+│   ├── noun-gastrocnemius-7874531.svg   # Calves
+│   ├── noun-gluteus-maximus-7874533.svg # Glutes
+│   ├── noun-forearms-7874536.svg        # Forearms
+│   ├── noun-six-pack.svg                # Abs
+│   ├── noun-abdominal-muscles-oblique8138114.svg  # Obliques
+│   ├── noun-lower-back-8242925.svg      # Lower Back
+│   ├── traps.svg                        # Traps
+│   └── upperback.svg                    # Upper Back
 └── src/
     ├── main.tsx
     ├── App.tsx
