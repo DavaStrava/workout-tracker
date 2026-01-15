@@ -38,6 +38,14 @@ const getFirestoreErrorMessage = (error: unknown): string => {
   return 'An unexpected error occurred.';
 };
 
+/**
+ * Remove undefined values from an object at all nesting levels (Firestore doesn't accept undefined)
+ * Uses JSON serialization which automatically strips undefined values
+ */
+const removeUndefined = <T>(obj: T): T => {
+  return JSON.parse(JSON.stringify(obj));
+};
+
 const COLLECTIONS = {
   WORKOUTS: 'workouts',
   ROUTINES: 'routines',
@@ -308,10 +316,10 @@ export const saveActiveWorkout = async (userId: string, workout: Workout | null)
   try {
     const activeWorkoutRef = getUserDoc(userId, COLLECTIONS.ACTIVE_WORKOUT, 'current');
     if (workout) {
-      await setDoc(activeWorkoutRef, {
+      await setDoc(activeWorkoutRef, removeUndefined({
         ...workout,
         updatedAt: Timestamp.now(),
-      });
+      }));
     } else {
       await deleteDoc(activeWorkoutRef);
     }
@@ -430,10 +438,10 @@ export const saveRoutineAndWorkoutAtomic = async (
 
     // Update the active workout with routineId and new name
     const activeWorkoutRef = getUserDoc(userId, COLLECTIONS.ACTIVE_WORKOUT, 'current');
-    batch.set(activeWorkoutRef, {
+    batch.set(activeWorkoutRef, removeUndefined({
       ...updatedWorkout,
       updatedAt: Timestamp.now(),
-    });
+    }));
 
     await batch.commit();
     return { error: null };
@@ -524,10 +532,10 @@ export const finishWorkoutAtomic = async (userId: string, completedWorkout: Work
 
     // Add completed workout to history
     const workoutRef = getUserDoc(userId, COLLECTIONS.WORKOUTS, completedWorkout.id);
-    batch.set(workoutRef, {
+    batch.set(workoutRef, removeUndefined({
       ...completedWorkout,
       updatedAt: Timestamp.now(),
-    });
+    }));
 
     // Delete active workout
     const activeWorkoutRef = getUserDoc(userId, COLLECTIONS.ACTIVE_WORKOUT, 'current');
@@ -558,10 +566,10 @@ export const migrateLocalDataToFirestore = async (
     // Migrate workouts
     workouts.forEach((workout) => {
       const workoutRef = getUserDoc(userId, COLLECTIONS.WORKOUTS, workout.id);
-      batch.set(workoutRef, {
+      batch.set(workoutRef, removeUndefined({
         ...workout,
         updatedAt: Timestamp.now(),
-      });
+      }));
     });
 
     // Migrate routines
@@ -576,10 +584,10 @@ export const migrateLocalDataToFirestore = async (
     // Migrate active workout
     if (activeWorkout) {
       const activeWorkoutRef = getUserDoc(userId, COLLECTIONS.ACTIVE_WORKOUT, 'current');
-      batch.set(activeWorkoutRef, {
+      batch.set(activeWorkoutRef, removeUndefined({
         ...activeWorkout,
         updatedAt: Timestamp.now(),
-      });
+      }));
     }
 
     await batch.commit();

@@ -352,6 +352,8 @@ The limit is enforced at the application level in `Auth.tsx`:
 
 **Atomic Operations**: `finishWorkoutAtomic()` uses Firestore batch writes to save completed workout and clear active workout atomically, preventing race conditions.
 
+**Undefined Value Handling**: Firestore doesn't accept `undefined` values. The `removeUndefined()` helper strips undefined fields before saving (e.g., active workouts have no `endTime`). Applied to all workout save operations: `saveActiveWorkout`, `saveRoutineAndWorkoutAtomic`, `finishWorkoutAtomic`, `migrateLocalDataToFirestore`.
+
 **Error Handling**: All Firestore functions return `{ error }` or `{ data, error }` objects. Errors are converted to user-friendly messages via `getFirestoreErrorMessage()` helper.
 
 ### Styling

@@ -49,3 +49,5 @@
     - [x] Create custom simple icons for missing muscles (Forearms, Upper Back, Traps, Abs, Obliques, Lower Back) <!-- id: 37 -->
     - [x] Replace AnatomicalBody with individual muscle icons in MuscleRecoveryMap <!-- id: 38 -->
     - [x] Add recovery status indicators (green border + "✓ Fresh" for recovered muscles) <!-- id: 39 -->
+- [x] Bug Fixes
+    - [x] Fix Firestore undefined value error when saving routines (add removeUndefined helper) <!-- id: 40 -->

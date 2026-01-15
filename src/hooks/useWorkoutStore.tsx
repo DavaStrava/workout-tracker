@@ -424,7 +424,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 console.error('Failed to save routine:', error);
                 setRoutines(prev => prev.filter(r => r.id !== newRoutine.id));
                 setActiveWorkout(previousWorkout);
-                return { error: 'Failed to save routine. Please try again.' };
+                return { error };
             }
         }
 
