@@ -27,6 +27,16 @@ workout-tracker/
 ├── tsconfig.node.json
 ├── public/
 │   └── vite.svg
+├── SVGs/                        # Noun Project SVG assets for muscle icons
+│   ├── noun-chest-7994440.svg
+│   ├── noun-muscle-7994436.svg
+│   ├── noun-back-muscle-7977964.svg
+│   ├── noun-male-shoulder-3826963.svg
+│   ├── noun-tricep-brachii-7874542.svg
+│   ├── noun-hamstring-7874535.svg
+│   ├── noun-quads-4050080.svg
+│   ├── noun-gastrocnemius-7874531.svg
+│   └── noun-sartorius-7874532.svg
 └── src/
     ├── main.tsx
     ├── App.tsx
@@ -43,6 +53,7 @@ workout-tracker/
     │   │   ├── Button.test.tsx
     │   │   ├── Card.test.tsx
     │   │   ├── Badge.test.tsx
+    │   │   ├── Input.test.tsx
     │   │   └── MuscleGroupSelector.test.tsx
     │   ├── Layout.tsx
     │   ├── Button.tsx
@@ -51,7 +62,10 @@ workout-tracker/
     │   ├── Badge.tsx
     │   ├── ErrorBoundary.tsx
     │   ├── MuscleGroupSelector.tsx
-    │   └── MuscleGroupIcons.tsx
+    │   ├── MuscleGroupIcons.tsx
+    │   ├── MuscleRecoveryMap.tsx
+    │   ├── AnatomicalBody.tsx
+    │   └── ExerciseSelector.tsx
     ├── features/
     │   ├── __tests__/
     │   │   ├── Auth.test.tsx
@@ -71,6 +85,7 @@ workout-tracker/
     ├── utils/
     │   ├── analyticsHelpers.ts
     │   ├── analyticsHelpers.test.ts
+    │   ├── recoveryHelpers.ts
     │   └── styles.ts
     ├── services/
     │   ├── auth.ts
@@ -152,7 +167,9 @@ src/
 ├── components/__tests__/
 │   ├── Button.test.tsx           # Button component tests
 │   ├── Card.test.tsx             # Card component tests
-│   └── Badge.test.tsx            # Badge component tests
+│   ├── Badge.test.tsx            # Badge component tests
+│   ├── Input.test.tsx            # Input component tests
+│   └── MuscleGroupSelector.test.tsx  # Muscle group selector tests
 ├── features/__tests__/
 │   ├── Auth.test.tsx             # Auth UI tests (incl. user limit)
 │   ├── WorkoutTypeSelector.test.tsx  # Workout type picker tests
@@ -254,8 +271,11 @@ Workout (workout session with metadata)
 - `Button.tsx`, `Input.tsx`, `Card.tsx` - Reusable UI primitives
 - `Badge.tsx` - Status badges and StatCard component for displaying metrics
 - `ErrorBoundary.tsx` - React error boundary for graceful error handling
-- `MuscleGroupSelector.tsx` - 2-column grid of muscle group cards for exercise selection
-- `MuscleGroupIcons.tsx` - Anatomical SVG illustrations for each muscle group (Chest, Back, Legs, Shoulders, Arms, Core)
+- `MuscleGroupSelector.tsx` - 2-column grid of muscle group cards (standalone, not currently used)
+- `MuscleGroupIcons.tsx` - 15 individual muscle SVG icons using Noun Project assets with orange-pink gradient fills
+- `MuscleRecoveryMap.tsx` - Main muscle selection UI showing recovery stats and individual muscle icons in a 2-column grid
+- `AnatomicalBody.tsx` - Full-body anatomical SVG visualization (legacy, replaced by MuscleRecoveryMap)
+- `ExerciseSelector.tsx` - Exercise list filtered by selected muscle group
 
 ### Analytics Helpers (`src/utils/analyticsHelpers.ts`)
 
@@ -268,6 +288,14 @@ Pure functions for computing workout stats:
 - `getTotalWorkouts()` - Count total workouts with optional filters by type and time period
 
 **Important**: These functions read from the entire workout history array. For MVP scale (<1000 workouts), this is acceptable. If performance becomes an issue, consider indexing or aggregation strategies.
+
+### Recovery Helpers (`src/utils/recoveryHelpers.ts`)
+
+Functions for calculating muscle recovery status:
+- `calculateMuscleRecovery()` - Computes recovery percentage for all 15 muscle groups based on workout history
+- Returns `RecoveryStats` with: `lastWorkoutDaysAgo`, `freshMuscleCount`, `totalMuscleGroups`, and per-muscle `MuscleRecoveryData`
+- Recovery is linear: 0% immediately after workout, 100% after 48 hours (configurable via `FULL_RECOVERY_HOURS`)
+- Used by `MuscleRecoveryMap` to show visual recovery indicators on muscle cards
 
 ### Authentication (`src/services/auth.ts`)
 
@@ -346,7 +374,7 @@ Uses Flexbox/Grid for layout, Framer Motion for animations, and TailwindCSS util
 
 7. **Accessibility**: Navigation uses proper ARIA attributes (`role="tablist"`, `aria-selected`). Toggle buttons use `aria-pressed`. All interactive elements have `aria-label` where needed.
 
-8. **Muscle Group Selection Flow**: When starting a strength workout, users are immediately presented with anatomical muscle group cards (Chest, Back, Legs, Shoulders, Arms, Core). Selecting a muscle group shows exercises for that area. Back buttons allow navigation: from exercise list → muscle groups → cancel workout (if empty) or return to workout (if exercises exist).
+8. **Muscle Group Selection Flow**: When starting a strength workout, users see a 2-column grid of 15 individual muscle icons (using Noun Project SVGs with orange-pink gradients). Each card shows: muscle icon, label, and recovery status ("✓ Fresh" with green border if fully recovered, or exercise count otherwise). Selecting a muscle group shows exercises for that area. Back buttons allow navigation: from exercise list → muscle groups → cancel workout (if empty) or return to workout (if exercises exist).
 
 ## Common Patterns
 

@@ -43,3 +43,9 @@
     - [x] Create 15 fitness silhouette SVG icons (80px, front/back body poses) <!-- id: 32 -->
     - [x] Update MuscleGroupSelector with all 15 groups <!-- id: 33 -->
     - [x] Update tests for new muscle group structure <!-- id: 34 -->
+- [x] Muscle Icon Redesign
+    - [x] Add Noun Project SVG assets to /SVGs/ folder (9 professional icons) <!-- id: 35 -->
+    - [x] Create MuscleGroupIcons.tsx with individual gradient-filled SVG icons <!-- id: 36 -->
+    - [x] Create custom simple icons for missing muscles (Forearms, Upper Back, Traps, Abs, Obliques, Lower Back) <!-- id: 37 -->
+    - [x] Replace AnatomicalBody with individual muscle icons in MuscleRecoveryMap <!-- id: 38 -->
+    - [x] Add recovery status indicators (green border + "✓ Fresh" for recovered muscles) <!-- id: 39 -->

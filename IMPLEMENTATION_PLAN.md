@@ -43,9 +43,12 @@ src/
 #### [NEW] [Layout.tsx]
 Main wrapper with navigation (bottom tab bar for mobile feel).
 
-#### [NEW] [WorkoutLogger.tsx]
+#### [NEW] [WorkoutLogger.tsx] ✅
 The clear, focused interface for the active workout.
-- **Muscle Group Selection**: Visual 2-column grid with anatomical SVG icons (MuscleGroupSelector component)
+- **Muscle Group Selection**: Visual 2-column grid with individual muscle SVG icons (MuscleRecoveryMap component)
+  - 15 individual muscle icons using Noun Project SVGs with orange-pink gradient fills
+  - Each card shows: icon, label, recovery status ("✓ Fresh" or exercise count)
+  - Fresh muscles highlighted with green border and shadow
 - Selecting a muscle group shows filtered exercises for that body area
 - Auto-shows muscle groups when starting a new strength workout
 - List of added exercises with set logging
