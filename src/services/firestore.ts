@@ -410,6 +410,40 @@ export const saveRoutine = async (userId: string, routine: Routine) => {
 };
 
 /**
+ * Save a routine and update the active workout atomically
+ * Used when creating a new routine from the current workout
+ */
+export const saveRoutineAndWorkoutAtomic = async (
+  userId: string,
+  routine: Routine,
+  updatedWorkout: Workout
+) => {
+  try {
+    const batch = writeBatch(db);
+
+    // Save the new routine
+    const routineRef = getUserDoc(userId, COLLECTIONS.ROUTINES, routine.id);
+    batch.set(routineRef, {
+      ...routine,
+      updatedAt: Timestamp.now(),
+    });
+
+    // Update the active workout with routineId and new name
+    const activeWorkoutRef = getUserDoc(userId, COLLECTIONS.ACTIVE_WORKOUT, 'current');
+    batch.set(activeWorkoutRef, {
+      ...updatedWorkout,
+      updatedAt: Timestamp.now(),
+    });
+
+    await batch.commit();
+    return { error: null };
+  } catch (error: unknown) {
+    console.error('Error saving routine and workout:', error);
+    return { error: getFirestoreErrorMessage(error) };
+  }
+};
+
+/**
  * Get all routines for a user
  */
 export const getRoutines = async (userId: string): Promise<{ routines: Routine[]; error: string | null }> => {

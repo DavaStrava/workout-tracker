@@ -5,7 +5,8 @@ import { WorkoutLogger } from '../WorkoutLogger';
 import type { Workout, WorkoutExercise } from '../../types';
 
 // Mock the useWorkout hook
-const mockSaveRoutine = vi.fn();
+const mockSaveRoutine = vi.fn().mockResolvedValue({});
+const mockUpdateRoutine = vi.fn().mockResolvedValue({});
 const mockFinishWorkout = vi.fn();
 const mockCancelWorkout = vi.fn();
 const mockAddExercise = vi.fn();
@@ -59,6 +60,7 @@ vi.mock('../../hooks/useWorkoutStore', () => ({
     updateSet: mockUpdateSet,
     getExerciseName: mockGetExerciseName,
     saveRoutine: mockSaveRoutine,
+    updateRoutine: mockUpdateRoutine,
     startWorkout: vi.fn(),
     startRoutine: vi.fn(),
     deleteRoutine: vi.fn(),

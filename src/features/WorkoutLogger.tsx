@@ -17,7 +17,7 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
     const {
         activeWorkout, history, finishWorkout, cancelWorkout,
         addExercise, addSet, removeSet, updateSet, getExerciseName,
-        saveRoutine
+        saveRoutine, updateRoutine
     } = useWorkout();
 
     const [exerciseSelectorStep, setExerciseSelectorStep] = useState<ExerciseSelectorStep>('hidden');
@@ -59,17 +59,59 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
     };
     const [showRoutineModal, setShowRoutineModal] = useState(false);
     const [routineName, setRoutineName] = useState('');
+    const [isSavingRoutine, setIsSavingRoutine] = useState(false);
+    const [routineError, setRoutineError] = useState('');
+    const [routineSuccess, setRoutineSuccess] = useState('');
 
-    const handleSaveRoutine = () => {
+    const handleSaveRoutine = async () => {
+        // If already saved as a routine, just update it
+        if (activeWorkout?.routineId) {
+            setIsSavingRoutine(true);
+            setRoutineError('');
+            setRoutineSuccess('');
+            try {
+                const result = await updateRoutine();
+                if (result.error) {
+                    setRoutineError(result.error);
+                } else {
+                    // Show success message briefly
+                    setRoutineSuccess('Routine updated');
+                    setTimeout(() => setRoutineSuccess(''), 2000);
+                }
+            } catch (error) {
+                setRoutineError('Failed to update routine. Please try again.');
+            } finally {
+                setIsSavingRoutine(false);
+            }
+            return;
+        }
+        // Otherwise show modal to get name
         setShowRoutineModal(true);
         setRoutineName('');
+        setRoutineError('');
+        setRoutineSuccess('');
     };
 
     const confirmSaveRoutine = async () => {
-        if (routineName.trim()) {
-            await saveRoutine(routineName.trim());
+        if (!routineName.trim()) return;
+
+        setIsSavingRoutine(true);
+        setRoutineError('');
+
+        try {
+            const result = await saveRoutine(routineName.trim());
+
+            if (result.error) {
+                setRoutineError(result.error);
+                return;
+            }
+
             setShowRoutineModal(false);
             setRoutineName('');
+        } catch (error) {
+            setRoutineError('Failed to save routine. Please try again.');
+        } finally {
+            setIsSavingRoutine(false);
         }
     };
 
@@ -150,8 +192,18 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    <Button variant="ghost" size="icon" onClick={handleSaveRoutine} title="Save as Routine">
-                        <Save size={20} />
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleSaveRoutine}
+                        title={activeWorkout.routineId ? "Update Routine" : "Save as Routine"}
+                        disabled={isSavingRoutine}
+                    >
+                        {isSavingRoutine ? (
+                            <span style={{ width: 20, height: 20, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                        ) : (
+                            <Save size={20} />
+                        )}
                     </Button>
                     <Button variant="ghost" size="icon" onClick={cancelWorkout} title="Cancel">
                         <X size={20} />
@@ -161,6 +213,48 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                     </Button>
                 </div>
             </div>
+
+            {/* Success Banner (for update routine success) */}
+            {routineSuccess && !showRoutineModal && (
+                <div style={{
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    background: 'rgba(16, 185, 129, 0.15)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    color: '#10b981',
+                    fontSize: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                }}>
+                    <Check size={16} />
+                    <span>{routineSuccess}</span>
+                </div>
+            )}
+
+            {/* Error Banner (for update routine errors outside modal) */}
+            {routineError && !showRoutineModal && (
+                <div style={{
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    background: 'rgba(239, 68, 68, 0.15)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    color: '#ef4444',
+                    fontSize: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                }}>
+                    <span>{routineError}</span>
+                    <button
+                        onClick={() => setRoutineError('')}
+                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
+                        aria-label="Dismiss error"
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+            )}
 
             {/* Exercises List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -232,12 +326,12 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                                                     style={{ height: '40px', textAlign: 'center', padding: '4px', background: 'rgba(255, 255, 255, 0.05)' }}
                                                     placeholder="-"
                                                     min="0"
-                                                    max="100"
+                                                    max="999"
                                                     step="1"
                                                     value={set.reps || ''}
                                                     onChange={(e) => {
                                                         const value = parseInt(e.target.value, 10);
-                                                        if (!isNaN(value) && value >= 0 && value <= 100) {
+                                                        if (!isNaN(value) && value >= 0 && value <= 999) {
                                                             updateSet(exerciseInstance.id, set.id, { reps: value });
                                                         } else if (e.target.value === '') {
                                                             updateSet(exerciseInstance.id, set.id, { reps: 0 });
@@ -356,18 +450,27 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                             <Input
                                 placeholder="Routine name"
                                 value={routineName}
-                                onChange={(e) => setRoutineName(e.target.value)}
+                                onChange={(e) => {
+                                    setRoutineName(e.target.value);
+                                    if (routineError) setRoutineError('');
+                                }}
                                 autoFocus
                                 onKeyDown={(e) => {
-                                    if (e.key === 'Enter') confirmSaveRoutine();
+                                    if (e.key === 'Enter' && !isSavingRoutine) confirmSaveRoutine();
                                     if (e.key === 'Escape') setShowRoutineModal(false);
                                 }}
                             />
+                            {routineError && (
+                                <p style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px' }}>
+                                    {routineError}
+                                </p>
+                            )}
                             <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
                                 <Button
                                     variant="ghost"
                                     style={{ flex: 1 }}
                                     onClick={() => setShowRoutineModal(false)}
+                                    disabled={isSavingRoutine}
                                 >
                                     Cancel
                                 </Button>
@@ -375,9 +478,9 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                                     variant="primary"
                                     style={{ flex: 1 }}
                                     onClick={confirmSaveRoutine}
-                                    disabled={!routineName.trim()}
+                                    disabled={!routineName.trim() || isSavingRoutine}
                                 >
-                                    Save
+                                    {isSavingRoutine ? 'Saving...' : 'Save'}
                                 </Button>
                             </div>
                         </motion.div>

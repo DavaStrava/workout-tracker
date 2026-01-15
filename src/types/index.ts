@@ -115,6 +115,7 @@ export interface Workout {
   notes?: string;
   status: 'active' | 'completed';
   deletedAt?: number;  // Timestamp when soft-deleted (7-day retention)
+  routineId?: string;  // If workout was saved as/from a routine
 }
 
 export interface UserHistory {

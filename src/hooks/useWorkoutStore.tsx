@@ -9,6 +9,7 @@ import {
     subscribeToActiveWorkout,
     saveActiveWorkout as saveActiveWorkoutToFirestore,
     saveRoutine as saveRoutineToFirestore,
+    saveRoutineAndWorkoutAtomic,
     deleteRoutine as deleteRoutineFromFirestore,
     migrateLocalDataToFirestore,
     finishWorkoutAtomic,
@@ -34,7 +35,8 @@ interface WorkoutContextType {
     addSet: (exerciseInstanceId: string) => Promise<void>;
     removeSet: (exerciseInstanceId: string, setId: string) => Promise<void>;
     getExerciseName: (id: string) => string;
-    saveRoutine: (name: string) => Promise<void>;
+    saveRoutine: (name: string) => Promise<{ error?: string }>;
+    updateRoutine: () => Promise<{ error?: string }>;
     startRoutine: (routineId: string) => Promise<void>;
     deleteRoutine: (routineId: string) => Promise<void>;
     softDeleteWorkout: (workoutId: string) => Promise<void>;
@@ -387,8 +389,16 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const getExerciseName = (id: string) => getExerciseInfo(id)?.name || 'Unknown Exercise';
 
     // Routine Logic
-    const saveRoutine = async (name: string) => {
-        if (!activeWorkout) return;
+    const saveRoutine = async (name: string): Promise<{ error?: string }> => {
+        if (!activeWorkout) return { error: 'No active workout' };
+
+        // Check for duplicate routine name
+        const normalizedName = name.trim().toLowerCase();
+        const duplicateExists = routines.some(r => r.name.toLowerCase() === normalizedName);
+        if (duplicateExists) {
+            return { error: 'A routine with this name already exists' };
+        }
+
         const newRoutine: Routine = {
             id: crypto.randomUUID(),
             name,
@@ -398,12 +408,59 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }))
         };
 
-        // Optimistic update
+        // Store previous state for potential rollback
+        const previousWorkout = activeWorkout;
+
+        // Optimistic update - add routine and update workout with routineId and new name
         setRoutines(prev => [...prev, newRoutine]);
+        const updatedWorkout = { ...activeWorkout, name, routineId: newRoutine.id };
+        setActiveWorkout(updatedWorkout);
 
         if (user) {
-            await saveRoutineToFirestore(user.uid, newRoutine);
+            // Use atomic batch write to ensure both operations succeed or fail together
+            const { error } = await saveRoutineAndWorkoutAtomic(user.uid, newRoutine, updatedWorkout);
+            if (error) {
+                // Rollback optimistic updates on failure
+                console.error('Failed to save routine:', error);
+                setRoutines(prev => prev.filter(r => r.id !== newRoutine.id));
+                setActiveWorkout(previousWorkout);
+                return { error: 'Failed to save routine. Please try again.' };
+            }
         }
+
+        return {};
+    };
+
+    // Update an existing routine with current workout exercises
+    const updateRoutine = async (): Promise<{ error?: string }> => {
+        if (!activeWorkout || !activeWorkout.routineId) return { error: 'No routine to update' };
+
+        const routine = routines.find(r => r.id === activeWorkout.routineId);
+        if (!routine) return { error: 'Routine not found' };
+
+        const updatedRoutine: Routine = {
+            ...routine,
+            exercises: activeWorkout.exercises.map(e => ({
+                exerciseId: e.exerciseId,
+                sets: e.sets.length
+            }))
+        };
+
+        // Optimistic update
+        setRoutines(prev => prev.map(r => r.id === routine.id ? updatedRoutine : r));
+
+        if (user) {
+            try {
+                await saveRoutineToFirestore(user.uid, updatedRoutine);
+            } catch (error) {
+                // Rollback optimistic update on failure
+                console.error('Failed to update routine:', error);
+                setRoutines(prev => prev.map(r => r.id === routine.id ? routine : r));
+                return { error: 'Failed to update routine. Please try again.' };
+            }
+        }
+
+        return {};
     };
 
     const startRoutine = async (routineId: string) => {
@@ -425,7 +482,8 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
                     completed: false
                 }))
             })),
-            status: 'active'
+            status: 'active',
+            routineId: routine.id  // Link workout to the routine
         };
 
         // Optimistic update
@@ -541,7 +599,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
             activeWorkout, history, deletedWorkouts, routines, user, isLoading,
             startWorkout, finishWorkout, cancelWorkout,
             addExercise, addSet, removeSet, updateSet, updateNotes, getExerciseName, getExerciseInfo,
-            saveRoutine, startRoutine, deleteRoutine,
+            saveRoutine, updateRoutine, startRoutine, deleteRoutine,
             softDeleteWorkout, restoreWorkout, permanentlyDeleteWorkout
         }}>
             {children}
