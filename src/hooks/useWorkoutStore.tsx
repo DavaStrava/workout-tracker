@@ -12,11 +12,15 @@ import {
     deleteRoutine as deleteRoutineFromFirestore,
     migrateLocalDataToFirestore,
     finishWorkoutAtomic,
+    softDeleteWorkoutInFirestore,
+    restoreWorkoutInFirestore,
+    permanentlyDeleteWorkoutInFirestore,
 } from '../services/firestore';
 
 interface WorkoutContextType {
     activeWorkout: Workout | null;
     history: Workout[];
+    deletedWorkouts: Workout[];
     routines: Routine[];
     user: User | null;
     isLoading: boolean;
@@ -33,6 +37,9 @@ interface WorkoutContextType {
     saveRoutine: (name: string) => Promise<void>;
     startRoutine: (routineId: string) => Promise<void>;
     deleteRoutine: (routineId: string) => Promise<void>;
+    softDeleteWorkout: (workoutId: string) => Promise<void>;
+    restoreWorkout: (workoutId: string) => Promise<void>;
+    permanentlyDeleteWorkout: (workoutId: string) => Promise<void>;
 }
 
 const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
@@ -75,6 +82,9 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     // Track timeout IDs for cleanup on unmount
     const settleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Track if we've run the expired workout cleanup for this user session
+    const hasCleanedUpExpiredRef = useRef<string | null>(null);
 
     // Cleanup timeouts on unmount
     useEffect(() => {
@@ -435,12 +445,104 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     };
 
+    // Soft delete a workout (move to deleted folder with 7-day retention)
+    const softDeleteWorkout = async (workoutId: string) => {
+        const workout = history.find(w => w.id === workoutId);
+        if (!workout) return;
+
+        const deletedWorkout = { ...workout, deletedAt: Date.now() };
+
+        // Optimistic update
+        setHistory(prev => prev.map(w => w.id === workoutId ? deletedWorkout : w));
+
+        if (user) {
+            const { error } = await softDeleteWorkoutInFirestore(user.uid, workoutId);
+            if (error) {
+                // Rollback on failure
+                console.error('Failed to soft delete workout:', error);
+                setHistory(prev => prev.map(w => w.id === workoutId ? workout : w));
+            }
+        }
+    };
+
+    // Restore a soft-deleted workout
+    const restoreWorkout = async (workoutId: string) => {
+        const workout = history.find(w => w.id === workoutId);
+        if (!workout || !workout.deletedAt) return;
+
+        const restoredWorkout = { ...workout };
+        delete restoredWorkout.deletedAt;
+
+        // Optimistic update
+        setHistory(prev => prev.map(w => w.id === workoutId ? restoredWorkout : w));
+
+        if (user) {
+            const { error } = await restoreWorkoutInFirestore(user.uid, workoutId);
+            if (error) {
+                // Rollback on failure
+                console.error('Failed to restore workout:', error);
+                setHistory(prev => prev.map(w => w.id === workoutId ? workout : w));
+            }
+        }
+    };
+
+    // Permanently delete a workout
+    const permanentlyDeleteWorkout = async (workoutId: string) => {
+        const workout = history.find(w => w.id === workoutId);
+        if (!workout) return;
+
+        // Optimistic update
+        setHistory(prev => prev.filter(w => w.id !== workoutId));
+
+        if (user) {
+            const { error } = await permanentlyDeleteWorkoutInFirestore(user.uid, workoutId);
+            if (error) {
+                // Rollback on failure
+                console.error('Failed to permanently delete workout:', error);
+                setHistory(prev => [...prev, workout]);
+            }
+        }
+    };
+
+    // Computed: workouts that have been soft-deleted (have deletedAt set)
+    const deletedWorkouts = history.filter(w => w.deletedAt !== undefined);
+
+    // Cleanup expired workouts (older than 7 days) on load
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    useEffect(() => {
+        // Use user ID or 'local' as the cleanup key to run once per user session
+        const cleanupKey = user?.uid || 'local';
+
+        // Skip if we've already cleaned up for this user
+        if (hasCleanedUpExpiredRef.current === cleanupKey) {
+            return;
+        }
+
+        const expiredWorkouts = history.filter(
+            w => w.deletedAt && (Date.now() - w.deletedAt > SEVEN_DAYS_MS)
+        );
+
+        if (expiredWorkouts.length > 0) {
+            console.log(`Cleaning up ${expiredWorkouts.length} expired deleted workout(s)...`);
+            expiredWorkouts.forEach(w => {
+                permanentlyDeleteWorkout(w.id);
+            });
+        }
+
+        // Mark cleanup as done for this user
+        hasCleanedUpExpiredRef.current = cleanupKey;
+    // Only run on mount and when user/history changes
+    // The ref prevents re-running for the same user even if history changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user, history]);
+
     return (
         <WorkoutContext.Provider value={{
-            activeWorkout, history, routines, user, isLoading,
+            activeWorkout, history, deletedWorkouts, routines, user, isLoading,
             startWorkout, finishWorkout, cancelWorkout,
             addExercise, addSet, removeSet, updateSet, updateNotes, getExerciseName, getExerciseInfo,
-            saveRoutine, startRoutine, deleteRoutine
+            saveRoutine, startRoutine, deleteRoutine,
+            softDeleteWorkout, restoreWorkout, permanentlyDeleteWorkout
         }}>
             {children}
         </WorkoutContext.Provider>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
-import { Play, ArrowLeft, Dumbbell, TrendingUp, Clock, Target, Trash2 } from 'lucide-react';
+import { Play, ArrowLeft, Dumbbell, TrendingUp, Clock, Target, Trash2, ChevronRight } from 'lucide-react';
 import { WorkoutTypeSelector } from './WorkoutTypeSelector';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -13,7 +13,7 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
-    const { routines, history, startWorkout, startRoutine, deleteRoutine } = useWorkout();
+    const { routines, history, deletedWorkouts, startWorkout, startRoutine, deleteRoutine } = useWorkout();
     const [showTypeSelector, setShowTypeSelector] = useState(false);
     const [routineToDelete, setRoutineToDelete] = useState<Routine | null>(null);
 
@@ -28,6 +28,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             setRoutineToDelete(null);
         }
     };
+
+    // Filter out deleted workouts for display
+    const activeHistory = history.filter(w => !w.deletedAt);
 
     // Analytics Calculations
     const totalWorkouts = history.length;
@@ -218,7 +221,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                    {history.slice(0, 4).map((workout) => (
+                    {activeHistory.slice(0, 4).map((workout) => (
                         <div
                             key={workout.id}
                             style={{
@@ -248,19 +251,49 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                             </div>
                         </div>
                     ))}
-                    {history.length === 0 && (
+                    {activeHistory.length === 0 && (
                         <div style={{ textAlign: 'center', padding: '32px 0', color: 'rgba(255, 255, 255, 0.6)' }}>
                             No workout history yet
                         </div>
                     )}
                 </div>
 
-                {history.length > 0 && (
+                {activeHistory.length > 0 && (
                     <Button variant="secondary" style={{ width: '100%' }}>
                         View All Workouts
                     </Button>
                 )}
             </Card>
+
+            {/* Deleted Workouts Tile */}
+            {deletedWorkouts.length > 0 && (
+                <div
+                    onClick={() => onNavigate('history')}
+                    style={{
+                        cursor: 'pointer',
+                        marginTop: '16px',
+                        padding: '16px 20px',
+                        borderRadius: '16px',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        transition: 'all 0.2s',
+                    }}
+                >
+                    <Trash2 size={24} style={{ color: '#ef4444' }} />
+                    <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '16px', fontWeight: 700, color: '#fff' }}>
+                            Deleted Workouts
+                        </div>
+                        <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)' }}>
+                            {deletedWorkouts.length} workout{deletedWorkouts.length !== 1 ? 's' : ''} · Auto-deletes in 7 days
+                        </div>
+                    </div>
+                    <ChevronRight size={20} style={{ color: 'rgba(255, 255, 255, 0.4)' }} />
+                </div>
+            )}
 
             {/* Delete Routine Confirmation Modal */}
             <AnimatePresence>

@@ -24,10 +24,14 @@ const createMockWorkout = (overrides?: Partial<Workout>): Workout => ({
 });
 
 let mockHistory: Workout[] = [];
+let mockDeletedWorkouts: Workout[] = [];
+const mockSoftDeleteWorkout = vi.fn();
 
 vi.mock('../../hooks/useWorkoutStore', () => ({
   useWorkout: () => ({
     history: mockHistory,
+    deletedWorkouts: mockDeletedWorkouts,
+    softDeleteWorkout: mockSoftDeleteWorkout,
   }),
 }));
 
@@ -35,6 +39,7 @@ describe('History', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockHistory = [];
+    mockDeletedWorkouts = [];
   });
 
   describe('empty state', () => {
@@ -79,7 +84,7 @@ describe('History', () => {
     it('should render subtitle', () => {
       render(<History />);
 
-      expect(screen.getByText('Your past training sessions')).toBeInTheDocument();
+      expect(screen.getByText('Swipe left to delete workouts')).toBeInTheDocument();
     });
 
     it('should render workout name', () => {

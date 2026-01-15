@@ -43,12 +43,14 @@ const createMockExercise = (overrides?: Partial<WorkoutExercise>): WorkoutExerci
 let mockActiveWorkout: Workout | null = null;
 let mockHistory: Workout[] = [];
 let mockRoutines: any[] = [];
+let mockDeletedWorkouts: Workout[] = [];
 
 vi.mock('../../hooks/useWorkoutStore', () => ({
   useWorkout: () => ({
     activeWorkout: mockActiveWorkout,
     history: mockHistory,
     routines: mockRoutines,
+    deletedWorkouts: mockDeletedWorkouts,
     finishWorkout: mockFinishWorkout,
     cancelWorkout: mockCancelWorkout,
     addExercise: mockAddExercise,
@@ -59,6 +61,7 @@ vi.mock('../../hooks/useWorkoutStore', () => ({
     saveRoutine: mockSaveRoutine,
     startWorkout: vi.fn(),
     startRoutine: vi.fn(),
+    deleteRoutine: vi.fn(),
   }),
 }));
 
@@ -75,6 +78,7 @@ describe('WorkoutLogger', () => {
     mockActiveWorkout = null;
     mockHistory = [];
     mockRoutines = [];
+    mockDeletedWorkouts = [];
   });
 
   describe('when no active workout', () => {
@@ -431,31 +435,32 @@ describe('WorkoutLogger', () => {
       expect(screen.getByText('Select Muscle Group')).toBeInTheDocument();
     });
 
-    it('should show muscle groups in anatomical front/back views', async () => {
-      const user = userEvent.setup();
+    it('should show all muscle groups in scrollable view', () => {
       render(<WorkoutLogger onNavigate={mockOnNavigate} />);
 
-      // Front view muscles (visible by default)
+      // All 15 muscle groups visible in single scrollable view
+      // Upper Body - Push
       expect(screen.getByText('Chest')).toBeInTheDocument();
       expect(screen.getByText('Shoulders')).toBeInTheDocument();
+      expect(screen.getByText('Triceps')).toBeInTheDocument();
+
+      // Upper Body - Pull
+      expect(screen.getByText('Lats')).toBeInTheDocument();
+      expect(screen.getByText('Upper Back')).toBeInTheDocument();
+      expect(screen.getByText('Traps')).toBeInTheDocument();
       expect(screen.getByText('Biceps')).toBeInTheDocument();
       expect(screen.getByText('Forearms')).toBeInTheDocument();
+
+      // Core
       expect(screen.getByText('Abs')).toBeInTheDocument();
       expect(screen.getByText('Obliques')).toBeInTheDocument();
-      expect(screen.getByText('Quads')).toBeInTheDocument();
-      expect(screen.getByText('Calves')).toBeInTheDocument();
-
-      // Switch to back view
-      await user.click(screen.getByText('Back'));
-
-      // Back view muscles
-      expect(screen.getByText('Traps')).toBeInTheDocument();
-      expect(screen.getByText('Upper Back')).toBeInTheDocument();
-      expect(screen.getByText('Triceps')).toBeInTheDocument();
-      expect(screen.getByText('Lats')).toBeInTheDocument();
       expect(screen.getByText('Lower Back')).toBeInTheDocument();
-      expect(screen.getByText('Glutes')).toBeInTheDocument();
+
+      // Lower Body
+      expect(screen.getByText('Quads')).toBeInTheDocument();
       expect(screen.getByText('Hamstrings')).toBeInTheDocument();
+      expect(screen.getByText('Glutes')).toBeInTheDocument();
+      expect(screen.getByText('Calves')).toBeInTheDocument();
     });
 
     it('should NOT show Cardio in muscle group selector', () => {

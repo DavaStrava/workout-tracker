@@ -85,6 +85,7 @@ workout-tracker/
     │   ├── WorkoutLogger.tsx
     │   ├── CardioLogger.tsx
     │   ├── History.tsx
+    │   ├── DeletedWorkouts.tsx
     │   └── Analytics.tsx
     ├── data/
     │   └── exercises.ts
@@ -225,7 +226,12 @@ vi.mock('../../hooks/useWorkoutStore', () => ({
   useWorkout: () => ({
     activeWorkout: mockWorkout,
     history: [],
+    deletedWorkouts: [],
+    routines: [],
     saveRoutine: vi.fn(),
+    softDeleteWorkout: vi.fn(),
+    restoreWorkout: vi.fn(),
+    permanentlyDeleteWorkout: vi.fn(),
     // ... other methods
   }),
 }));
@@ -238,8 +244,10 @@ The app uses React Context (`WorkoutProvider` in `src/hooks/useWorkoutStore.tsx`
 - Manages active workout state
 - Stores workout history
 - Handles routines (saved workout templates)
+- Manages soft-deleted workouts (7-day retention before permanent deletion)
 - Automatically syncs to localStorage on every state change
 - Hydrates from localStorage on mount
+- Auto-cleans expired deleted workouts on app load
 
 **Key principle**: All workout data flows through this context. Never manipulate localStorage directly outside of this provider.
 
@@ -255,6 +263,7 @@ Workout (workout session with metadata)
 - **WorkoutExercise** links to an exercise via `exerciseId` and contains the actual logged sets
 - **WorkoutSet** supports both strength (reps/weight) and cardio (distance/duration/intensity) data
 - **Routine** is a template that stores exercise IDs and set counts to quickly start workouts
+- **Workout.deletedAt** - Optional timestamp indicating when a workout was soft-deleted. Workouts with this field set are shown in the "Deleted Workouts" view and auto-expire after 7 days
 - **BodyArea** type defines 15 muscle groups for granular exercise categorization:
   - Upper Body Push: Chest, Shoulders, Triceps
   - Upper Body Pull: Lats, Upper Back, Traps, Biceps, Forearms
@@ -268,7 +277,8 @@ Workout (workout session with metadata)
 - `Auth.tsx` - Login/signup screen with email and Google authentication
 - `WorkoutLogger.tsx` - Main workout interface (exercise selection, set logging)
 - `WorkoutTypeSelector.tsx` - "Garmin-style" activity type picker
-- `History.tsx` - Chronological list of past workouts
+- `History.tsx` - Chronological list of past workouts with swipe-to-delete
+- `DeletedWorkouts.tsx` - View and restore soft-deleted workouts (7-day retention)
 - `Analytics.tsx` - Charts and stats (volume, frequency, PR tracking)
 - `CardioLogger.tsx` - Cardio-specific logging interface
 
@@ -324,6 +334,7 @@ Cloud Firestore for persistent data storage:
 - Active workout state preserved
 - Automatic migration from localStorage on first login
 - User registration with limit enforcement
+- Soft delete operations (`softDeleteWorkoutInFirestore`, `restoreWorkoutInFirestore`, `permanentlyDeleteWorkoutInFirestore`)
 
 **User Limit** (10 users max):
 - `getUserCount()` - Count registered users via `getCountFromServer()`
@@ -381,6 +392,8 @@ Uses Flexbox/Grid for layout, Framer Motion for animations, and TailwindCSS util
 7. **Accessibility**: Navigation uses proper ARIA attributes (`role="tablist"`, `aria-selected`). Toggle buttons use `aria-pressed`. All interactive elements have `aria-label` where needed.
 
 8. **Muscle Group Selection Flow**: When starting a strength workout, users see a 2-column grid of 15 individual muscle icons (using Noun Project SVGs with orange-pink gradients). Each card shows: muscle icon, label, and recovery status ("✓ Fresh" with green border if fully recovered, or exercise count otherwise). Selecting a muscle group shows exercises for that area. Back buttons allow navigation: from exercise list → muscle groups → cancel workout (if empty) or return to workout (if exercises exist).
+
+9. **Soft Delete with 7-Day Retention**: Workouts can be soft-deleted via swipe-to-delete in History. Deleted workouts have a `deletedAt` timestamp and are kept for 7 days before automatic permanent deletion. Users can restore or permanently delete from the DeletedWorkouts view. The cleanup runs on app load via a ref-guarded useEffect to prevent infinite loops. Context exposes `deletedWorkouts` (computed from history), `softDeleteWorkout()`, `restoreWorkout()`, and `permanentlyDeleteWorkout()`.
 
 ## Common Patterns
 

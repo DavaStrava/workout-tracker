@@ -5,6 +5,8 @@ import {
   getDoc,
   getDocs,
   deleteDoc,
+  updateDoc,
+  deleteField,
   onSnapshot,
   query,
   orderBy,
@@ -177,6 +179,7 @@ export const getWorkouts = async (userId: string): Promise<{ workouts: Workout[]
         exercises: data.exercises,
         notes: data.notes,
         status: data.status,
+        deletedAt: data.deletedAt,
       });
     });
 
@@ -213,6 +216,7 @@ export const subscribeToWorkouts = (
           exercises: data.exercises,
           notes: data.notes,
           status: data.status,
+          deletedAt: data.deletedAt,
         });
       });
       onUpdate(workouts);
@@ -234,6 +238,63 @@ export const deleteWorkout = async (userId: string, workoutId: string) => {
     return { error: null };
   } catch (error: unknown) {
     console.error('Error deleting workout:', error);
+    return { error: getFirestoreErrorMessage(error) };
+  }
+};
+
+/**
+ * Soft delete a workout (set deletedAt timestamp for 7-day retention)
+ */
+export const softDeleteWorkoutInFirestore = async (
+  userId: string,
+  workoutId: string
+): Promise<{ error: string | null }> => {
+  try {
+    const workoutRef = getUserDoc(userId, COLLECTIONS.WORKOUTS, workoutId);
+    await updateDoc(workoutRef, {
+      deletedAt: Date.now(),
+      updatedAt: Timestamp.now(),
+    });
+    return { error: null };
+  } catch (error: unknown) {
+    console.error('Error soft deleting workout:', error);
+    return { error: getFirestoreErrorMessage(error) };
+  }
+};
+
+/**
+ * Restore a soft-deleted workout (remove deletedAt field)
+ */
+export const restoreWorkoutInFirestore = async (
+  userId: string,
+  workoutId: string
+): Promise<{ error: string | null }> => {
+  try {
+    const workoutRef = getUserDoc(userId, COLLECTIONS.WORKOUTS, workoutId);
+    await updateDoc(workoutRef, {
+      deletedAt: deleteField(),
+      updatedAt: Timestamp.now(),
+    });
+    return { error: null };
+  } catch (error: unknown) {
+    console.error('Error restoring workout:', error);
+    return { error: getFirestoreErrorMessage(error) };
+  }
+};
+
+/**
+ * Permanently delete a workout from Firestore
+ */
+export const permanentlyDeleteWorkoutInFirestore = async (
+  userId: string,
+  workoutId: string
+): Promise<{ error: string | null }> => {
+  try {
+    const workoutRef = getUserDoc(userId, COLLECTIONS.WORKOUTS, workoutId);
+    await deleteDoc(workoutRef);
+    return { error: null };
+  } catch (error: unknown) {
+    console.error('Error permanently deleting workout:', error);
     return { error: getFirestoreErrorMessage(error) };
   }
 };

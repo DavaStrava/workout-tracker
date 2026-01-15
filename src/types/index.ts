@@ -114,6 +114,7 @@ export interface Workout {
   exercises: WorkoutExercise[];
   notes?: string;
   status: 'active' | 'completed';
+  deletedAt?: number;  // Timestamp when soft-deleted (7-day retention)
 }
 
 export interface UserHistory {
