@@ -32,9 +32,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
     // Filter out deleted workouts for display
     const activeHistory = history.filter(w => !w.deletedAt);
 
-    // Analytics Calculations
-    const totalWorkouts = history.length;
-    const totalDurationMs = history.reduce((acc, curr) => {
+    // Analytics Calculations (only count active workouts, not deleted ones)
+    const totalWorkouts = activeHistory.length;
+    const totalDurationMs = activeHistory.reduce((acc, curr) => {
         if (curr.endTime && curr.startTime) {
             return acc + (curr.endTime - curr.startTime);
         }
@@ -42,11 +42,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
     }, 0);
     const totalHours = Math.round(totalDurationMs / (1000 * 60 * 60));
 
-    const totalSets = history.reduce((acc, workout) => {
+    const totalSets = activeHistory.reduce((acc, workout) => {
         return acc + workout.exercises.reduce((wAcc, ex) => wAcc + ex.sets.length, 0);
     }, 0);
 
-    const totalWeight = history.reduce((acc, workout) => {
+    const totalWeight = activeHistory.reduce((acc, workout) => {
         return acc + workout.exercises.reduce((wAcc, ex) => {
             return wAcc + ex.sets.reduce((sAcc, set) => sAcc + ((set.weight || 0) * (set.reps || 1)), 0);
         }, 0);
