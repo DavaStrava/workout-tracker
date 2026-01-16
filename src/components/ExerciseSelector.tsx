@@ -47,10 +47,14 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
       {/* Exercise Grid */}
       {filteredExercises.length > 0 ? (
         <motion.div
-          className="grid grid-cols-2 gap-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '16px',
+          }}
         >
           {filteredExercises.map((exercise, index) => (
             <ExerciseCard
