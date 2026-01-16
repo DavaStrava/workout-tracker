@@ -1,7 +1,7 @@
 import type { Exercise } from '../types';
 
 export const EXERCISES: Exercise[] = [
-  // ============ CHEST (10 exercises) ============
+  // ============ CHEST (18 exercises) ============
   { id: 'bench_press', name: 'Bench Press', bodyArea: 'Chest', equipment: 'barbell' },
   { id: 'push_up', name: 'Push Up', bodyArea: 'Chest', equipment: 'bodyweight' },
   { id: 'incline_dumbbell_press', name: 'Incline Dumbbell Press', bodyArea: 'Chest', equipment: 'dumbbell' },
@@ -12,8 +12,16 @@ export const EXERCISES: Exercise[] = [
   { id: 'chest_dip', name: 'Chest Dip', bodyArea: 'Chest', equipment: 'bodyweight' },
   { id: 'machine_chest_press', name: 'Machine Chest Press', bodyArea: 'Chest', equipment: 'machine' },
   { id: 'dumbbell_pullover', name: 'Dumbbell Pullover', bodyArea: 'Chest', equipment: 'dumbbell' },
+  { id: 'pec_deck', name: 'Pec Deck', bodyArea: 'Chest', equipment: 'machine' },
+  { id: 'incline_machine_press', name: 'Incline Machine Press', bodyArea: 'Chest', equipment: 'machine' },
+  { id: 'decline_machine_press', name: 'Decline Machine Press', bodyArea: 'Chest', equipment: 'machine' },
+  { id: 'smith_bench_press', name: 'Smith Machine Bench', bodyArea: 'Chest', equipment: 'machine' },
+  { id: 'smith_incline_press', name: 'Smith Incline Press', bodyArea: 'Chest', equipment: 'machine' },
+  { id: 'hammer_strength_press', name: 'Hammer Strength Press', bodyArea: 'Chest', equipment: 'machine' },
+  { id: 'seated_chest_press', name: 'Seated Chest Press', bodyArea: 'Chest', equipment: 'machine' },
+  { id: 'cable_crossover', name: 'Cable Crossover', bodyArea: 'Chest', equipment: 'cable' },
 
-  // ============ UPPER BACK (10 exercises) ============
+  // ============ UPPER BACK (16 exercises) ============
   { id: 'barbell_row', name: 'Barbell Row', bodyArea: 'Upper Back', equipment: 'barbell' },
   { id: 'seated_row', name: 'Seated Cable Row', bodyArea: 'Upper Back', equipment: 'cable' },
   { id: 'tbar_row', name: 'T-Bar Row', bodyArea: 'Upper Back', equipment: 'barbell' },
@@ -24,8 +32,14 @@ export const EXERCISES: Exercise[] = [
   { id: 'inverted_row', name: 'Inverted Row', bodyArea: 'Upper Back', equipment: 'bodyweight' },
   { id: 'meadows_row', name: 'Meadows Row', bodyArea: 'Upper Back', equipment: 'barbell' },
   { id: 'seal_row', name: 'Seal Row', bodyArea: 'Upper Back', equipment: 'dumbbell' },
+  { id: 'plate_loaded_row', name: 'Plate Loaded Row', bodyArea: 'Upper Back', equipment: 'machine' },
+  { id: 'hammer_strength_row', name: 'Hammer Strength Row', bodyArea: 'Upper Back', equipment: 'machine' },
+  { id: 'iso_lateral_row', name: 'Iso-Lateral Row', bodyArea: 'Upper Back', equipment: 'machine' },
+  { id: 'prone_row_machine', name: 'Prone Row Machine', bodyArea: 'Upper Back', equipment: 'machine' },
+  { id: 'single_arm_machine_row', name: 'Single Arm Machine Row', bodyArea: 'Upper Back', equipment: 'machine' },
+  { id: 'low_row_machine', name: 'Low Row Machine', bodyArea: 'Upper Back', equipment: 'machine' },
 
-  // ============ LATS (10 exercises) ============
+  // ============ LATS (15 exercises) ============
   { id: 'pull_up', name: 'Pull Up', bodyArea: 'Lats', equipment: 'bodyweight' },
   { id: 'lat_pulldown', name: 'Lat Pulldown', bodyArea: 'Lats', equipment: 'cable' },
   { id: 'straight_arm_pulldown', name: 'Straight Arm Pulldown', bodyArea: 'Lats', equipment: 'cable' },
@@ -36,8 +50,13 @@ export const EXERCISES: Exercise[] = [
   { id: 'assisted_pull_up', name: 'Assisted Pull Up', bodyArea: 'Lats', equipment: 'machine' },
   { id: 'neutral_grip_pull_up', name: 'Neutral Grip Pull Up', bodyArea: 'Lats', equipment: 'bodyweight' },
   { id: 'kneeling_lat_pulldown', name: 'Kneeling Pulldown', bodyArea: 'Lats', equipment: 'cable' },
+  { id: 'plate_loaded_pulldown', name: 'Plate Loaded Pulldown', bodyArea: 'Lats', equipment: 'machine' },
+  { id: 'hammer_strength_pulldown', name: 'Hammer Strength Pulldown', bodyArea: 'Lats', equipment: 'machine' },
+  { id: 'machine_pullover', name: 'Machine Pullover', bodyArea: 'Lats', equipment: 'machine' },
+  { id: 'iso_lateral_pulldown', name: 'Iso-Lateral Pulldown', bodyArea: 'Lats', equipment: 'machine' },
+  { id: 'gravitron_pull_up', name: 'Gravitron Pull Up', bodyArea: 'Lats', equipment: 'machine' },
 
-  // ============ TRAPS (8 exercises) ============
+  // ============ TRAPS (12 exercises) ============
   { id: 'shrugs', name: 'Barbell Shrugs', bodyArea: 'Traps', equipment: 'barbell' },
   { id: 'face_pull', name: 'Face Pull', bodyArea: 'Traps', equipment: 'cable' },
   { id: 'dumbbell_shrugs', name: 'Dumbbell Shrugs', bodyArea: 'Traps', equipment: 'dumbbell' },
@@ -46,8 +65,12 @@ export const EXERCISES: Exercise[] = [
   { id: 'farmers_walk', name: "Farmer's Walk", bodyArea: 'Traps', equipment: 'dumbbell' },
   { id: 'upright_row', name: 'Upright Row', bodyArea: 'Traps', equipment: 'barbell' },
   { id: 'behind_back_shrugs', name: 'Behind Back Shrugs', bodyArea: 'Traps', equipment: 'barbell' },
+  { id: 'machine_shrugs', name: 'Machine Shrugs', bodyArea: 'Traps', equipment: 'machine' },
+  { id: 'smith_machine_shrugs', name: 'Smith Machine Shrugs', bodyArea: 'Traps', equipment: 'machine' },
+  { id: 'trap_bar_shrugs', name: 'Trap Bar Shrugs', bodyArea: 'Traps', equipment: 'barbell' },
+  { id: 'cable_upright_row', name: 'Cable Upright Row', bodyArea: 'Traps', equipment: 'cable' },
 
-  // ============ LOWER BACK (8 exercises) ============
+  // ============ LOWER BACK (12 exercises) ============
   { id: 'deadlift', name: 'Deadlift', bodyArea: 'Lower Back', equipment: 'barbell' },
   { id: 'back_extension', name: 'Back Extension', bodyArea: 'Lower Back', equipment: 'bodyweight' },
   { id: 'good_morning', name: 'Good Morning', bodyArea: 'Lower Back', equipment: 'barbell' },
@@ -56,8 +79,12 @@ export const EXERCISES: Exercise[] = [
   { id: 'bird_dog', name: 'Bird Dog', bodyArea: 'Lower Back', equipment: 'bodyweight' },
   { id: 'superman', name: 'Superman', bodyArea: 'Lower Back', equipment: 'bodyweight' },
   { id: 'cable_pull_through', name: 'Cable Pull Through', bodyArea: 'Lower Back', equipment: 'cable' },
+  { id: 'machine_back_extension', name: 'Machine Back Extension', bodyArea: 'Lower Back', equipment: 'machine' },
+  { id: '45_degree_hyper', name: '45° Hyperextension', bodyArea: 'Lower Back', equipment: 'machine' },
+  { id: 'trap_bar_deadlift', name: 'Trap Bar Deadlift', bodyArea: 'Lower Back', equipment: 'barbell' },
+  { id: 'jefferson_curl', name: 'Jefferson Curl', bodyArea: 'Lower Back', equipment: 'dumbbell' },
 
-  // ============ SHOULDERS (10 exercises) ============
+  // ============ SHOULDERS (18 exercises) ============
   { id: 'overhead_press', name: 'Overhead Press', bodyArea: 'Shoulders', equipment: 'barbell' },
   { id: 'lateral_raise', name: 'Lateral Raise', bodyArea: 'Shoulders', equipment: 'dumbbell' },
   { id: 'front_raise', name: 'Front Raise', bodyArea: 'Shoulders', equipment: 'dumbbell' },
@@ -68,8 +95,16 @@ export const EXERCISES: Exercise[] = [
   { id: 'machine_shoulder_press', name: 'Machine Shoulder Press', bodyArea: 'Shoulders', equipment: 'machine' },
   { id: 'reverse_pec_deck', name: 'Reverse Pec Deck', bodyArea: 'Shoulders', equipment: 'machine' },
   { id: 'seated_dumbbell_press', name: 'Seated Dumbbell Press', bodyArea: 'Shoulders', equipment: 'dumbbell' },
+  { id: 'smith_overhead_press', name: 'Smith Overhead Press', bodyArea: 'Shoulders', equipment: 'machine' },
+  { id: 'lateral_raise_machine', name: 'Lateral Raise Machine', bodyArea: 'Shoulders', equipment: 'machine' },
+  { id: 'cable_rear_delt_fly', name: 'Cable Rear Delt Fly', bodyArea: 'Shoulders', equipment: 'cable' },
+  { id: 'hammer_strength_shoulder', name: 'Hammer Strength Shoulder', bodyArea: 'Shoulders', equipment: 'machine' },
+  { id: 'plate_front_raise', name: 'Plate Front Raise', bodyArea: 'Shoulders', equipment: 'barbell' },
+  { id: 'cable_front_raise', name: 'Cable Front Raise', bodyArea: 'Shoulders', equipment: 'cable' },
+  { id: 'machine_rear_delt', name: 'Machine Rear Delt', bodyArea: 'Shoulders', equipment: 'machine' },
+  { id: 'landmine_press', name: 'Landmine Press', bodyArea: 'Shoulders', equipment: 'barbell' },
 
-  // ============ BICEPS (10 exercises) ============
+  // ============ BICEPS (14 exercises) ============
   { id: 'bicep_curl', name: 'Dumbbell Curl', bodyArea: 'Biceps', equipment: 'dumbbell' },
   { id: 'hammer_curl', name: 'Hammer Curl', bodyArea: 'Biceps', equipment: 'dumbbell' },
   { id: 'preacher_curl', name: 'Preacher Curl', bodyArea: 'Biceps', equipment: 'ez_bar' },
@@ -80,8 +115,12 @@ export const EXERCISES: Exercise[] = [
   { id: 'spider_curl', name: 'Spider Curl', bodyArea: 'Biceps', equipment: 'dumbbell' },
   { id: 'ez_bar_curl', name: 'EZ Bar Curl', bodyArea: 'Biceps', equipment: 'ez_bar' },
   { id: 'drag_curl', name: 'Drag Curl', bodyArea: 'Biceps', equipment: 'barbell' },
+  { id: 'machine_bicep_curl', name: 'Machine Bicep Curl', bodyArea: 'Biceps', equipment: 'machine' },
+  { id: 'preacher_curl_machine', name: 'Preacher Curl Machine', bodyArea: 'Biceps', equipment: 'machine' },
+  { id: 'cable_hammer_curl', name: 'Cable Hammer Curl', bodyArea: 'Biceps', equipment: 'cable' },
+  { id: 'high_cable_curl', name: 'High Cable Curl', bodyArea: 'Biceps', equipment: 'cable' },
 
-  // ============ TRICEPS (10 exercises) ============
+  // ============ TRICEPS (14 exercises) ============
   { id: 'tricep_dip', name: 'Tricep Dip', bodyArea: 'Triceps', equipment: 'bodyweight' },
   { id: 'tricep_pushdown', name: 'Tricep Pushdown', bodyArea: 'Triceps', equipment: 'cable' },
   { id: 'skull_crusher', name: 'Skull Crusher', bodyArea: 'Triceps', equipment: 'ez_bar' },
@@ -92,8 +131,12 @@ export const EXERCISES: Exercise[] = [
   { id: 'diamond_push_up', name: 'Diamond Push Up', bodyArea: 'Triceps', equipment: 'bodyweight' },
   { id: 'jm_press', name: 'JM Press', bodyArea: 'Triceps', equipment: 'barbell' },
   { id: 'single_arm_pushdown', name: 'Single Arm Pushdown', bodyArea: 'Triceps', equipment: 'cable' },
+  { id: 'tricep_extension_machine', name: 'Tricep Extension Machine', bodyArea: 'Triceps', equipment: 'machine' },
+  { id: 'dip_machine', name: 'Dip Machine', bodyArea: 'Triceps', equipment: 'machine' },
+  { id: 'cable_overhead_extension', name: 'Cable Overhead Extension', bodyArea: 'Triceps', equipment: 'cable' },
+  { id: 'bench_dip', name: 'Bench Dip', bodyArea: 'Triceps', equipment: 'bodyweight' },
 
-  // ============ FOREARMS (8 exercises) ============
+  // ============ FOREARMS (10 exercises) ============
   { id: 'wrist_curl', name: 'Wrist Curl', bodyArea: 'Forearms', equipment: 'barbell' },
   { id: 'reverse_curl', name: 'Reverse Curl', bodyArea: 'Forearms', equipment: 'barbell' },
   { id: 'reverse_wrist_curl', name: 'Reverse Wrist Curl', bodyArea: 'Forearms', equipment: 'barbell' },
@@ -102,8 +145,10 @@ export const EXERCISES: Exercise[] = [
   { id: 'dead_hang', name: 'Dead Hang', bodyArea: 'Forearms', equipment: 'bodyweight' },
   { id: 'hammer_curl_forearm', name: 'Hammer Curl', bodyArea: 'Forearms', equipment: 'dumbbell' },
   { id: 'wrist_roller', name: 'Wrist Roller', bodyArea: 'Forearms', equipment: 'machine' },
+  { id: 'cable_wrist_curl', name: 'Cable Wrist Curl', bodyArea: 'Forearms', equipment: 'cable' },
+  { id: 'reverse_cable_curl', name: 'Reverse Cable Curl', bodyArea: 'Forearms', equipment: 'cable' },
 
-  // ============ QUADS (10 exercises) ============
+  // ============ QUADS (18 exercises) ============
   { id: 'squat', name: 'Back Squat', bodyArea: 'Quads', equipment: 'barbell' },
   { id: 'leg_press', name: 'Leg Press', bodyArea: 'Quads', equipment: 'machine' },
   { id: 'leg_extension', name: 'Leg Extension', bodyArea: 'Quads', equipment: 'machine' },
@@ -114,8 +159,16 @@ export const EXERCISES: Exercise[] = [
   { id: 'sissy_squat', name: 'Sissy Squat', bodyArea: 'Quads', equipment: 'bodyweight' },
   { id: 'bulgarian_split_squat', name: 'Bulgarian Split Squat', bodyArea: 'Quads', equipment: 'dumbbell' },
   { id: 'step_up', name: 'Step Up', bodyArea: 'Quads', equipment: 'dumbbell' },
+  { id: 'smith_squat', name: 'Smith Machine Squat', bodyArea: 'Quads', equipment: 'machine' },
+  { id: 'belt_squat', name: 'Belt Squat', bodyArea: 'Quads', equipment: 'machine' },
+  { id: 'pendulum_squat', name: 'Pendulum Squat', bodyArea: 'Quads', equipment: 'machine' },
+  { id: 'v_squat', name: 'V-Squat Machine', bodyArea: 'Quads', equipment: 'machine' },
+  { id: 'vertical_leg_press', name: 'Vertical Leg Press', bodyArea: 'Quads', equipment: 'machine' },
+  { id: 'single_leg_press', name: 'Single Leg Press', bodyArea: 'Quads', equipment: 'machine' },
+  { id: 'single_leg_extension', name: 'Single Leg Extension', bodyArea: 'Quads', equipment: 'machine' },
+  { id: 'walking_lunge', name: 'Walking Lunge', bodyArea: 'Quads', equipment: 'dumbbell' },
 
-  // ============ HAMSTRINGS (10 exercises) ============
+  // ============ HAMSTRINGS (14 exercises) ============
   { id: 'romanian_deadlift', name: 'Romanian Deadlift', bodyArea: 'Hamstrings', equipment: 'barbell' },
   { id: 'leg_curl', name: 'Lying Leg Curl', bodyArea: 'Hamstrings', equipment: 'machine' },
   { id: 'stiff_leg_deadlift', name: 'Stiff Leg Deadlift', bodyArea: 'Hamstrings', equipment: 'barbell' },
@@ -126,8 +179,12 @@ export const EXERCISES: Exercise[] = [
   { id: 'single_leg_rdl', name: 'Single Leg RDL', bodyArea: 'Hamstrings', equipment: 'dumbbell' },
   { id: 'cable_leg_curl', name: 'Cable Leg Curl', bodyArea: 'Hamstrings', equipment: 'cable' },
   { id: 'kettlebell_swing', name: 'Kettlebell Swing', bodyArea: 'Hamstrings', equipment: 'kettlebell' },
+  { id: 'standing_leg_curl', name: 'Standing Leg Curl', bodyArea: 'Hamstrings', equipment: 'machine' },
+  { id: 'single_leg_curl_machine', name: 'Single Leg Curl Machine', bodyArea: 'Hamstrings', equipment: 'machine' },
+  { id: 'prone_leg_curl', name: 'Prone Leg Curl', bodyArea: 'Hamstrings', equipment: 'machine' },
+  { id: 'kneeling_leg_curl', name: 'Kneeling Leg Curl', bodyArea: 'Hamstrings', equipment: 'machine' },
 
-  // ============ GLUTES (10 exercises) ============
+  // ============ GLUTES (16 exercises) ============
   { id: 'hip_thrust', name: 'Barbell Hip Thrust', bodyArea: 'Glutes', equipment: 'barbell' },
   { id: 'glute_bridge', name: 'Glute Bridge', bodyArea: 'Glutes', equipment: 'bodyweight' },
   { id: 'cable_kickback', name: 'Cable Kickback', bodyArea: 'Glutes', equipment: 'cable' },
@@ -138,8 +195,14 @@ export const EXERCISES: Exercise[] = [
   { id: 'donkey_kick', name: 'Donkey Kick', bodyArea: 'Glutes', equipment: 'bodyweight' },
   { id: 'reverse_lunge', name: 'Reverse Lunge', bodyArea: 'Glutes', equipment: 'dumbbell' },
   { id: 'hip_abduction', name: 'Hip Abduction', bodyArea: 'Glutes', equipment: 'machine' },
+  { id: 'hip_thrust_machine', name: 'Hip Thrust Machine', bodyArea: 'Glutes', equipment: 'machine' },
+  { id: 'glute_kickback_machine', name: 'Glute Kickback Machine', bodyArea: 'Glutes', equipment: 'machine' },
+  { id: 'hip_adduction', name: 'Hip Adduction', bodyArea: 'Glutes', equipment: 'machine' },
+  { id: 'standing_hip_extension', name: 'Standing Hip Extension', bodyArea: 'Glutes', equipment: 'machine' },
+  { id: 'smith_hip_thrust', name: 'Smith Hip Thrust', bodyArea: 'Glutes', equipment: 'machine' },
+  { id: 'cable_pull_through_glute', name: 'Cable Pull Through', bodyArea: 'Glutes', equipment: 'cable' },
 
-  // ============ CALVES (8 exercises) ============
+  // ============ CALVES (10 exercises) ============
   { id: 'calf_raise', name: 'Standing Calf Raise', bodyArea: 'Calves', equipment: 'machine' },
   { id: 'seated_calf_raise', name: 'Seated Calf Raise', bodyArea: 'Calves', equipment: 'machine' },
   { id: 'donkey_calf_raise', name: 'Donkey Calf Raise', bodyArea: 'Calves', equipment: 'machine' },
@@ -148,8 +211,10 @@ export const EXERCISES: Exercise[] = [
   { id: 'smith_calf_raise', name: 'Smith Calf Raise', bodyArea: 'Calves', equipment: 'machine' },
   { id: 'barbell_calf_raise', name: 'Barbell Calf Raise', bodyArea: 'Calves', equipment: 'barbell' },
   { id: 'tibialis_raise', name: 'Tibialis Raise', bodyArea: 'Calves', equipment: 'bodyweight' },
+  { id: 'hack_squat_calf_raise', name: 'Hack Squat Calf Raise', bodyArea: 'Calves', equipment: 'machine' },
+  { id: 'dumbbell_calf_raise', name: 'Dumbbell Calf Raise', bodyArea: 'Calves', equipment: 'dumbbell' },
 
-  // ============ ABS (10 exercises) ============
+  // ============ ABS (14 exercises) ============
   { id: 'crunch', name: 'Crunch', bodyArea: 'Abs', equipment: 'bodyweight' },
   { id: 'leg_raise', name: 'Leg Raise', bodyArea: 'Abs', equipment: 'bodyweight' },
   { id: 'plank', name: 'Plank', bodyArea: 'Abs', equipment: 'bodyweight' },
@@ -160,8 +225,12 @@ export const EXERCISES: Exercise[] = [
   { id: 'hollow_hold', name: 'Hollow Hold', bodyArea: 'Abs', equipment: 'bodyweight' },
   { id: 'decline_crunch', name: 'Decline Crunch', bodyArea: 'Abs', equipment: 'bodyweight' },
   { id: 'v_up', name: 'V-Up', bodyArea: 'Abs', equipment: 'bodyweight' },
+  { id: 'ab_crunch_machine', name: 'Ab Crunch Machine', bodyArea: 'Abs', equipment: 'machine' },
+  { id: 'captain_chair_leg_raise', name: "Captain's Chair", bodyArea: 'Abs', equipment: 'machine' },
+  { id: 'hanging_knee_raise', name: 'Hanging Knee Raise', bodyArea: 'Abs', equipment: 'bodyweight' },
+  { id: 'reverse_crunch', name: 'Reverse Crunch', bodyArea: 'Abs', equipment: 'bodyweight' },
 
-  // ============ OBLIQUES (8 exercises) ============
+  // ============ OBLIQUES (12 exercises) ============
   { id: 'russian_twist', name: 'Russian Twist', bodyArea: 'Obliques', equipment: 'dumbbell' },
   { id: 'side_plank', name: 'Side Plank', bodyArea: 'Obliques', equipment: 'bodyweight' },
   { id: 'woodchop', name: 'Cable Woodchop', bodyArea: 'Obliques', equipment: 'cable' },
@@ -170,6 +239,10 @@ export const EXERCISES: Exercise[] = [
   { id: 'hanging_oblique_raise', name: 'Hanging Oblique Raise', bodyArea: 'Obliques', equipment: 'bodyweight' },
   { id: 'side_bend', name: 'Side Bend', bodyArea: 'Obliques', equipment: 'dumbbell' },
   { id: 'landmine_rotation', name: 'Landmine Rotation', bodyArea: 'Obliques', equipment: 'barbell' },
+  { id: 'rotary_torso_machine', name: 'Rotary Torso Machine', bodyArea: 'Obliques', equipment: 'machine' },
+  { id: 'cable_twist', name: 'Cable Twist', bodyArea: 'Obliques', equipment: 'cable' },
+  { id: 'saxon_side_bend', name: 'Saxon Side Bend', bodyArea: 'Obliques', equipment: 'dumbbell' },
+  { id: 'side_crunch', name: 'Side Crunch', bodyArea: 'Obliques', equipment: 'bodyweight' },
 
   // ============ CARDIO (11 exercises) ============
   { id: 'running', name: 'Running', bodyArea: 'Cardio', isCardio: true, sportId: 'running' },
