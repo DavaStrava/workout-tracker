@@ -15,8 +15,14 @@ import { auth } from '../config/firebase';
  * Get a user-friendly error message from Firebase Auth errors
  */
 const getAuthErrorMessage = (error: unknown): string => {
+  // DEBUG: Log the full error to console
+  console.error('Firebase Auth Error:', error);
+
   if (error && typeof error === 'object' && 'code' in error) {
     const authError = error as AuthError;
+    console.error('Error code:', authError.code);
+    console.error('Error message:', authError.message);
+
     switch (authError.code) {
       case 'auth/email-already-in-use':
         return 'This email is already registered. Please sign in instead.';
