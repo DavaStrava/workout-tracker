@@ -80,7 +80,7 @@ export const EXERCISES: Exercise[] = [
   { id: 'superman', name: 'Superman', bodyArea: 'Lower Back', equipment: 'bodyweight' },
   { id: 'cable_pull_through', name: 'Cable Pull Through', bodyArea: 'Lower Back', equipment: 'cable' },
   { id: 'machine_back_extension', name: 'Machine Back Extension', bodyArea: 'Lower Back', equipment: 'machine' },
-  { id: '45_degree_hyper', name: '45° Hyperextension', bodyArea: 'Lower Back', equipment: 'machine' },
+  { id: 'hyper_45_degree', name: '45° Hyperextension', bodyArea: 'Lower Back', equipment: 'machine' },
   { id: 'trap_bar_deadlift', name: 'Trap Bar Deadlift', bodyArea: 'Lower Back', equipment: 'barbell' },
   { id: 'jefferson_curl', name: 'Jefferson Curl', bodyArea: 'Lower Back', equipment: 'dumbbell' },
 
@@ -200,7 +200,7 @@ export const EXERCISES: Exercise[] = [
   { id: 'hip_adduction', name: 'Hip Adduction', bodyArea: 'Glutes', equipment: 'machine' },
   { id: 'standing_hip_extension', name: 'Standing Hip Extension', bodyArea: 'Glutes', equipment: 'machine' },
   { id: 'smith_hip_thrust', name: 'Smith Hip Thrust', bodyArea: 'Glutes', equipment: 'machine' },
-  { id: 'cable_pull_through_glute', name: 'Cable Pull Through', bodyArea: 'Glutes', equipment: 'cable' },
+  { id: 'cable_pull_through_glute', name: 'Glute Pull Through', bodyArea: 'Glutes', equipment: 'cable' },
 
   // ============ CALVES (10 exercises) ============
   { id: 'calf_raise', name: 'Standing Calf Raise', bodyArea: 'Calves', equipment: 'machine' },

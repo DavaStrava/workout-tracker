@@ -33,7 +33,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise, onSelect, 
     <motion.button
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: index * 0.03 }}
+      transition={{ delay: Math.min(index * 0.03, 0.3) }}
       whileTap={{ scale: 0.97 }}
       whileHover={{ scale: 1.05, y: -4 }}
       onClick={() => onSelect(exercise.id)}
@@ -47,8 +47,9 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise, onSelect, 
         minHeight: '130px',
         width: '100%',
         textAlign: 'center',
-        background: 'rgba(30, 27, 50, 0.8)',
+        background: 'rgba(30, 27, 50, 0.95)',
         backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         border: `1px solid ${borderColor}`,
         boxShadow: `0 10px 25px ${shadowColor}`,
         cursor: 'pointer',
