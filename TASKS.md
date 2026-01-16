@@ -51,3 +51,18 @@
     - [x] Add recovery status indicators (green border + "✓ Fresh" for recovered muscles) <!-- id: 39 -->
 - [x] Bug Fixes
     - [x] Fix Firestore undefined value error when saving routines (add removeUndefined helper) <!-- id: 40 -->
+- [ ] AI-Generated Photorealistic Exercise Icons
+    - [ ] Create directory structure: `public/icons/exercises/{muscle-groups}/` <!-- id: 41 -->
+    - [ ] Install sharp dependency for image optimization <!-- id: 42 -->
+    - [ ] Create `scripts/generate-icons.js` - DALL-E 3 API batch generation script <!-- id: 43 -->
+    - [ ] Create `scripts/optimize-icons.js` - Resize to 104px, convert to WebP <!-- id: 44 -->
+    - [ ] Create `scripts/generate-manifest.js` - Build icon-manifest.json registry <!-- id: 45 -->
+    - [ ] Create `src/components/ExerciseImage.tsx` - Image component with fallback chain <!-- id: 46 -->
+    - [ ] Create `src/assets/icon-manifest.json` - Exercise ID to image path mapping <!-- id: 47 -->
+    - [ ] Update `src/components/ExerciseCard.tsx` - Use ExerciseImage component <!-- id: 48 -->
+    - [ ] Update `src/components/icons/index.ts` - Add photorealistic icon helpers <!-- id: 49 -->
+    - [ ] Configure caching headers in `vercel.json` <!-- id: 50 -->
+    - [ ] Generate photorealistic icons for all 224 exercises via DALL-E 3 <!-- id: 51 -->
+    - [ ] Run optimization pipeline on generated images <!-- id: 52 -->
+    - [ ] Test fallback chain (WebP → PNG → SVG → Letter) <!-- id: 53 -->
+    - [ ] Performance audit (lazy loading, LCP impact) <!-- id: 54 -->

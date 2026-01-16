@@ -57,6 +57,83 @@ The clear, focused interface for the active workout.
 #### [NEW] [History.tsx]
 View past workouts.
 
+## Planned: AI-Generated Photorealistic Exercise Icons
+
+### Goal
+Replace current SVG stick-figure icons with AI-generated photorealistic illustrations for all 224 exercises, improving visual quality while maintaining performance through lazy loading.
+
+### Architecture
+
+#### Directory Structure
+```
+public/icons/exercises/
+├── chest/           # 18 exercises
+├── shoulders/       # 18 exercises
+├── biceps/          # 14 exercises
+├── triceps/         # 14 exercises
+├── forearms/        # 10 exercises
+├── upper-back/      # 16 exercises
+├── lats/            # 15 exercises
+├── traps/           # 12 exercises
+├── lower-back/      # 12 exercises
+├── quads/           # 18 exercises
+├── hamstrings/      # 14 exercises
+├── glutes/          # 16 exercises
+├── calves/          # 10 exercises
+├── abs/             # 14 exercises
+├── obliques/        # 12 exercises
+└── cardio/          # 11 exercises
+```
+
+#### Icon Manifest (`src/assets/icon-manifest.json`)
+```json
+{
+  "icons": {
+    "bench_press": {
+      "webp": "/icons/exercises/chest/bench_press.webp",
+      "png": "/icons/exercises/chest/bench_press.png"
+    }
+  }
+}
+```
+
+#### New Component: ExerciseImage
+```typescript
+// src/components/ExerciseImage.tsx
+// Fallback chain: WebP → PNG → SVG Icon → Letter Circle
+// Uses native lazy loading (loading="lazy")
+// Graceful degradation for missing icons
+```
+
+#### Scripts
+- `scripts/generate-icons.js` - DALL-E 3 API batch generation
+- `scripts/optimize-icons.js` - Sharp-based resize (104px) + WebP conversion
+- `scripts/generate-manifest.js` - Builds icon-manifest.json from directory contents
+
+### AI Generation Strategy
+
+**Prompt Template:**
+```
+Professional fitness illustration of [EXERCISE_NAME], showing proper form.
+Athletic person performing the exercise with [EQUIPMENT].
+Style: Photorealistic illustration, dark purple background (#1a1625),
+soft professional lighting, centered composition.
+Circular icon format, high contrast for small sizes.
+No text or watermarks.
+```
+
+**Output Specs:**
+- Source: 1024x1024 PNG (DALL-E 3)
+- Optimized: 104px WebP (primary) + PNG (fallback)
+- Target: <15KB per icon
+
+### Performance Considerations
+- **Lazy loading**: Native `loading="lazy"` on all images
+- **WebP format**: 80-85% smaller than PNG at same quality
+- **Caching**: Immutable cache headers (1 year) via vercel.json
+- **Fallback chain**: Ensures UI never breaks if images fail to load
+- **Bundle impact**: ~2KB manifest added to JS, images loaded on-demand
+
 ## Verification Plan
 
 ### Automated Tests

@@ -26,7 +26,29 @@ workout-tracker/
 ├── tsconfig.app.json
 ├── tsconfig.node.json
 ├── public/
-│   └── vite.svg
+│   ├── vite.svg
+│   └── icons/                   # [PLANNED] AI-generated exercise icons
+│       └── exercises/           # Organized by muscle group
+│           ├── chest/           # 18 exercise icons
+│           ├── shoulders/       # 18 exercise icons
+│           ├── biceps/          # 14 exercise icons
+│           ├── triceps/         # 14 exercise icons
+│           ├── forearms/        # 10 exercise icons
+│           ├── upper-back/      # 16 exercise icons
+│           ├── lats/            # 15 exercise icons
+│           ├── traps/           # 12 exercise icons
+│           ├── lower-back/      # 12 exercise icons
+│           ├── quads/           # 18 exercise icons
+│           ├── hamstrings/      # 14 exercise icons
+│           ├── glutes/          # 16 exercise icons
+│           ├── calves/          # 10 exercise icons
+│           ├── abs/             # 14 exercise icons
+│           ├── obliques/        # 12 exercise icons
+│           └── cardio/          # 11 exercise icons
+├── scripts/                     # [PLANNED] Build and generation scripts
+│   ├── generate-icons.js        # DALL-E 3 API batch generation
+│   ├── optimize-icons.js        # Sharp-based resize + WebP conversion
+│   └── generate-manifest.js     # Builds icon-manifest.json
 ├── SVGs/                        # Noun Project SVG assets for muscle icons
 │   ├── noun-chest-7994440.svg           # Chest
 │   ├── noun-muscle-7994436.svg          # Biceps
@@ -102,7 +124,8 @@ workout-tracker/
     ├── config/
     │   └── firebase.ts
     └── assets/
-        └── react.svg
+        ├── react.svg
+        └── icon-manifest.json   # [PLANNED] Exercise icon registry (WebP/PNG paths)
 ```
 
 ## Deployment
@@ -259,7 +282,7 @@ Workout (workout session with metadata)
       └─ WorkoutSet[] (individual sets with reps/weight or distance/duration)
 ```
 
-- **Exercise definitions** live in `src/data/exercises.ts` (static catalog, ~45 exercises)
+- **Exercise definitions** live in `src/data/exercises.ts` (static catalog, 224 exercises)
 - **WorkoutExercise** links to an exercise via `exerciseId` and contains the actual logged sets
 - **WorkoutSet** supports both strength (reps/weight) and cardio (distance/duration/intensity) data
 - **Routine** is a template that stores exercise IDs and set counts to quickly start workouts
@@ -292,6 +315,7 @@ Workout (workout session with metadata)
 - `MuscleRecoveryMap.tsx` - Main muscle selection UI showing recovery stats and individual muscle icons in a 2-column grid
 - `AnatomicalBody.tsx` - Full-body anatomical SVG visualization (legacy, replaced by MuscleRecoveryMap)
 - `ExerciseSelector.tsx` - Exercise list filtered by selected muscle group
+- `ExerciseImage.tsx` - [PLANNED] Image component for photorealistic exercise icons with fallback chain (WebP → PNG → SVG → Letter)
 
 ### Analytics Helpers (`src/utils/analyticsHelpers.ts`)
 
@@ -416,6 +440,59 @@ Create a new helper in `analyticsHelpers.ts` that accepts `Workout[]` and return
 - **Mobile-first**: UI is optimized for mobile touch targets. Test in Chrome DevTools mobile view.
 - **PWA ready**: The app can be added to home screen. Ensure manifest and service worker (if added) are configured correctly.
 - **React 19**: Uses latest React features including automatic batching.
+
+## Planned Features
+
+### AI-Generated Photorealistic Exercise Icons
+
+**Status**: Planned (not yet implemented)
+
+Replace current SVG stick-figure exercise icons with AI-generated photorealistic illustrations for all 224 exercises.
+
+**Architecture Overview**:
+- Icons stored in `public/icons/exercises/{muscle-group}/{exercise_id}.webp`
+- Registry manifest at `src/assets/icon-manifest.json` maps exercise IDs to image paths
+- New `ExerciseImage.tsx` component handles loading with graceful fallback chain
+
+**Fallback Chain**:
+1. WebP image (primary, optimized)
+2. PNG image (fallback for older browsers)
+3. Existing SVG icon (if image missing)
+4. Letter circle (final fallback)
+
+**Generation Process**:
+1. Run `scripts/generate-icons.js` - Batch generates 1024x1024 PNGs via DALL-E 3 API
+2. Run `scripts/optimize-icons.js` - Resizes to 104px, converts to WebP using Sharp
+3. Run `scripts/generate-manifest.js` - Scans directories and builds icon-manifest.json
+
+**AI Prompt Template**:
+```
+Professional fitness illustration of [EXERCISE_NAME], showing proper form.
+Athletic person performing the exercise with [EQUIPMENT].
+Style: Photorealistic illustration, dark purple background (#1a1625),
+soft professional lighting, centered composition.
+Circular icon format, high contrast for small sizes.
+No text or watermarks.
+```
+
+**Performance Considerations**:
+- Native lazy loading (`loading="lazy"`)
+- WebP format (~80% smaller than PNG)
+- Immutable caching (1 year via vercel.json)
+- On-demand loading (not bundled)
+
+**Files to Create/Modify**:
+| File | Action |
+|------|--------|
+| `src/components/ExerciseImage.tsx` | Create |
+| `src/components/ExerciseCard.tsx` | Modify |
+| `src/components/icons/index.ts` | Modify |
+| `src/assets/icon-manifest.json` | Create |
+| `scripts/generate-icons.js` | Create |
+| `scripts/optimize-icons.js` | Create |
+| `scripts/generate-manifest.js` | Create |
+| `vercel.json` | Create/Modify |
+| `package.json` | Add sharp dependency |
 
 ## Important Notes
 
