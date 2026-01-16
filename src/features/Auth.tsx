@@ -33,12 +33,9 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
     setIsLoading(true);
 
     try {
-      console.log('DEBUG: Form submitted, mode:', mode);
       if (mode === 'signup') {
         // Check user limit before creating account
-        console.log('DEBUG: Checking user limit for signup...');
         const { limitReached, error: limitError } = await isUserLimitReached();
-        console.log('DEBUG: User limit result:', { limitReached, limitError });
         if (limitError) {
           setError(limitError);
           return;
@@ -49,16 +46,12 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
           return;
         }
 
-        console.log('DEBUG: Creating user account...');
         const { user, error } = await signUp(email, password, displayName);
-        console.log('DEBUG: Sign up result:', { user: user?.email, error });
         if (error) {
           setError(error);
         } else if (user) {
           // Register user in Firestore
-          console.log('DEBUG: Registering user in Firestore...');
           const { error: registerError } = await registerUser(user.uid, email, displayName);
-          console.log('DEBUG: Register result:', { registerError });
           if (registerError) {
             // User was created in Firebase Auth but failed to register in Firestore
             // Sign them out to prevent access without registration
@@ -69,9 +62,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
           onAuthSuccess?.();
         }
       } else {
-        console.log('DEBUG: Signing in with email/password...');
         const { user, error } = await signIn(email, password);
-        console.log('DEBUG: Sign in result:', { user: user?.email, error });
         if (error) {
           setError(error);
         } else if (user) {
@@ -88,9 +79,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
     setIsLoading(true);
 
     try {
-      console.log('DEBUG: Starting Google sign-in...');
       const { user, error } = await signInWithGoogle();
-      console.log('DEBUG: Sign-in result:', { user: user?.email, error });
       if (error) {
         setError(error);
         return;
@@ -98,9 +87,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
 
       if (user) {
         // Check if this user already exists in Firestore
-        console.log('DEBUG: Checking if user exists in Firestore...');
         const { exists, error: existsError } = await checkUserExists(user.uid);
-        console.log('DEBUG: User exists result:', { exists, existsError });
 
         if (!exists && !existsError) {
           // User doesn't exist in Firestore - could be new or existing Firebase Auth user
@@ -109,13 +96,10 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
           const creationTime = user.metadata?.creationTime;
           const lastSignInTime = user.metadata?.lastSignInTime;
           const isNewUser = creationTime && lastSignInTime && creationTime === lastSignInTime;
-          console.log('DEBUG: User metadata:', { creationTime, lastSignInTime, isNewUser });
 
           if (isNewUser) {
             // Truly new user - enforce limit
-            console.log('DEBUG: Checking user limit...');
             const { limitReached, error: limitError } = await isUserLimitReached();
-            console.log('DEBUG: User limit result:', { limitReached, limitError });
             if (limitError) {
               await signOut();
               setError(limitError);
@@ -131,14 +115,12 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
 
           // Register the user in Firestore (new or migrating existing user)
           // Skip limit check for existing users being migrated
-          console.log('DEBUG: Registering user in Firestore...');
           const { error: registerError } = await registerUser(
             user.uid,
             user.email || '',
             user.displayName || undefined,
             !isNewUser // skipLimitCheck for existing users
           );
-          console.log('DEBUG: Register user result:', { registerError });
           if (registerError) {
             // For existing users, don't block login if registration fails
             // Just log the error and continue

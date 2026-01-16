@@ -69,13 +69,28 @@ For authentication to work, ensure your domain is added to Firebase:
 2. Select your project → **Authentication → Settings → Authorized domains**
 3. Add your production domain (e.g., `workout-tracker-blond-iota.vercel.app`)
 
-**Environment Variables** (set in Vercel dashboard):
-- `VITE_FIREBASE_API_KEY`
-- `VITE_FIREBASE_AUTH_DOMAIN`
-- `VITE_FIREBASE_PROJECT_ID`
-- `VITE_FIREBASE_STORAGE_BUCKET`
-- `VITE_FIREBASE_MESSAGING_SENDER_ID`
-- `VITE_FIREBASE_APP_ID`
+**Environment Variables**
+
+The app requires 6 Firebase environment variables. See `.env.example` for the variable names. You can set them using either the Vercel dashboard or CLI:
+
+**Option 1: Vercel Dashboard**
+1. Go to Vercel project settings → **Environment Variables**
+2. Add each variable for Production, Preview, and Development environments
+
+**Option 2: Vercel CLI (Recommended)**
+
+Use `printf` (NOT `echo`) to avoid adding trailing newline characters that will break Firebase URLs:
+
+```bash
+printf "your-api-key" | vercel env add VITE_FIREBASE_API_KEY production
+printf "your-project.firebaseapp.com" | vercel env add VITE_FIREBASE_AUTH_DOMAIN production
+printf "your-project-id" | vercel env add VITE_FIREBASE_PROJECT_ID production
+printf "your-project.appspot.com" | vercel env add VITE_FIREBASE_STORAGE_BUCKET production
+printf "your-sender-id" | vercel env add VITE_FIREBASE_MESSAGING_SENDER_ID production
+printf "your-app-id" | vercel env add VITE_FIREBASE_APP_ID production
+```
+
+After setting environment variables, redeploy with `vercel --prod`.
 
 ## Project Structure
 

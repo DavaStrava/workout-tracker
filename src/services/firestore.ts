@@ -22,14 +22,8 @@ import type { Workout, Routine } from '../types';
  * Get error message from Firestore errors
  */
 const getFirestoreErrorMessage = (error: unknown): string => {
-  // DEBUG: Log the full error to console
-  console.error('Firestore Error:', error);
-
   if (error && typeof error === 'object' && 'code' in error) {
     const firestoreError = error as FirestoreError;
-    console.error('Firestore error code:', firestoreError.code);
-    console.error('Firestore error message:', firestoreError.message);
-
     switch (firestoreError.code) {
       case 'permission-denied':
         return 'You do not have permission to perform this action.';
