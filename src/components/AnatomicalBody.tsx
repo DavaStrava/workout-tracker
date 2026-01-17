@@ -1,3 +1,8 @@
+/**
+ * @deprecated This component is deprecated as of 2026-01-16.
+ * Replaced by AnatomicalBodySelector with 7-group muscle system.
+ * Kept for reference and potential rollback.
+ */
 import React, { useState, memo } from 'react';
 import { motion } from 'framer-motion';
 import type { BodyArea } from '../types';
@@ -67,7 +72,7 @@ const FRONT_MUSCLES: MuscleRegion[] = [
   },
   // Left Bicep
   {
-    bodyArea: 'Biceps',
+    bodyArea: 'Arms',
     label: 'Biceps',
     cx: 28000,
     cy: 38000,
@@ -76,7 +81,7 @@ const FRONT_MUSCLES: MuscleRegion[] = [
   },
   // Right Bicep
   {
-    bodyArea: 'Biceps',
+    bodyArea: 'Arms',
     label: '',
     cx: 72000,
     cy: 38000,
@@ -85,7 +90,7 @@ const FRONT_MUSCLES: MuscleRegion[] = [
   },
   // Abs
   {
-    bodyArea: 'Abs',
+    bodyArea: 'Abdomen',
     label: 'Abs',
     cx: 50000,
     cy: 48000,
@@ -94,7 +99,7 @@ const FRONT_MUSCLES: MuscleRegion[] = [
   },
   // Left Oblique
   {
-    bodyArea: 'Obliques',
+    bodyArea: 'Abdomen',
     label: 'Obliques',
     cx: 40000,
     cy: 50000,
@@ -103,7 +108,7 @@ const FRONT_MUSCLES: MuscleRegion[] = [
   },
   // Right Oblique
   {
-    bodyArea: 'Obliques',
+    bodyArea: 'Abdomen',
     label: '',
     cx: 60000,
     cy: 50000,
@@ -112,7 +117,7 @@ const FRONT_MUSCLES: MuscleRegion[] = [
   },
   // Left Forearm
   {
-    bodyArea: 'Forearms',
+    bodyArea: 'Arms',
     label: 'Forearms',
     cx: 24000,
     cy: 52000,
@@ -121,7 +126,7 @@ const FRONT_MUSCLES: MuscleRegion[] = [
   },
   // Right Forearm
   {
-    bodyArea: 'Forearms',
+    bodyArea: 'Arms',
     label: '',
     cx: 76000,
     cy: 52000,
@@ -130,7 +135,7 @@ const FRONT_MUSCLES: MuscleRegion[] = [
   },
   // Left Quad
   {
-    bodyArea: 'Quads',
+    bodyArea: 'Legs',
     label: 'Quads',
     cx: 42000,
     cy: 75000,
@@ -139,7 +144,7 @@ const FRONT_MUSCLES: MuscleRegion[] = [
   },
   // Right Quad
   {
-    bodyArea: 'Quads',
+    bodyArea: 'Legs',
     label: '',
     cx: 58000,
     cy: 75000,
@@ -148,7 +153,7 @@ const FRONT_MUSCLES: MuscleRegion[] = [
   },
   // Left Calf
   {
-    bodyArea: 'Calves',
+    bodyArea: 'Legs',
     label: 'Calves',
     cx: 42000,
     cy: 100000,
@@ -157,7 +162,7 @@ const FRONT_MUSCLES: MuscleRegion[] = [
   },
   // Right Calf
   {
-    bodyArea: 'Calves',
+    bodyArea: 'Legs',
     label: '',
     cx: 58000,
     cy: 100000,
@@ -170,7 +175,7 @@ const FRONT_MUSCLES: MuscleRegion[] = [
 const BACK_MUSCLES: MuscleRegion[] = [
   // Traps
   {
-    bodyArea: 'Traps',
+    bodyArea: 'Back',
     label: 'Traps',
     cx: 50000,
     cy: 24000,
@@ -197,7 +202,7 @@ const BACK_MUSCLES: MuscleRegion[] = [
   },
   // Upper Back
   {
-    bodyArea: 'Upper Back',
+    bodyArea: 'Back',
     label: 'Upper Back',
     cx: 50000,
     cy: 34000,
@@ -206,7 +211,7 @@ const BACK_MUSCLES: MuscleRegion[] = [
   },
   // Left Tricep
   {
-    bodyArea: 'Triceps',
+    bodyArea: 'Arms',
     label: 'Triceps',
     cx: 28000,
     cy: 38000,
@@ -215,7 +220,7 @@ const BACK_MUSCLES: MuscleRegion[] = [
   },
   // Right Tricep
   {
-    bodyArea: 'Triceps',
+    bodyArea: 'Arms',
     label: '',
     cx: 72000,
     cy: 38000,
@@ -224,7 +229,7 @@ const BACK_MUSCLES: MuscleRegion[] = [
   },
   // Left Lat
   {
-    bodyArea: 'Lats',
+    bodyArea: 'Back',
     label: 'Lats',
     cx: 40000,
     cy: 45000,
@@ -233,7 +238,7 @@ const BACK_MUSCLES: MuscleRegion[] = [
   },
   // Right Lat
   {
-    bodyArea: 'Lats',
+    bodyArea: 'Back',
     label: '',
     cx: 60000,
     cy: 45000,
@@ -242,7 +247,7 @@ const BACK_MUSCLES: MuscleRegion[] = [
   },
   // Lower Back
   {
-    bodyArea: 'Lower Back',
+    bodyArea: 'Back',
     label: 'Lower Back',
     cx: 50000,
     cy: 56000,
@@ -260,7 +265,7 @@ const BACK_MUSCLES: MuscleRegion[] = [
   },
   // Left Hamstring
   {
-    bodyArea: 'Hamstrings',
+    bodyArea: 'Legs',
     label: 'Hamstrings',
     cx: 42000,
     cy: 82000,
@@ -269,7 +274,7 @@ const BACK_MUSCLES: MuscleRegion[] = [
   },
   // Right Hamstring
   {
-    bodyArea: 'Hamstrings',
+    bodyArea: 'Legs',
     label: '',
     cx: 58000,
     cy: 82000,
@@ -278,7 +283,7 @@ const BACK_MUSCLES: MuscleRegion[] = [
   },
   // Left Calf
   {
-    bodyArea: 'Calves',
+    bodyArea: 'Legs',
     label: 'Calves',
     cx: 42000,
     cy: 100000,
@@ -287,7 +292,7 @@ const BACK_MUSCLES: MuscleRegion[] = [
   },
   // Right Calf
   {
-    bodyArea: 'Calves',
+    bodyArea: 'Legs',
     label: '',
     cx: 58000,
     cy: 100000,

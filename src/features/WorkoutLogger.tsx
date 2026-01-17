@@ -8,7 +8,7 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { AnimatePresence, motion } from 'framer-motion';
 import { getLastPerformance } from '../utils/analyticsHelpers';
-import { MuscleRecoveryMap } from '../components/MuscleRecoveryMap';
+import { AnatomicalBodySelector } from '../components/AnatomicalBodySelector';
 import { ExerciseSelector } from '../components/ExerciseSelector';
 
 type ExerciseSelectorStep = 'hidden' | 'muscle-group' | 'exercise-list';
@@ -135,7 +135,7 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                     <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff' }}>Select Muscle Group</h2>
                 </div>
 
-                <MuscleRecoveryMap onSelect={handleMuscleGroupSelect} />
+                <AnatomicalBodySelector onSelect={handleMuscleGroupSelect} />
             </div>
         );
     }

@@ -1,3 +1,8 @@
+/**
+ * @deprecated This component is deprecated as of 2026-01-16.
+ * Replaced by AnatomicalBodySelector with 7-group muscle system.
+ * Kept for reference and potential rollback.
+ */
 import React, { useId } from 'react';
 
 interface MuscleIconProps {

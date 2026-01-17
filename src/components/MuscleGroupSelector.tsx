@@ -1,3 +1,8 @@
+/**
+ * @deprecated This component is deprecated as of 2026-01-16.
+ * Replaced by AnatomicalBodySelector with 7-group muscle system.
+ * Kept for reference and potential rollback.
+ */
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { BodyArea } from '../types';
@@ -25,6 +30,7 @@ interface MuscleGroupSelectorProps {
 }
 
 // Muscle groups organized by body region for logical scrolling order
+// NOTE: Updated to new 7-group system for type compatibility
 const muscleGroups: {
   area: BodyArea;
   label: string;
@@ -33,25 +39,25 @@ const muscleGroups: {
   // Upper Body - Push
   { area: 'Chest', label: 'Chest', icon: ChestIcon },
   { area: 'Shoulders', label: 'Shoulders', icon: ShouldersIcon },
-  { area: 'Triceps', label: 'Triceps', icon: TricepsIcon },
+  { area: 'Arms', label: 'Arms (Triceps)', icon: TricepsIcon },
 
   // Upper Body - Pull
-  { area: 'Lats', label: 'Lats', icon: LatsIcon },
-  { area: 'Upper Back', label: 'Upper Back', icon: UpperBackIcon },
-  { area: 'Traps', label: 'Traps', icon: TrapsIcon },
-  { area: 'Biceps', label: 'Biceps', icon: BicepsIcon },
-  { area: 'Forearms', label: 'Forearms', icon: ForearmsIcon },
+  { area: 'Back', label: 'Back (Lats)', icon: LatsIcon },
+  { area: 'Back', label: 'Back (Upper)', icon: UpperBackIcon },
+  { area: 'Back', label: 'Back (Traps)', icon: TrapsIcon },
+  { area: 'Arms', label: 'Arms (Biceps)', icon: BicepsIcon },
+  { area: 'Arms', label: 'Arms (Forearms)', icon: ForearmsIcon },
 
   // Core
-  { area: 'Abs', label: 'Abs', icon: AbsIcon },
-  { area: 'Obliques', label: 'Obliques', icon: ObliquesIcon },
-  { area: 'Lower Back', label: 'Lower Back', icon: LowerBackIcon },
+  { area: 'Abdomen', label: 'Abdomen (Abs)', icon: AbsIcon },
+  { area: 'Abdomen', label: 'Abdomen (Obliques)', icon: ObliquesIcon },
+  { area: 'Back', label: 'Back (Lower)', icon: LowerBackIcon },
 
   // Lower Body
-  { area: 'Quads', label: 'Quads', icon: QuadsIcon },
-  { area: 'Hamstrings', label: 'Hamstrings', icon: HamstringsIcon },
+  { area: 'Legs', label: 'Legs (Quads)', icon: QuadsIcon },
+  { area: 'Legs', label: 'Legs (Hamstrings)', icon: HamstringsIcon },
   { area: 'Glutes', label: 'Glutes', icon: GlutesIcon },
-  { area: 'Calves', label: 'Calves', icon: CalvesIcon },
+  { area: 'Legs', label: 'Legs (Calves)', icon: CalvesIcon },
 ];
 
 // Count exercises per body area (excluding cardio)

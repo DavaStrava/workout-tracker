@@ -28,22 +28,14 @@ workout-tracker/
 ├── public/
 │   ├── vite.svg
 │   └── icons/                   # [PLANNED] AI-generated exercise icons
-│       └── exercises/           # Organized by muscle group
+│       └── exercises/           # Organized by muscle group (7-group system)
 │           ├── chest/           # 18 exercise icons
 │           ├── shoulders/       # 18 exercise icons
-│           ├── biceps/          # 14 exercise icons
-│           ├── triceps/         # 14 exercise icons
-│           ├── forearms/        # 10 exercise icons
-│           ├── upper-back/      # 16 exercise icons
-│           ├── lats/            # 15 exercise icons
-│           ├── traps/           # 12 exercise icons
-│           ├── lower-back/      # 12 exercise icons
-│           ├── quads/           # 18 exercise icons
-│           ├── hamstrings/      # 14 exercise icons
+│           ├── arms/            # 38 exercise icons (biceps + triceps + forearms)
+│           ├── abdomen/         # 26 exercise icons (abs + obliques)
+│           ├── back/            # 55 exercise icons (upper back + lats + traps + lower back)
 │           ├── glutes/          # 16 exercise icons
-│           ├── calves/          # 10 exercise icons
-│           ├── abs/             # 14 exercise icons
-│           ├── obliques/        # 12 exercise icons
+│           ├── legs/            # 48 exercise icons (quads + hamstrings + calves)
 │           └── cardio/          # 11 exercise icons
 ├── scripts/                     # [PLANNED] Build and generation scripts
 │   ├── generate-icons.js        # DALL-E 3 API batch generation
@@ -89,10 +81,11 @@ workout-tracker/
     │   ├── Card.tsx
     │   ├── Badge.tsx
     │   ├── ErrorBoundary.tsx
-    │   ├── MuscleGroupSelector.tsx
-    │   ├── MuscleGroupIcons.tsx
-    │   ├── MuscleRecoveryMap.tsx
-    │   ├── AnatomicalBody.tsx
+    │   ├── AnatomicalBodySelector.tsx
+    │   ├── MuscleGroupSelector.tsx      # DEPRECATED (kept for reference)
+    │   ├── MuscleGroupIcons.tsx         # DEPRECATED (kept for reference)
+    │   ├── MuscleRecoveryMap.tsx        # DEPRECATED (kept for reference)
+    │   ├── AnatomicalBody.tsx           # DEPRECATED (kept for reference)
     │   └── ExerciseSelector.tsx
     ├── features/
     │   ├── __tests__/
@@ -219,7 +212,7 @@ src/
 | Firestore Service | 23 | User limit, registration, count, existence checks |
 | WorkoutTypeSelector | 14 | Rendering, interactions, styling, accessibility |
 | WorkoutLogger | 34 | Active workout, save routine modal, set management, muscle group selection |
-| MuscleGroupSelector | 15 | Rendering, interactions, styling, accessibility |
+| AnatomicalBodySelector | 7 | Rendering, interactions, recovery visualization |
 | CardioLogger | 31 | Cardio exercise logging, intensity, duration tracking |
 | History | 22 | Workout history display, empty state |
 | Components | 53 | Button, Card, Badge variants and interactions |
@@ -287,11 +280,11 @@ Workout (workout session with metadata)
 - **WorkoutSet** supports both strength (reps/weight) and cardio (distance/duration/intensity) data
 - **Routine** is a template that stores exercise IDs and set counts to quickly start workouts
 - **Workout.deletedAt** - Optional timestamp indicating when a workout was soft-deleted. Workouts with this field set are shown in the "Deleted Workouts" view and auto-expire after 7 days
-- **BodyArea** type defines 15 muscle groups for granular exercise categorization:
-  - Upper Body Push: Chest, Shoulders, Triceps
-  - Upper Body Pull: Lats, Upper Back, Traps, Biceps, Forearms
-  - Core: Abs, Obliques, Lower Back
-  - Lower Body: Quads, Hamstrings, Glutes, Calves
+- **BodyArea** type defines 7 muscle groups for simplified exercise categorization:
+  - Upper Body: Chest, Shoulders, Arms (biceps + triceps + forearms)
+  - Core: Abdomen (abs + obliques)
+  - Back: Back (upper back + lats + traps + lower back)
+  - Lower Body: Glutes, Legs (quads + hamstrings + calves)
   - Plus: Cardio
 
 ### Component Structure
@@ -310,10 +303,11 @@ Workout (workout session with metadata)
 - `Button.tsx`, `Input.tsx`, `Card.tsx` - Reusable UI primitives
 - `Badge.tsx` - Status badges and StatCard component for displaying metrics
 - `ErrorBoundary.tsx` - React error boundary for graceful error handling
-- `MuscleGroupSelector.tsx` - 2-column grid of muscle group cards (standalone, not currently used)
-- `MuscleGroupIcons.tsx` - 15 individual muscle SVG icons using Noun Project assets with orange-pink gradient fills
-- `MuscleRecoveryMap.tsx` - Main muscle selection UI showing recovery stats and individual muscle icons in a 2-column grid
-- `AnatomicalBody.tsx` - Full-body anatomical SVG visualization (legacy, replaced by MuscleRecoveryMap)
+- `AnatomicalBodySelector.tsx` - Side-by-side anatomical body visualization (front + back views) with 7 clickable muscle regions and recovery status overlay
+- `MuscleGroupSelector.tsx` - **DEPRECATED** (kept for reference) - 2-column grid of muscle group cards
+- `MuscleGroupIcons.tsx` - **DEPRECATED** (kept for reference) - Individual muscle SVG icons using Noun Project assets
+- `MuscleRecoveryMap.tsx` - **DEPRECATED** (kept for reference) - 15-group muscle selection UI
+- `AnatomicalBody.tsx` - **DEPRECATED** (kept for reference) - Full-body anatomical SVG with toggle views
 - `ExerciseSelector.tsx` - Exercise list filtered by selected muscle group
 - `ExerciseImage.tsx` - [PLANNED] Image component for photorealistic exercise icons with fallback chain (WebP → PNG → SVG → Letter)
 
@@ -332,10 +326,10 @@ Pure functions for computing workout stats:
 ### Recovery Helpers (`src/utils/recoveryHelpers.ts`)
 
 Functions for calculating muscle recovery status:
-- `calculateMuscleRecovery()` - Computes recovery percentage for all 15 muscle groups based on workout history
-- Returns `RecoveryStats` with: `lastWorkoutDaysAgo`, `freshMuscleCount`, `totalMuscleGroups`, and per-muscle `MuscleRecoveryData`
-- Recovery is linear: 0% immediately after workout, 100% after 48 hours (configurable via `FULL_RECOVERY_HOURS`)
-- Used by `MuscleRecoveryMap` to show visual recovery indicators on muscle cards
+- `calculateMuscleRecovery()` - Computes recovery percentage for all 7 muscle groups based on workout history
+- Returns `RecoveryStats` with: `lastWorkoutDaysAgo`, `freshMuscleCount`, `totalMuscleGroups` (=7), and per-muscle `MuscleRecoveryData`
+- Recovery is linear: 0% immediately after workout, 100% after 72 hours (configurable via `FULL_RECOVERY_HOURS`)
+- Used by `AnatomicalBodySelector` to show visual recovery indicators as color overlays on anatomical regions
 
 ### Authentication (`src/services/auth.ts`)
 
@@ -417,7 +411,7 @@ Uses Flexbox/Grid for layout, Framer Motion for animations, and TailwindCSS util
 
 7. **Accessibility**: Navigation uses proper ARIA attributes (`role="tablist"`, `aria-selected`). Toggle buttons use `aria-pressed`. All interactive elements have `aria-label` where needed.
 
-8. **Muscle Group Selection Flow**: When starting a strength workout, users see a 2-column grid of 15 individual muscle icons (using Noun Project SVGs with orange-pink gradients). Each card shows: muscle icon, label, and recovery status ("✓ Fresh" with green border if fully recovered, or exercise count otherwise). Selecting a muscle group shows exercises for that area. Back buttons allow navigation: from exercise list → muscle groups → cancel workout (if empty) or return to workout (if exercises exist).
+8. **Muscle Group Selection Flow**: When starting a strength workout, users see a side-by-side anatomical body visualization (front and back views) with 7 clickable muscle regions. Each region displays recovery status via color overlay (bright colors = fresh, dark = fatigued). Muscle labels are shown on the SVG for easy identification. Selecting a muscle region shows exercises for that area. Back buttons allow navigation: from exercise list → muscle groups → cancel workout (if empty) or return to workout (if exercises exist).
 
 9. **Soft Delete with 7-Day Retention**: Workouts can be soft-deleted via swipe-to-delete in History. Deleted workouts have a `deletedAt` timestamp and are kept for 7 days before automatic permanent deletion. Users can restore or permanently delete from the DeletedWorkouts view. The cleanup runs on app load via a ref-guarded useEffect to prevent infinite loops. Context exposes `deletedWorkouts` (computed from history), `softDeleteWorkout()`, `restoreWorkout()`, and `permanentlyDeleteWorkout()`.
 

@@ -1,19 +1,11 @@
 export type BodyArea =
   | 'Chest'
-  | 'Upper Back'
-  | 'Lats'
-  | 'Traps'
-  | 'Lower Back'
   | 'Shoulders'
-  | 'Biceps'
-  | 'Triceps'
-  | 'Forearms'
-  | 'Quads'
-  | 'Hamstrings'
+  | 'Arms'
+  | 'Abdomen'
+  | 'Back'
   | 'Glutes'
-  | 'Calves'
-  | 'Abs'
-  | 'Obliques'
+  | 'Legs'
   | 'Cardio';
 
 export type Equipment =

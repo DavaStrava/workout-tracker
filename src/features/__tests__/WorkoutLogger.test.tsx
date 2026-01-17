@@ -437,32 +437,21 @@ describe('WorkoutLogger', () => {
       expect(screen.getByText('Select Muscle Group')).toBeInTheDocument();
     });
 
-    it('should show all muscle groups in scrollable view', () => {
+    it('should show all muscle groups in anatomical body view', () => {
       render(<WorkoutLogger onNavigate={mockOnNavigate} />);
 
-      // All 15 muscle groups visible in single scrollable view
-      // Upper Body - Push
-      expect(screen.getByText('Chest')).toBeInTheDocument();
-      expect(screen.getByText('Shoulders')).toBeInTheDocument();
-      expect(screen.getByText('Triceps')).toBeInTheDocument();
+      // All 7 muscle groups visible in anatomical body selector
+      // Note: Some groups appear in both front and back views
+      expect(screen.getByText('Chest')).toBeInTheDocument(); // Only in front
+      expect(screen.getAllByText('Shoulders').length).toBeGreaterThanOrEqual(1); // In both views
+      expect(screen.getAllByText('Arms').length).toBeGreaterThanOrEqual(1); // In both views
+      expect(screen.getByText('Abdomen')).toBeInTheDocument(); // Only in front
+      expect(screen.getAllByText('Back').length).toBeGreaterThanOrEqual(2); // Muscle group + view label
+      expect(screen.getByText('Glutes')).toBeInTheDocument(); // Only in back
+      expect(screen.getAllByText('Legs').length).toBeGreaterThanOrEqual(1); // In both views
 
-      // Upper Body - Pull
-      expect(screen.getByText('Lats')).toBeInTheDocument();
-      expect(screen.getByText('Upper Back')).toBeInTheDocument();
-      expect(screen.getByText('Traps')).toBeInTheDocument();
-      expect(screen.getByText('Biceps')).toBeInTheDocument();
-      expect(screen.getByText('Forearms')).toBeInTheDocument();
-
-      // Core
-      expect(screen.getByText('Abs')).toBeInTheDocument();
-      expect(screen.getByText('Obliques')).toBeInTheDocument();
-      expect(screen.getByText('Lower Back')).toBeInTheDocument();
-
-      // Lower Body
-      expect(screen.getByText('Quads')).toBeInTheDocument();
-      expect(screen.getByText('Hamstrings')).toBeInTheDocument();
-      expect(screen.getByText('Glutes')).toBeInTheDocument();
-      expect(screen.getByText('Calves')).toBeInTheDocument();
+      // Should also show Front and Back view labels
+      expect(screen.getByText('Front')).toBeInTheDocument();
     });
 
     it('should NOT show Cardio in muscle group selector', () => {

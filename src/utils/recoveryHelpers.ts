@@ -12,10 +12,7 @@ const EXERCISE_MAP = new Map(EXERCISES.map(e => [e.id, e]));
 
 // All strength-training muscle groups (excludes Cardio)
 const STRENGTH_BODY_AREAS: BodyArea[] = [
-  'Chest', 'Shoulders', 'Biceps', 'Triceps', 'Forearms',
-  'Lats', 'Upper Back', 'Traps', 'Lower Back',
-  'Quads', 'Hamstrings', 'Glutes', 'Calves',
-  'Abs', 'Obliques'
+  'Chest', 'Shoulders', 'Arms', 'Abdomen', 'Back', 'Glutes', 'Legs'
 ];
 
 export interface MuscleRecoveryData {
