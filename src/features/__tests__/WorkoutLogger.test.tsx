@@ -440,18 +440,22 @@ describe('WorkoutLogger', () => {
     it('should show all muscle groups in anatomical body view', () => {
       render(<WorkoutLogger onNavigate={mockOnNavigate} />);
 
-      // All 7 muscle groups visible in anatomical body selector
-      // Note: Some groups appear in both front and back views
-      expect(screen.getByText('Chest')).toBeInTheDocument(); // Only in front
-      expect(screen.getAllByText('Shoulders').length).toBeGreaterThanOrEqual(1); // In both views
-      expect(screen.getAllByText('Arms').length).toBeGreaterThanOrEqual(1); // In both views
-      expect(screen.getByText('Abdomen')).toBeInTheDocument(); // Only in front
-      expect(screen.getAllByText('Back').length).toBeGreaterThanOrEqual(2); // Muscle group + view label
-      expect(screen.getByText('Glutes')).toBeInTheDocument(); // Only in back
-      expect(screen.getAllByText('Legs').length).toBeGreaterThanOrEqual(1); // In both views
+      // Default is front view - shows 5 muscle groups
+      // Front view groups: Shoulders, Chest, Arms, Abdomen, Legs
+      expect(screen.getByText('Chest')).toBeInTheDocument();
+      expect(screen.getByText('Shoulders')).toBeInTheDocument();
+      expect(screen.getByText('Arms')).toBeInTheDocument();
+      expect(screen.getByText('Abdomen')).toBeInTheDocument();
+      expect(screen.getByText('Legs')).toBeInTheDocument();
 
-      // Should also show Front and Back view labels
-      expect(screen.getByText('Front')).toBeInTheDocument();
+      // Back-only groups should NOT be visible in front view
+      expect(screen.queryByText('Glutes')).not.toBeInTheDocument();
+      // 'Back' muscle group is only in back view (not the "Back" toggle button)
+      // The toggle buttons have aria-labels for accessibility
+      expect(screen.getByRole('button', { name: 'Show back view of body' })).toBeInTheDocument();
+
+      // Should show Front and Back view toggle buttons
+      expect(screen.getByRole('button', { name: 'Show front view of body' })).toBeInTheDocument();
     });
 
     it('should NOT show Cardio in muscle group selector', () => {

@@ -19,11 +19,11 @@ Build a mobile-first web application for tracking strength training workouts. Th
 - **Set**: `{ id, reps, weight, completed }`
 - **WorkoutLog**: `{ id, date, exercises: [{ exerciseId, sets: [] }] }`
 
-### Body Areas (15 muscle groups)
-**Upper Body - Push**: Chest, Shoulders, Triceps
-**Upper Body - Pull**: Lats, Upper Back, Traps, Biceps, Forearms
-**Core**: Abs, Obliques, Lower Back
-**Lower Body**: Quads, Hamstrings, Glutes, Calves
+### Body Areas (7 muscle groups)
+**Upper Body**: Chest, Shoulders, Arms (biceps + triceps + forearms)
+**Core**: Abdomen (abs + obliques)
+**Back**: Back (upper back + lats + traps + lower back)
+**Lower Body**: Glutes, Legs (quads + hamstrings + calves)
 **Cardio**: Running, Cycling, etc.
 
 ## Proposed Changes
@@ -45,10 +45,14 @@ Main wrapper with navigation (bottom tab bar for mobile feel).
 
 #### [NEW] [WorkoutLogger.tsx] ✅
 The clear, focused interface for the active workout.
-- **Muscle Group Selection**: Visual 2-column grid with individual muscle SVG icons (MuscleRecoveryMap component)
-  - 15 individual muscle icons using Noun Project SVGs with orange-pink gradient fills
-  - Each card shows: icon, label, recovery status ("✓ Fresh" or exercise count)
-  - Fresh muscles highlighted with green border and shadow
+- **Muscle Group Selection**: Interactive anatomical body selector (AnatomicalBodySelector component)
+  - Inline SVG with embedded anatomical body image and leader lines in same coordinate space
+  - Front/back toggle button to switch between views
+  - 7 muscle groups with clickable leader lines pointing to muscle regions
+  - Front view: Shoulders, Chest, Arms, Abdomen, Legs (labels staggered left/right)
+  - Back view: Shoulders, Arms, Back, Glutes, Legs (labels staggered left/right)
+  - Leader line design: Label text → horizontal line → diagonal line → white circle on muscle
+  - Recovery visualization via color modulation (bright = fresh, dark = fatigued)
 - Selecting a muscle group shows filtered exercises for that body area
 - Auto-shows muscle groups when starting a new strength workout
 - List of added exercises with set logging
@@ -69,19 +73,11 @@ Replace current SVG stick-figure icons with AI-generated photorealistic illustra
 public/icons/exercises/
 ├── chest/           # 18 exercises
 ├── shoulders/       # 18 exercises
-├── biceps/          # 14 exercises
-├── triceps/         # 14 exercises
-├── forearms/        # 10 exercises
-├── upper-back/      # 16 exercises
-├── lats/            # 15 exercises
-├── traps/           # 12 exercises
-├── lower-back/      # 12 exercises
-├── quads/           # 18 exercises
-├── hamstrings/      # 14 exercises
+├── arms/            # 38 exercises (biceps + triceps + forearms)
+├── abdomen/         # 26 exercises (abs + obliques)
+├── back/            # 55 exercises (upper back + lats + traps + lower back)
 ├── glutes/          # 16 exercises
-├── calves/          # 10 exercises
-├── abs/             # 14 exercises
-├── obliques/        # 12 exercises
+├── legs/            # 48 exercises (quads + hamstrings + calves)
 └── cardio/          # 11 exercises
 ```
 

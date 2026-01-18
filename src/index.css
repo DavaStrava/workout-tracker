@@ -259,3 +259,36 @@ body {
   box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.5);
   border-radius: 8px;
 }
+
+/* Leader Line - Interactive SVG elements for muscle group selection */
+.leader-line {
+  transition: opacity 0.2s ease;
+}
+
+.leader-line:hover,
+.leader-line:focus {
+  opacity: 1;
+}
+
+.leader-line:hover .leader-line-stroke,
+.leader-line:focus .leader-line-stroke {
+  stroke: white;
+  stroke-width: 5;
+}
+
+.leader-line:hover .leader-line-circle,
+.leader-line:focus .leader-line-circle {
+  fill: white;
+  r: 18;
+}
+
+.leader-line:hover .leader-line-text,
+.leader-line:focus .leader-line-text {
+  fill: #f97316;
+}
+
+.leader-line:focus-visible {
+  outline: 2px solid #a855f7;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
