@@ -127,7 +127,7 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
     // Exercise Selector - Muscle Group Step (also shown when workout has no exercises)
     if (showMuscleGroupStep) {
         return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%', paddingBottom: '80px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%', paddingBottom: '80px', maxWidth: '1400px', margin: '0 auto' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <Button variant="ghost" size="icon" onClick={handleBackFromMuscleGroup} aria-label="Go back">
                         <ChevronLeft size={24} />

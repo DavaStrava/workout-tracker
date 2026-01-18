@@ -75,13 +75,18 @@ workout-tracker/
     │   │   ├── Badge.test.tsx
     │   │   ├── Input.test.tsx
     │   │   └── MuscleGroupSelector.test.tsx
+    │   ├── anatomical/              # Anatomical body selector components
+    │   │   ├── constants.ts         # SVG paths, colors, muscle region definitions
+    │   │   ├── MuscleRegion.tsx     # Reusable clickable muscle region component
+    │   │   ├── FrontBodySVG.tsx     # Front anatomical view with overlays
+    │   │   └── BackBodySVG.tsx      # Back anatomical view with overlays
     │   ├── Layout.tsx
     │   ├── Button.tsx
     │   ├── Input.tsx
     │   ├── Card.tsx
     │   ├── Badge.tsx
     │   ├── ErrorBoundary.tsx
-    │   ├── AnatomicalBodySelector.tsx
+    │   ├── AnatomicalBodySelector.tsx   # Main muscle group selector with front/back toggle
     │   ├── MuscleGroupSelector.tsx      # DEPRECATED (kept for reference)
     │   ├── MuscleGroupIcons.tsx         # DEPRECATED (kept for reference)
     │   ├── MuscleRecoveryMap.tsx        # DEPRECATED (kept for reference)
@@ -303,7 +308,11 @@ Workout (workout session with metadata)
 - `Button.tsx`, `Input.tsx`, `Card.tsx` - Reusable UI primitives
 - `Badge.tsx` - Status badges and StatCard component for displaying metrics
 - `ErrorBoundary.tsx` - React error boundary for graceful error handling
-- `AnatomicalBodySelector.tsx` - Side-by-side anatomical body visualization (front + back views) with 7 clickable muscle regions and recovery status overlay
+- `AnatomicalBodySelector.tsx` - Interactive anatomical muscle selector with front/back toggle, 7 clickable muscle regions with distinct orange color shading, label lines, and recovery visualization using color overlays (bright = fresh, dark = fatigued)
+- `anatomical/constants.ts` - SVG paths, muscle region definitions, base colors for 7 muscle groups, and recovery color calculation functions
+- `anatomical/MuscleRegion.tsx` - Reusable clickable muscle region component with hover effects, leader lines, and labels positioned outside body silhouette
+- `anatomical/FrontBodySVG.tsx` - Front anatomical view with interactive overlay regions (Chest, Shoulders, Arms, Abdomen, Legs)
+- `anatomical/BackBodySVG.tsx` - Back anatomical view with interactive overlay regions (Shoulders, Arms, Back, Glutes, Legs)
 - `MuscleGroupSelector.tsx` - **DEPRECATED** (kept for reference) - 2-column grid of muscle group cards
 - `MuscleGroupIcons.tsx` - **DEPRECATED** (kept for reference) - Individual muscle SVG icons using Noun Project assets
 - `MuscleRecoveryMap.tsx` - **DEPRECATED** (kept for reference) - 15-group muscle selection UI
@@ -411,7 +420,7 @@ Uses Flexbox/Grid for layout, Framer Motion for animations, and TailwindCSS util
 
 7. **Accessibility**: Navigation uses proper ARIA attributes (`role="tablist"`, `aria-selected`). Toggle buttons use `aria-pressed`. All interactive elements have `aria-label` where needed.
 
-8. **Muscle Group Selection Flow**: When starting a strength workout, users see a side-by-side anatomical body visualization (front and back views) with 7 clickable muscle regions. Each region displays recovery status via color overlay (bright colors = fresh, dark = fatigued). Muscle labels are shown on the SVG for easy identification. Selecting a muscle region shows exercises for that area. Back buttons allow navigation: from exercise list → muscle groups → cancel workout (if empty) or return to workout (if exercises exist).
+8. **Muscle Group Selection Flow**: When starting a strength workout, users see an anatomical body visualization with a front/back toggle button. Each view displays clickable muscle regions with distinct orange color shading (7 different shades for 7 muscle groups). Recovery status modulates the brightness/saturation of each muscle's base color (bright orange = fresh, dark purple = fatigued). Muscle labels are positioned outside the body with leader lines connecting to the muscle regions. Hovering over a muscle increases opacity, fills the label with the muscle's base color, and scales the region. Clicking a muscle region navigates to the exercise list for that body area. Back buttons allow navigation: from exercise list → muscle groups → cancel workout (if empty) or return to workout (if exercises exist).
 
 9. **Soft Delete with 7-Day Retention**: Workouts can be soft-deleted via swipe-to-delete in History. Deleted workouts have a `deletedAt` timestamp and are kept for 7 days before automatic permanent deletion. Users can restore or permanently delete from the DeletedWorkouts view. The cleanup runs on app load via a ref-guarded useEffect to prevent infinite loops. Context exposes `deletedWorkouts` (computed from history), `softDeleteWorkout()`, `restoreWorkout()`, and `permanentlyDeleteWorkout()`.
 
