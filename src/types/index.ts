@@ -63,6 +63,7 @@ export interface Exercise {
   id: string;
   name: string;
   bodyArea: BodyArea;
+  secondaryAreas?: BodyArea[];  // Secondary muscle groups targeted
   equipment?: Equipment;
   isCardio?: boolean;
   sportId?: string;  // Links to CardioSportConfig for cardio exercises
