@@ -114,9 +114,16 @@ const SwipeableWorkoutCard: React.FC<SwipeableWorkoutCardProps> = ({ workout, in
                         </h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)' }}>
                             <Calendar size={14} />
-                            <span>{new Date(workout.startTime).toLocaleDateString(undefined, {
-                                weekday: 'short', month: 'short', day: 'numeric'
-                            })}</span>
+                            <span>
+                                {new Date(workout.startTime).toLocaleDateString(undefined, {
+                                    weekday: 'short', month: 'short', day: 'numeric'
+                                })}
+                                {workout.endTime && (
+                                    <span style={{ marginLeft: '8px', color: 'rgba(255, 255, 255, 0.4)' }}>
+                                        · Finished {new Date(workout.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                )}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -125,9 +132,11 @@ const SwipeableWorkoutCard: React.FC<SwipeableWorkoutCardProps> = ({ workout, in
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>
                         <Clock size={16} style={{ color: '#60a5fa' }} />
                         <span>
-                            {workout.endTime
-                                ? `${Math.round((workout.endTime - workout.startTime) / 60000)} min`
-                                : 'Incomplete'}
+                            {workout.duration
+                                ? `${Math.round(workout.duration / 60)} min`
+                                : workout.endTime
+                                    ? `${Math.round((workout.endTime - workout.startTime) / 60000)} min`
+                                    : 'Incomplete'}
                         </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>

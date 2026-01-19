@@ -27,9 +27,12 @@ interface WorkoutContextType {
     user: User | null;
     isLoading: boolean;
     editingWorkout: Workout | null;
+    isWorkoutPaused: boolean;
     startWorkout: (name?: string, type?: WorkoutType) => void;
     finishWorkout: () => Promise<void>;
     cancelWorkout: () => Promise<void>;
+    pauseWorkout: () => Promise<void>;
+    resumeWorkout: () => Promise<void>;
     addExercise: (exerciseId: string) => Promise<void>;
     updateSet: (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; distance: number; duration: number; intensity: CardioIntensity; completed: boolean }>) => Promise<void>;
     updateNotes: (notes: string) => Promise<void>;
@@ -238,8 +241,10 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
             name: workoutName,
             type,
             startTime: Date.now(),
+            totalPausedTime: 0,
             exercises: [],
             status: 'active',
+            fromRoutine: false,
         };
         setActiveWorkout(newWorkout);
     };
@@ -247,7 +252,22 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const finishWorkout = async () => {
         if (!activeWorkout) return;
         const previousWorkout = activeWorkout;
-        const completedWorkout = { ...activeWorkout, endTime: Date.now(), status: 'completed' as const };
+        const endTime = Date.now();
+
+        // Calculate duration: total elapsed - paused time - current pause (if any)
+        let totalPausedMs = (activeWorkout.totalPausedTime || 0) * 1000;
+        if (activeWorkout.pausedAt) {
+            totalPausedMs += (endTime - activeWorkout.pausedAt);
+        }
+        const durationSeconds = Math.floor((endTime - activeWorkout.startTime - totalPausedMs) / 1000);
+
+        const completedWorkout = {
+            ...activeWorkout,
+            endTime,
+            duration: durationSeconds,
+            pausedAt: undefined,
+            status: 'completed' as const,
+        };
 
         // Set flag to prevent subscription from overwriting our optimistic update
         isFinishingWorkoutRef.current = true;
@@ -307,12 +327,42 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }, SUBSCRIPTION_SETTLE_DELAY_MS);
     };
 
+    const pauseWorkout = async () => {
+        if (!activeWorkout || activeWorkout.pausedAt) return; // Already paused or no workout
+
+        const updatedWorkout = { ...activeWorkout, pausedAt: Date.now() };
+        setActiveWorkout(updatedWorkout);
+
+        if (user) {
+            await saveActiveWorkoutToFirestore(user.uid, updatedWorkout);
+        }
+    };
+
+    const resumeWorkout = async () => {
+        if (!activeWorkout || !activeWorkout.pausedAt) return; // Not paused
+
+        const pauseDuration = Math.floor((Date.now() - activeWorkout.pausedAt) / 1000);
+        const updatedWorkout = {
+            ...activeWorkout,
+            pausedAt: undefined,
+            totalPausedTime: (activeWorkout.totalPausedTime || 0) + pauseDuration,
+        };
+        setActiveWorkout(updatedWorkout);
+
+        if (user) {
+            await saveActiveWorkoutToFirestore(user.uid, updatedWorkout);
+        }
+    };
+
     const addExercise = async (exerciseId: string) => {
         if (!activeWorkout) return;
+        // Auto-complete sets for fresh workouts (not from routine)
+        const autoComplete = !activeWorkout.fromRoutine;
         const newExercise: WorkoutExercise = {
             id: crypto.randomUUID(),
             exerciseId,
-            sets: [{ id: crypto.randomUUID(), reps: 0, weight: 0, completed: false }],
+            sets: [{ id: crypto.randomUUID(), reps: 0, weight: 0, completed: autoComplete }],
+            addedAt: Date.now(),
         };
         const updatedWorkout = { ...activeWorkout, exercises: [...activeWorkout.exercises, newExercise] };
 
@@ -326,6 +376,8 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const addSet = async (exerciseInstanceId: string) => {
         if (!activeWorkout) return;
+        // Auto-complete sets for fresh workouts (not from routine)
+        const autoComplete = !activeWorkout.fromRoutine;
 
         const updatedWorkout = {
             ...activeWorkout,
@@ -339,7 +391,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
                         id: crypto.randomUUID(),
                         reps: lastSet ? lastSet.reps : 0,
                         weight: lastSet ? lastSet.weight : 0,
-                        completed: false
+                        completed: autoComplete
                     }]
                 };
             })
@@ -495,6 +547,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
             name: routine.name,
             type: 'STRENGTH',
             startTime: Date.now(),
+            totalPausedTime: 0,
             exercises: routine.exercises.map(re => ({
                 id: crypto.randomUUID(),
                 exerciseId: re.exerciseId,
@@ -503,10 +556,12 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
                     reps: 0,
                     weight: 0,
                     completed: false
-                }))
+                })),
+                addedAt: Date.now(),
             })),
             status: 'active',
-            routineId: routine.id  // Link workout to the routine
+            routineId: routine.id,  // Link workout to the routine
+            fromRoutine: true,
         };
 
         // Optimistic update
@@ -711,10 +766,13 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, history]);
 
+    // Computed: is the workout currently paused
+    const isWorkoutPaused = activeWorkout?.pausedAt !== undefined;
+
     return (
         <WorkoutContext.Provider value={{
-            activeWorkout, history, deletedWorkouts, routines, user, isLoading, editingWorkout,
-            startWorkout, finishWorkout, cancelWorkout,
+            activeWorkout, history, deletedWorkouts, routines, user, isLoading, editingWorkout, isWorkoutPaused,
+            startWorkout, finishWorkout, cancelWorkout, pauseWorkout, resumeWorkout,
             addExercise, addSet, removeSet, updateSet, updateNotes, getExerciseName, getExerciseInfo,
             saveRoutine, updateRoutine, startRoutine, deleteRoutine,
             softDeleteWorkout, restoreWorkout, permanentlyDeleteWorkout,

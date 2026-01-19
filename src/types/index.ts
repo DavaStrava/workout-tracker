@@ -96,6 +96,7 @@ export interface WorkoutExercise {
   id: string; /* Instance ID in the workout */
   exerciseId: string;
   sets: WorkoutSet[];
+  addedAt?: number; /* Timestamp when exercise was added to workout */
 }
 
 export interface Workout {
@@ -104,11 +105,16 @@ export interface Workout {
   type: WorkoutType;
   startTime: number;
   endTime?: number;
+  // Timer fields
+  pausedAt?: number;        // Timestamp when current pause started (undefined = not paused)
+  totalPausedTime: number;  // Cumulative seconds spent paused (default: 0)
+  duration?: number;        // Final workout duration in seconds (set on finish, excludes pauses)
   exercises: WorkoutExercise[];
   notes?: string;
   status: 'active' | 'completed';
   deletedAt?: number;  // Timestamp when soft-deleted (7-day retention)
   routineId?: string;  // If workout was saved as/from a routine
+  fromRoutine?: boolean;  // True if started from a routine (shows checkmarks for planned vs completed sets)
 }
 
 export interface UserHistory {

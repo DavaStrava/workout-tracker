@@ -6,6 +6,7 @@ import { Button } from '../components/Button';
 import { CardioFieldInput } from '../components/CardioFieldInput';
 import { CardioSportSelector } from './CardioSportSelector';
 import { SportIcon } from '../components/SportIcon';
+import { WorkoutTimer } from '../components/WorkoutTimer';
 import { AnimatePresence, motion } from 'framer-motion';
 import { getSportConfig } from '../data/cardioSports';
 import {
@@ -165,6 +166,9 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
         </div>
       </div>
 
+      {/* Workout Timer */}
+      <WorkoutTimer />
+
       {/* Activities */}
       <AnimatePresence initial={false}>
         {activeWorkout.exercises.map((exerciseInstance) => {
@@ -193,36 +197,46 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
               }}
             >
               {/* Activity Header */}
-              <h3
+              <div
                 style={{
                   fontSize: '20px',
                   fontWeight: 700,
                   marginBottom: '20px',
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'space-between',
                   gap: '12px',
                   color: '#fff',
                 }}
               >
-                <div
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '12px',
-                    background: `${sportConfig?.color || '#ec4899'}20`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <SportIcon
-                    iconName={sportConfig?.icon || 'Heart'}
-                    size={22}
-                    color={sportConfig?.color || '#ec4899'}
-                  />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '12px',
+                      background: `${sportConfig?.color || '#ec4899'}20`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <SportIcon
+                      iconName={sportConfig?.icon || 'Heart'}
+                      size={22}
+                      color={sportConfig?.color || '#ec4899'}
+                    />
+                  </div>
+                  <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 700 }}>
+                    {getExerciseName(exerciseInstance.exerciseId)}
+                  </h3>
                 </div>
-                {getExerciseName(exerciseInstance.exerciseId)}
-              </h3>
+                {exerciseInstance.addedAt && (
+                  <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.4)', fontFamily: 'ui-monospace, monospace', fontWeight: 400 }}>
+                    {new Date(exerciseInstance.addedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+              </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {/* Required Fields */}
@@ -393,36 +407,38 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
                   </>
                 )}
 
-                {/* Completed toggle */}
-                <button
-                  aria-pressed={set.completed}
-                  aria-label={set.completed ? 'Mark as incomplete' : 'Mark as complete'}
-                  onClick={() =>
-                    updateSet(exerciseInstance.id, set.id, { completed: !set.completed })
-                  }
-                  style={{
-                    width: '100%',
-                    padding: '14px 20px',
-                    borderRadius: '16px',
-                    fontWeight: 600,
-                    fontSize: '15px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '10px',
-                    transition: 'all 0.2s',
-                    cursor: 'pointer',
-                    border: 'none',
-                    background: set.completed
-                      ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                      : 'rgba(255, 255, 255, 0.05)',
-                    color: set.completed ? '#fff' : 'rgba(255, 255, 255, 0.6)',
-                    boxShadow: set.completed ? '0 8px 20px rgba(16, 185, 129, 0.3)' : 'none',
-                  }}
-                >
-                  <Check size={18} />
-                  {set.completed ? 'Completed' : 'Mark Complete'}
-                </button>
+                {/* Completed toggle - only show for routine workouts */}
+                {activeWorkout.fromRoutine && (
+                  <button
+                    aria-pressed={set.completed}
+                    aria-label={set.completed ? 'Mark as incomplete' : 'Mark as complete'}
+                    onClick={() =>
+                      updateSet(exerciseInstance.id, set.id, { completed: !set.completed })
+                    }
+                    style={{
+                      width: '100%',
+                      padding: '14px 20px',
+                      borderRadius: '16px',
+                      fontWeight: 600,
+                      fontSize: '15px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '10px',
+                      transition: 'all 0.2s',
+                      cursor: 'pointer',
+                      border: 'none',
+                      background: set.completed
+                        ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                        : 'rgba(255, 255, 255, 0.05)',
+                      color: set.completed ? '#fff' : 'rgba(255, 255, 255, 0.6)',
+                      boxShadow: set.completed ? '0 8px 20px rgba(16, 185, 129, 0.3)' : 'none',
+                    }}
+                  >
+                    <Check size={18} />
+                    {set.completed ? 'Completed' : 'Mark Complete'}
+                  </button>
+                )}
               </div>
             </motion.div>
           );

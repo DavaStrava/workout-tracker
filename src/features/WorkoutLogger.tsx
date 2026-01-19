@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { getLastPerformance } from '../utils/analyticsHelpers';
 import { AnatomicalBodySelector } from '../components/AnatomicalBodySelector';
 import { ExerciseSelector } from '../components/ExerciseSelector';
+import { WorkoutTimer } from '../components/WorkoutTimer';
 
 type ExerciseSelectorStep = 'hidden' | 'muscle-group' | 'exercise-list';
 
@@ -288,6 +289,9 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                 </div>
             </div>
 
+            {/* Workout Timer */}
+            <WorkoutTimer />
+
             {/* Success Banner (for update routine success) */}
             {routineSuccess && !showRoutineModal && (
                 <div style={{
@@ -347,7 +351,14 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                                 }}
                             >
                                 <div style={{ marginBottom: '20px', marginLeft: '4px' }}>
-                                    <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fff' }}>{getExerciseName(exerciseInstance.exerciseId)}</h3>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                                        <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fff' }}>{getExerciseName(exerciseInstance.exerciseId)}</h3>
+                                        {exerciseInstance.addedAt && (
+                                            <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.4)', fontFamily: 'ui-monospace, monospace' }}>
+                                                {new Date(exerciseInstance.addedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        )}
+                                    </div>
                                     {lastPerf && (
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '6px' }}>
                                             <History size={14} />
@@ -358,11 +369,11 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {/* Header Row */}
-                                    <div style={{ display: 'grid', gridTemplateColumns: '24px 1fr 1fr 36px', gap: '12px', fontSize: '12px', fontWeight: 600, color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center', padding: '0 4px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: activeWorkout.fromRoutine ? '24px 1fr 1fr 36px' : '24px 1fr 1fr', gap: '12px', fontSize: '12px', fontWeight: 600, color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center', padding: '0 4px' }}>
                                         <span>#</span>
                                         <span>kg</span>
                                         <span>Reps</span>
-                                        <span>✓</span>
+                                        {activeWorkout.fromRoutine && <span>✓</span>}
                                     </div>
 
                                     {/* Sets */}
@@ -373,7 +384,7 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                                                 initial={{ opacity: 0, height: 0 }}
                                                 animate={{ opacity: 1, height: 'auto' }}
                                                 exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
-                                                style={{ display: 'grid', gridTemplateColumns: '24px 1fr 1fr 36px', gap: '12px', alignItems: 'center' }}
+                                                style={{ display: 'grid', gridTemplateColumns: activeWorkout.fromRoutine ? '24px 1fr 1fr 36px' : '24px 1fr 1fr', gap: '12px', alignItems: 'center' }}
                                             >
                                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: 'rgba(255, 255, 255, 0.5)', fontFamily: 'monospace' }}>
                                                     {index + 1}
@@ -412,27 +423,29 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                                                         }
                                                     }}
                                                 />
-                                                <button
-                                                    onClick={() => updateSet(exerciseInstance.id, set.id, { completed: !set.completed })}
-                                                    style={{
-                                                        width: '36px',
-                                                        height: '36px',
-                                                        borderRadius: '10px',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        transition: 'all 0.2s',
-                                                        cursor: 'pointer',
-                                                        border: 'none',
-                                                        background: set.completed
-                                                            ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                                                            : 'rgba(255, 255, 255, 0.1)',
-                                                        color: set.completed ? '#fff' : 'rgba(255, 255, 255, 0.4)',
-                                                        boxShadow: set.completed ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none',
-                                                    }}
-                                                >
-                                                    <Check size={16} strokeWidth={3} />
-                                                </button>
+                                                {activeWorkout.fromRoutine && (
+                                                    <button
+                                                        onClick={() => updateSet(exerciseInstance.id, set.id, { completed: !set.completed })}
+                                                        style={{
+                                                            width: '36px',
+                                                            height: '36px',
+                                                            borderRadius: '10px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            transition: 'all 0.2s',
+                                                            cursor: 'pointer',
+                                                            border: 'none',
+                                                            background: set.completed
+                                                                ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                                                                : 'rgba(255, 255, 255, 0.1)',
+                                                            color: set.completed ? '#fff' : 'rgba(255, 255, 255, 0.4)',
+                                                            boxShadow: set.completed ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none',
+                                                        }}
+                                                    >
+                                                        <Check size={16} strokeWidth={3} />
+                                                    </button>
+                                                )}
                                             </motion.div>
                                         ))}
                                     </AnimatePresence>

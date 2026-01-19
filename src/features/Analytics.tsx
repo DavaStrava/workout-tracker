@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line } from 'recharts';
-import { TrendingUp, Activity, Calendar, Dumbbell, Heart, Zap, ChevronDown } from 'lucide-react';
+import { TrendingUp, Activity, Calendar, Dumbbell, Heart, Zap, ChevronDown, Clock } from 'lucide-react';
 import { EXERCISES } from '../data/exercises';
-import { calculateTotalVolume, getWorkoutFrequency, getExerciseProgress, getVolumeByWeek } from '../utils/analyticsHelpers';
+import { calculateTotalVolume, getWorkoutFrequency, getExerciseProgress, getVolumeByWeek, getAverageDuration, getDurationByWeek } from '../utils/analyticsHelpers';
 
 type TimePeriod = 'week' | 'month' | 'year';
 
@@ -42,8 +42,13 @@ export const Analytics: React.FC = () => {
         return activeWorkouts.reduce((total, w) =>
             total + w.exercises.reduce((eTotal, e) =>
                 eTotal + e.sets.reduce((sTotal, s) =>
-                    sTotal + (s.completed && s.reps ? s.reps : 0), 0), 0), 0);
+                    // Count sets with actual reps data (reps > 0)
+                    sTotal + (s.reps && s.reps > 0 ? s.reps : 0), 0), 0), 0);
     }, [activeWorkouts]);
+
+    // Duration stats
+    const avgDuration = useMemo(() => getAverageDuration(activeWorkouts), [activeWorkouts]);
+    const weeklyDurationData = useMemo(() => getDurationByWeek(activeWorkouts), [activeWorkouts]);
 
     const formatVolume = (vol: number) => {
         if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`;
@@ -122,6 +127,18 @@ export const Analytics: React.FC = () => {
                         <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '13px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Reps</span>
                     </div>
                     <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>{totalReps}</div>
+                </div>
+                <div style={{
+                    background: 'rgba(30, 27, 50, 0.8)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <Clock size={18} style={{ color: '#60a5fa' }} />
+                        <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '13px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Avg Duration</span>
+                    </div>
+                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>{avgDuration > 0 ? `${avgDuration} min` : '—'}</div>
                 </div>
             </div>
 
@@ -202,6 +219,42 @@ export const Analytics: React.FC = () => {
                     ) : (
                         <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255, 255, 255, 0.5)' }}>
                             No volume data yet
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Duration Trend Chart */}
+            <div style={{
+                background: 'rgba(30, 27, 50, 0.8)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '24px',
+                padding: '24px',
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                    <Clock size={24} style={{ color: '#60a5fa' }} />
+                    <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fff' }}>Weekly Duration Trend</h3>
+                </div>
+                <div style={{ height: '200px', width: '100%' }}>
+                    {weeklyDurationData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={weeklyDurationData}>
+                                <XAxis dataKey="week" stroke="rgba(255, 255, 255, 0.4)" fontSize={11} tickLine={false} axisLine={false} />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: 'rgba(30, 27, 50, 0.95)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px' }}
+                                    itemStyle={{ color: '#fff' }}
+                                    formatter={(value) => [`${Number(value) || 0} min`, 'Avg Duration']}
+                                />
+                                <Bar dataKey="avgDuration" radius={[6, 6, 0, 0]}>
+                                    {weeklyDurationData.map((entry, index) => (
+                                        <Cell key={`duration-${index}`} fill={entry.avgDuration > 0 ? '#60a5fa' : 'rgba(255, 255, 255, 0.1)'} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255, 255, 255, 0.5)' }}>
+                            No duration data yet
                         </div>
                     )}
                 </div>
