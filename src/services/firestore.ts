@@ -307,6 +307,28 @@ export const permanentlyDeleteWorkoutInFirestore = async (
   }
 };
 
+// ==================== UPDATE WORKOUT ====================
+
+/**
+ * Update an existing workout in Firestore
+ */
+export const updateWorkoutInFirestore = async (
+  userId: string,
+  workout: Workout
+): Promise<{ error: string | null }> => {
+  try {
+    const workoutRef = getUserDoc(userId, COLLECTIONS.WORKOUTS, workout.id);
+    await setDoc(workoutRef, {
+      ...removeUndefined(workout),
+      updatedAt: Timestamp.now(),
+    });
+    return { error: null };
+  } catch (error: unknown) {
+    console.error('Error updating workout:', error);
+    return { error: getFirestoreErrorMessage(error) };
+  }
+};
+
 // ==================== ACTIVE WORKOUT ====================
 
 /**

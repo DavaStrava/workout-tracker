@@ -12,10 +12,13 @@ export const Analytics: React.FC = () => {
     const [timePeriod, setTimePeriod] = useState<TimePeriod>('month');
     const [selectedExercise, setSelectedExercise] = useState<string>('bench_press');
 
+    // Filter out deleted workouts from analytics
+    const activeWorkouts = useMemo(() => history.filter(w => !w.deletedAt), [history]);
+
     // Calculate stats based on time period
     const periodStats = useMemo(() => {
-        return getWorkoutFrequency(history, timePeriod);
-    }, [history, timePeriod]);
+        return getWorkoutFrequency(activeWorkouts, timePeriod);
+    }, [activeWorkouts, timePeriod]);
 
     // Calculate total volume
     const totalVolume = useMemo(() => {
@@ -23,24 +26,24 @@ export const Analytics: React.FC = () => {
             : timePeriod === 'month' ? 30 * 24 * 60 * 60 * 1000
                 : 365 * 24 * 60 * 60 * 1000;
         const now = Date.now();
-        const filtered = history.filter(w => (now - w.startTime) <= periodMs);
+        const filtered = activeWorkouts.filter(w => (now - w.startTime) <= periodMs);
         return calculateTotalVolume(filtered);
-    }, [history, timePeriod]);
+    }, [activeWorkouts, timePeriod]);
 
     // Weekly volume chart data
-    const weeklyVolumeData = useMemo(() => getVolumeByWeek(history), [history]);
+    const weeklyVolumeData = useMemo(() => getVolumeByWeek(activeWorkouts), [activeWorkouts]);
 
     // Exercise progress data
     const exerciseProgressData = useMemo(() => {
-        return getExerciseProgress(history, selectedExercise);
-    }, [history, selectedExercise]);
+        return getExerciseProgress(activeWorkouts, selectedExercise);
+    }, [activeWorkouts, selectedExercise]);
 
     const totalReps = useMemo(() => {
-        return history.reduce((total, w) =>
+        return activeWorkouts.reduce((total, w) =>
             total + w.exercises.reduce((eTotal, e) =>
                 eTotal + e.sets.reduce((sTotal, s) =>
                     sTotal + (s.completed && s.reps ? s.reps : 0), 0), 0), 0);
-    }, [history]);
+    }, [activeWorkouts]);
 
     const formatVolume = (vol: number) => {
         if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`;

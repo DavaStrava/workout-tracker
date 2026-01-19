@@ -51,6 +51,14 @@
     - [x] Add recovery status indicators (green border + "✓ Fresh" for recovered muscles) <!-- id: 39 -->
 - [x] Bug Fixes
     - [x] Fix Firestore undefined value error when saving routines (add removeUndefined helper) <!-- id: 40 -->
+- [x] Edit Workout Feature
+    - [x] Add `updateWorkoutInFirestore` function to firestore.ts <!-- id: 55 -->
+    - [x] Add edit state and methods to useWorkoutStore.tsx (editingWorkout, startEditWorkout, updateEditingSet, etc.) <!-- id: 56 -->
+    - [x] Create WorkoutEditor.tsx component with set editing UI <!-- id: 57 -->
+    - [x] Add edit button to History.tsx workout cards (outside drag area) <!-- id: 58 -->
+    - [x] Fix Analytics.tsx to exclude deleted workouts from calculations <!-- id: 59 -->
+    - [x] Add loading state and error feedback to WorkoutEditor <!-- id: 60 -->
+    - [x] Optimize WorkoutEditor handlers with useCallback <!-- id: 61 -->
 - [ ] AI-Generated Photorealistic Exercise Icons
     - [ ] Create directory structure: `public/icons/exercises/{muscle-groups}/` <!-- id: 41 -->
     - [ ] Install sharp dependency for image optimization <!-- id: 42 -->

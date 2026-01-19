@@ -106,6 +106,7 @@ workout-tracker/
     │   ├── CardioLogger.tsx
     │   ├── History.tsx
     │   ├── DeletedWorkouts.tsx
+    │   ├── WorkoutEditor.tsx
     │   └── Analytics.tsx
     ├── data/
     │   └── exercises.ts
@@ -266,6 +267,7 @@ The app uses React Context (`WorkoutProvider` in `src/hooks/useWorkoutStore.tsx`
 - Stores workout history
 - Handles routines (saved workout templates)
 - Manages soft-deleted workouts (7-day retention before permanent deletion)
+- Manages workout editing state (`editingWorkout`) for modifying completed workouts
 - Automatically syncs to localStorage on every state change
 - Hydrates from localStorage on mount
 - Auto-cleans expired deleted workouts on app load
@@ -298,9 +300,10 @@ Workout (workout session with metadata)
 - `Auth.tsx` - Login/signup screen with email and Google authentication
 - `WorkoutLogger.tsx` - Main workout interface (exercise selection, set logging)
 - `WorkoutTypeSelector.tsx` - "Garmin-style" activity type picker
-- `History.tsx` - Chronological list of past workouts with swipe-to-delete
+- `History.tsx` - Chronological list of past workouts with swipe-to-delete and edit button
 - `DeletedWorkouts.tsx` - View and restore soft-deleted workouts (7-day retention)
-- `Analytics.tsx` - Charts and stats (volume, frequency, PR tracking)
+- `WorkoutEditor.tsx` - Edit completed workouts (modify sets, add/remove sets, save changes)
+- `Analytics.tsx` - Charts and stats (volume, frequency, PR tracking). Excludes soft-deleted workouts from calculations.
 - `CardioLogger.tsx` - Cardio-specific logging interface
 
 **Shared components** (`src/components/`):
@@ -362,6 +365,7 @@ Cloud Firestore for persistent data storage:
 - Automatic migration from localStorage on first login
 - User registration with limit enforcement
 - Soft delete operations (`softDeleteWorkoutInFirestore`, `restoreWorkoutInFirestore`, `permanentlyDeleteWorkoutInFirestore`)
+- Edit workout operation (`updateWorkoutInFirestore`) - Updates existing workout with `updatedAt` timestamp
 
 **User Limit** (10 users max):
 - `getUserCount()` - Count registered users via `getCountFromServer()`
@@ -426,6 +430,8 @@ Uses Flexbox/Grid for layout, Framer Motion for animations, and TailwindCSS util
    Each leader line consists of: label text → horizontal line → diagonal line → white circle on the target muscle. Clicking any part of a leader line (label, line, or circle) navigates to the exercise list for that body area. Back buttons allow navigation: from exercise list → muscle groups → cancel workout (if empty) or return to workout (if exercises exist).
 
 9. **Soft Delete with 7-Day Retention**: Workouts can be soft-deleted via swipe-to-delete in History. Deleted workouts have a `deletedAt` timestamp and are kept for 7 days before automatic permanent deletion. Users can restore or permanently delete from the DeletedWorkouts view. The cleanup runs on app load via a ref-guarded useEffect to prevent infinite loops. Context exposes `deletedWorkouts` (computed from history), `softDeleteWorkout()`, `restoreWorkout()`, and `permanentlyDeleteWorkout()`.
+
+10. **Edit Workout Flow**: Completed workouts can be edited from History via an edit button on each workout card. The edit button is positioned absolutely outside the draggable swipe area to avoid gesture conflicts. Clicking edit calls `startEditWorkout(workoutId)` which deep-clones the workout into `editingWorkout` state. The `WorkoutEditor` component renders when `editingWorkout` is set, allowing users to modify weight/reps (or distance/duration for cardio), add sets, or remove sets. Saving uses optimistic updates with rollback on failure. The context exposes: `editingWorkout`, `startEditWorkout()`, `updateEditingSet()`, `addEditingSet()`, `removeEditingSet()`, `saveEditedWorkout()`, `cancelEdit()`.
 
 ## Common Patterns
 

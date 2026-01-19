@@ -1,18 +1,20 @@
 import React, { useState, useRef } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
-import { Clock, Dumbbell, Calendar, ChevronRight, Trash2 } from 'lucide-react';
+import { Clock, Dumbbell, Calendar, Trash2, Edit2, ChevronRight } from 'lucide-react';
 import { motion, useMotionValue, useTransform, useAnimationControls, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/Button';
 import { DeletedWorkouts } from './DeletedWorkouts';
+import { WorkoutEditor } from './WorkoutEditor';
 import type { Workout } from '../types';
 
 interface SwipeableWorkoutCardProps {
     workout: Workout;
     index: number;
     onDelete: (workout: Workout, resetPosition: () => void) => void;
+    onEdit: (workout: Workout) => void;
 }
 
-const SwipeableWorkoutCard: React.FC<SwipeableWorkoutCardProps> = ({ workout, index, onDelete }) => {
+const SwipeableWorkoutCard: React.FC<SwipeableWorkoutCardProps> = ({ workout, index, onDelete, onEdit }) => {
     const x = useMotionValue(0);
     const controls = useAnimationControls();
     const deleteButtonOpacity = useTransform(x, [-100, -50, 0], [1, 0.5, 0]);
@@ -60,6 +62,32 @@ const SwipeableWorkoutCard: React.FC<SwipeableWorkoutCardProps> = ({ workout, in
                 <Trash2 size={28} color="#fff" />
             </motion.div>
 
+            {/* Edit button - moves with card but outside drag listener */}
+            <motion.button
+                onClick={() => onEdit(workout)}
+                onPointerDownCapture={(e) => e.stopPropagation()}
+                onTouchStartCapture={(e) => e.stopPropagation()}
+                animate={controls}
+                style={{
+                    x,
+                    position: 'absolute',
+                    top: '16px',
+                    right: '16px',
+                    zIndex: 10,
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: 'none',
+                    padding: '10px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '10px',
+                }}
+                aria-label={`Edit ${workout.name}`}
+            >
+                <Edit2 size={18} color="rgba(255, 255, 255, 0.7)" />
+            </motion.button>
+
             {/* Draggable card */}
             <motion.div
                 drag="x"
@@ -80,7 +108,7 @@ const SwipeableWorkoutCard: React.FC<SwipeableWorkoutCardProps> = ({ workout, in
                 whileTap={{ cursor: 'grabbing' }}
             >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-                    <div>
+                    <div style={{ paddingRight: '48px' }}>
                         <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#fff', marginBottom: '6px' }}>
                             {workout.name}
                         </h3>
@@ -90,9 +118,6 @@ const SwipeableWorkoutCard: React.FC<SwipeableWorkoutCardProps> = ({ workout, in
                                 weekday: 'short', month: 'short', day: 'numeric'
                             })}</span>
                         </div>
-                    </div>
-                    <div style={{ color: 'rgba(255, 255, 255, 0.4)' }}>
-                        <ChevronRight size={22} />
                     </div>
                 </div>
 
@@ -116,7 +141,7 @@ const SwipeableWorkoutCard: React.FC<SwipeableWorkoutCardProps> = ({ workout, in
 };
 
 export const History: React.FC = () => {
-    const { history, deletedWorkouts, softDeleteWorkout } = useWorkout();
+    const { history, deletedWorkouts, softDeleteWorkout, editingWorkout, startEditWorkout } = useWorkout();
     const [workoutToDelete, setWorkoutToDelete] = useState<Workout | null>(null);
     const [showDeletedWorkouts, setShowDeletedWorkouts] = useState(false);
     const resetPositionRef = useRef<(() => void) | null>(null);
@@ -143,6 +168,15 @@ export const History: React.FC = () => {
             setWorkoutToDelete(null);
         }
     };
+
+    const handleEditClick = (workout: Workout) => {
+        startEditWorkout(workout.id);
+    };
+
+    // Show workout editor if editing
+    if (editingWorkout) {
+        return <WorkoutEditor />;
+    }
 
     // Show deleted workouts view
     if (showDeletedWorkouts) {
@@ -213,6 +247,7 @@ export const History: React.FC = () => {
                         workout={workout}
                         index={index}
                         onDelete={handleDeleteClick}
+                        onEdit={handleEditClick}
                     />
                 ))
             )}

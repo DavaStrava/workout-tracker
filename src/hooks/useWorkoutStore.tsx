@@ -16,6 +16,7 @@ import {
     softDeleteWorkoutInFirestore,
     restoreWorkoutInFirestore,
     permanentlyDeleteWorkoutInFirestore,
+    updateWorkoutInFirestore,
 } from '../services/firestore';
 
 interface WorkoutContextType {
@@ -25,6 +26,7 @@ interface WorkoutContextType {
     routines: Routine[];
     user: User | null;
     isLoading: boolean;
+    editingWorkout: Workout | null;
     startWorkout: (name?: string, type?: WorkoutType) => void;
     finishWorkout: () => Promise<void>;
     cancelWorkout: () => Promise<void>;
@@ -42,6 +44,12 @@ interface WorkoutContextType {
     softDeleteWorkout: (workoutId: string) => Promise<void>;
     restoreWorkout: (workoutId: string) => Promise<void>;
     permanentlyDeleteWorkout: (workoutId: string) => Promise<void>;
+    startEditWorkout: (workoutId: string) => void;
+    updateEditingSet: (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; distance: number; duration: number; intensity: CardioIntensity }>) => void;
+    addEditingSet: (exerciseInstanceId: string) => void;
+    removeEditingSet: (exerciseInstanceId: string, setId: string) => void;
+    saveEditedWorkout: () => Promise<{ error?: string }>;
+    cancelEdit: () => void;
 }
 
 const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
@@ -71,6 +79,9 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const [hasMigrated, setHasMigrated] = useState(() => {
         return localStorage.getItem('hasFirebaseMigration') === 'true';
     });
+
+    // Editing workout state
+    const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
 
     // Capture initial localStorage values for migration (to avoid stale closure issues)
     const initialDataRef = useRef({
@@ -562,6 +573,100 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     };
 
+    // ==================== EDIT WORKOUT ====================
+
+    // Start editing a workout
+    const startEditWorkout = (workoutId: string) => {
+        const workout = history.find(w => w.id === workoutId);
+        if (workout) {
+            // Deep clone the workout to avoid mutating the original
+            setEditingWorkout(JSON.parse(JSON.stringify(workout)));
+        }
+    };
+
+    // Update a set in the editing workout
+    const updateEditingSet = (
+        exerciseInstanceId: string,
+        setId: string,
+        updates: Partial<{ reps: number; weight: number; distance: number; duration: number; intensity: CardioIntensity }>
+    ) => {
+        if (!editingWorkout) return;
+        setEditingWorkout({
+            ...editingWorkout,
+            exercises: editingWorkout.exercises.map(ex =>
+                ex.id !== exerciseInstanceId ? ex : {
+                    ...ex,
+                    sets: ex.sets.map(s => s.id === setId ? { ...s, ...updates } : s)
+                }
+            )
+        });
+    };
+
+    // Add a new set to an exercise in the editing workout
+    const addEditingSet = (exerciseInstanceId: string) => {
+        if (!editingWorkout) return;
+        setEditingWorkout({
+            ...editingWorkout,
+            exercises: editingWorkout.exercises.map(ex => {
+                if (ex.id !== exerciseInstanceId) return ex;
+                const lastSet = ex.sets[ex.sets.length - 1];
+                return {
+                    ...ex,
+                    sets: [...ex.sets, {
+                        id: crypto.randomUUID(),
+                        reps: lastSet?.reps ?? 0,
+                        weight: lastSet?.weight ?? 0,
+                        completed: true,
+                    }]
+                };
+            })
+        });
+    };
+
+    // Remove a set from an exercise in the editing workout
+    const removeEditingSet = (exerciseInstanceId: string, setId: string) => {
+        if (!editingWorkout) return;
+        setEditingWorkout({
+            ...editingWorkout,
+            exercises: editingWorkout.exercises.map(ex =>
+                ex.id !== exerciseInstanceId ? ex : {
+                    ...ex,
+                    sets: ex.sets.filter(s => s.id !== setId)
+                }
+            ).filter(ex => ex.sets.length > 0) // Remove exercise if no sets left
+        });
+    };
+
+    // Save the edited workout
+    const saveEditedWorkout = async (): Promise<{ error?: string }> => {
+        if (!editingWorkout) return { error: 'No workout to save' };
+
+        const workoutToSave = editingWorkout;
+        const previousHistory = [...history];
+
+        // Optimistic update
+        setHistory(prev => prev.map(w => w.id === workoutToSave.id ? workoutToSave : w));
+        setEditingWorkout(null);
+
+        if (user) {
+            const { error } = await updateWorkoutInFirestore(user.uid, workoutToSave);
+            if (error) {
+                // Rollback on failure
+                setHistory(previousHistory);
+                setEditingWorkout(workoutToSave);
+                console.error('Failed to save edited workout:', error);
+                return { error };
+            }
+        }
+
+        return {};
+    };
+
+    // Cancel editing
+    const cancelEdit = () => {
+        setEditingWorkout(null);
+    };
+
     // Computed: workouts that have been soft-deleted (have deletedAt set)
     const deletedWorkouts = history.filter(w => w.deletedAt !== undefined);
 
@@ -596,11 +701,12 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     return (
         <WorkoutContext.Provider value={{
-            activeWorkout, history, deletedWorkouts, routines, user, isLoading,
+            activeWorkout, history, deletedWorkouts, routines, user, isLoading, editingWorkout,
             startWorkout, finishWorkout, cancelWorkout,
             addExercise, addSet, removeSet, updateSet, updateNotes, getExerciseName, getExerciseInfo,
             saveRoutine, updateRoutine, startRoutine, deleteRoutine,
-            softDeleteWorkout, restoreWorkout, permanentlyDeleteWorkout
+            softDeleteWorkout, restoreWorkout, permanentlyDeleteWorkout,
+            startEditWorkout, updateEditingSet, addEditingSet, removeEditingSet, saveEditedWorkout, cancelEdit
         }}>
             {children}
         </WorkoutContext.Provider>
