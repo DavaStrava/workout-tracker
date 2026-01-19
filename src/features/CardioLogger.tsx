@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
 import { EXERCISES } from '../data/exercises';
-import { Plus, Check, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Check, MessageSquare, ChevronDown, ChevronUp, Home } from 'lucide-react';
 import { Button } from '../components/Button';
 import { CardioFieldInput } from '../components/CardioFieldInput';
 import { CardioSportSelector } from './CardioSportSelector';
@@ -15,7 +15,12 @@ import {
 } from '../utils/cardioCalculations';
 import type { CardioIntensity, CardioFieldType, WorkoutSet } from '../types';
 
-export function CardioLogger() {
+interface CardioLoggerProps {
+  onBackToWorkoutTypeSelector: () => void;
+  onGoHome: () => void;
+}
+
+export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLoggerProps) {
   const {
     activeWorkout,
     finishWorkout,
@@ -45,7 +50,8 @@ export function CardioLogger() {
 
   const handleBack = () => {
     if (activeWorkout.exercises.length === 0) {
-      cancelWorkout();
+      // Go back to workout type selector instead of canceling
+      onBackToWorkoutTypeSelector();
     } else {
       setShowSportSelector(false);
     }
@@ -104,14 +110,17 @@ export function CardioLogger() {
 
   // Sport Selector
   if (showSportSelector) {
-    return <CardioSportSelector onSelect={handleSportSelect} onBack={handleBack} />;
+    return <CardioSportSelector onSelect={handleSportSelect} onBack={handleBack} onGoHome={onGoHome} />;
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '96px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
+        <Button variant="ghost" size="icon" onClick={onGoHome} aria-label="Go to home" style={{ flexShrink: 0 }}>
+          <Home size={24} />
+        </Button>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <h1
             style={{
               fontSize: '28px',

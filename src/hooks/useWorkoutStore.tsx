@@ -220,10 +220,22 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         localStorage.setItem('routines', JSON.stringify(routines));
     }, [routines]);
 
-    const startWorkout = (name: string = 'New Workout', type: WorkoutType = 'STRENGTH') => {
+    const startWorkout = (name?: string, type: WorkoutType = 'STRENGTH') => {
+        // Generate date-formatted name if not provided
+        const workoutName = name ?? (() => {
+            const now = new Date();
+            const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+            const dateStr = now.toLocaleDateString('en-US', {
+                month: '2-digit',
+                day: '2-digit',
+                year: '2-digit'
+            });
+            return `${dayName} Workout (${dateStr})`;
+        })();
+
         const newWorkout: Workout = {
             id: crypto.randomUUID(),
-            name,
+            name: workoutName,
             type,
             startTime: Date.now(),
             exercises: [],

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
-import { Play, ArrowLeft, Dumbbell, TrendingUp, Clock, Target, Trash2, ChevronRight } from 'lucide-react';
+import { Play, ArrowLeft, Dumbbell, TrendingUp, Clock, Target, Trash2, ChevronRight, Home } from 'lucide-react';
 import { WorkoutTypeSelector } from './WorkoutTypeSelector';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -10,15 +10,16 @@ import type { WorkoutType, Routine } from '../types';
 
 interface LandingPageProps {
     onNavigate: (tab: 'workout' | 'history' | 'analytics') => void;
+    onResumeWorkout?: () => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
-    const { routines, history, deletedWorkouts, startWorkout, startRoutine, deleteRoutine } = useWorkout();
+export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onResumeWorkout }) => {
+    const { routines, history, deletedWorkouts, activeWorkout, startWorkout, startRoutine, deleteRoutine } = useWorkout();
     const [showTypeSelector, setShowTypeSelector] = useState(false);
     const [routineToDelete, setRoutineToDelete] = useState<Routine | null>(null);
 
     const handleSelectType = (type: WorkoutType) => {
-        startWorkout('New Workout', type);
+        startWorkout(undefined, type);
         setShowTypeSelector(false);
     };
 
@@ -61,14 +62,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
     if (showTypeSelector) {
         return (
             <div className="min-h-full pb-24 px-4 pt-6 animate-fade-in">
-                <Button
-                    variant="ghost"
-                    onClick={() => setShowTypeSelector(false)}
-                    className="mb-6"
-                >
-                    <ArrowLeft size={20} className="mr-2" />
-                    Back
-                </Button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                    <Button variant="ghost" size="icon" onClick={() => setShowTypeSelector(false)} aria-label="Go back">
+                        <ArrowLeft size={24} />
+                    </Button>
+                    <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff', flex: 1 }}>Select Workout Type</h2>
+                    <Button variant="ghost" size="icon" onClick={() => setShowTypeSelector(false)} aria-label="Go to home">
+                        <Home size={24} />
+                    </Button>
+                </div>
                 <WorkoutTypeSelector onSelect={handleSelectType} />
             </div>
         );
@@ -94,6 +96,38 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     Your workout journey starts here
                 </p>
             </div>
+
+            {/* Resume Workout Card - shown when there's an active workout */}
+            {activeWorkout && onResumeWorkout && (
+                <Card
+                    variant="gradient"
+                    gradient="teal-cyan"
+                    onClick={onResumeWorkout}
+                    style={{ cursor: 'pointer', marginBottom: '24px' }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '12px',
+                            background: 'linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
+                            <Play size={24} style={{ color: '#fff' }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>
+                                Resume Workout
+                            </h3>
+                            <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>
+                                {activeWorkout.name} • {activeWorkout.exercises.length} exercise{activeWorkout.exercises.length !== 1 ? 's' : ''}
+                            </p>
+                        </div>
+                    </div>
+                </Card>
+            )}
 
             {/* Main CTA - Bold gradient button */}
             <Button
@@ -150,9 +184,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                             No saved routines yet
                         </p>
                         <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '14px', marginBottom: '16px' }}>
-                            Create your first routine to get started
+                            Start a workout and save it as a routine
                         </p>
-                        <Button variant="secondary" size="md">
+                        <Button variant="secondary" size="md" onClick={() => setShowTypeSelector(true)}>
                             Create Routine
                         </Button>
                     </div>
@@ -204,6 +238,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                                 + {routines.length - 3} more routines
                             </p>
                         )}
+                        <Button
+                            variant="secondary"
+                            size="md"
+                            onClick={() => setShowTypeSelector(true)}
+                            style={{ marginTop: '12px', width: '100%' }}
+                        >
+                            + Create New Routine
+                        </Button>
                     </div>
                 )}
             </Card>

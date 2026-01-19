@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
-import { Clock, Dumbbell, Calendar, Trash2, Edit2, ChevronRight } from 'lucide-react';
+import { Clock, Dumbbell, Calendar, Trash2, Edit2, ChevronRight, Home } from 'lucide-react';
 import { motion, useMotionValue, useTransform, useAnimationControls, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/Button';
 import { DeletedWorkouts } from './DeletedWorkouts';
@@ -140,7 +140,11 @@ const SwipeableWorkoutCard: React.FC<SwipeableWorkoutCardProps> = ({ workout, in
     );
 };
 
-export const History: React.FC = () => {
+interface HistoryProps {
+    onNavigate: (tab: 'workout' | 'history' | 'analytics') => void;
+}
+
+export const History: React.FC<HistoryProps> = ({ onNavigate }) => {
     const { history, deletedWorkouts, softDeleteWorkout, editingWorkout, startEditWorkout } = useWorkout();
     const [workoutToDelete, setWorkoutToDelete] = useState<Workout | null>(null);
     const [showDeletedWorkouts, setShowDeletedWorkouts] = useState(false);
@@ -214,17 +218,21 @@ export const History: React.FC = () => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '96px' }}>
             <header style={{ marginBottom: '16px' }}>
-                <h1 style={{
-                    fontSize: '36px',
-                    fontWeight: 900,
-                    background: 'linear-gradient(135deg, #fb923c 0%, #f472b6 50%, #c084fc 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    marginBottom: '8px',
-                }}>
-                    History
-                </h1>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <h1 style={{
+                        fontSize: '36px',
+                        fontWeight: 900,
+                        background: 'linear-gradient(135deg, #fb923c 0%, #f472b6 50%, #c084fc 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
+                    }}>
+                        History
+                    </h1>
+                    <Button variant="ghost" size="icon" onClick={() => onNavigate('workout')} aria-label="Go to home">
+                        <Home size={24} />
+                    </Button>
+                </div>
                 <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>Swipe left to delete workouts</p>
             </header>
 

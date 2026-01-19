@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Home } from 'lucide-react';
 import { Button } from '../components/Button';
 import { SportIcon } from '../components/SportIcon';
 import { CARDIO_SPORTS } from '../data/cardioSports';
@@ -7,9 +7,10 @@ import { CARDIO_SPORTS } from '../data/cardioSports';
 interface CardioSportSelectorProps {
   onSelect: (sportId: string) => void;
   onBack: () => void;
+  onGoHome: () => void;
 }
 
-export function CardioSportSelector({ onSelect, onBack }: CardioSportSelectorProps) {
+export function CardioSportSelector({ onSelect, onBack, onGoHome }: CardioSportSelectorProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '100px' }}>
       {/* Header */}
@@ -17,9 +18,12 @@ export function CardioSportSelector({ onSelect, onBack }: CardioSportSelectorPro
         <Button variant="ghost" size="icon" onClick={onBack} aria-label="Go back">
           <ChevronLeft size={24} />
         </Button>
-        <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff', flex: 1 }}>
           Select Activity
         </h2>
+        <Button variant="ghost" size="icon" onClick={onGoHome} aria-label="Go to home">
+          <Home size={24} />
+        </Button>
       </div>
 
       {/* Sport Grid */}

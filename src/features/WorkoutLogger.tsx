@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LandingPage } from './LandingPage';
 import { CardioLogger } from './CardioLogger';
+import { WorkoutTypeSelector } from './WorkoutTypeSelector';
 import { useWorkout } from '../hooks/useWorkoutStore';
-import { Plus, Check, X, ChevronLeft, Save, History } from 'lucide-react';
-import type { BodyArea } from '../types';
+import { Plus, Check, X, ChevronLeft, Save, History, Home } from 'lucide-react';
+import type { BodyArea, WorkoutType } from '../types';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -23,6 +24,15 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
     const [exerciseSelectorStep, setExerciseSelectorStep] = useState<ExerciseSelectorStep>('hidden');
     const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<BodyArea | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [showLanding, setShowLanding] = useState(false);
+    const [showWorkoutTypeSelector, setShowWorkoutTypeSelector] = useState(false);
+
+    // Reset showLanding when a new workout starts to prevent UI bugs
+    useEffect(() => {
+        if (activeWorkout) {
+            setShowLanding(false);
+        }
+    }, [activeWorkout?.id]);
 
     // Determine if we should show muscle selector (empty workout or user opened it)
     const showMuscleGroupStep = exerciseSelectorStep === 'muscle-group' ||
@@ -45,17 +55,44 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
     };
 
     const handleBackFromMuscleGroup = () => {
-        // If workout has no exercises, cancel the workout entirely
+        // If workout has no exercises, go back to workout type selector
         if (activeWorkout && activeWorkout.exercises.length === 0) {
-            cancelWorkout();
+            setShowWorkoutTypeSelector(true);
         } else {
             setExerciseSelectorStep('hidden');
         }
     };
 
+    const handleBackFromWorkoutTypeSelector = () => {
+        // Cancel workout and go back to landing page
+        cancelWorkout();
+        setShowWorkoutTypeSelector(false);
+    };
+
+    const handleWorkoutTypeSelect = (type: WorkoutType) => {
+        // Update workout type if different (workout already exists)
+        if (activeWorkout && activeWorkout.type !== type) {
+            // For now, just cancel and restart with new type
+            // In a more complete implementation, you'd update the existing workout's type
+            cancelWorkout();
+            // Small delay to allow state to settle, then the user can start fresh
+        }
+        setShowWorkoutTypeSelector(false);
+    };
+
     const handleExerciseSelect = (exerciseId: string) => {
         addExercise(exerciseId);
         setExerciseSelectorStep('hidden');
+    };
+
+    const handleGoHome = () => {
+        setShowLanding(true);
+        setExerciseSelectorStep('hidden');
+        setShowWorkoutTypeSelector(false);
+    };
+
+    const handleResumeWorkout = () => {
+        setShowLanding(false);
     };
     const [showRoutineModal, setShowRoutineModal] = useState(false);
     const [routineName, setRoutineName] = useState('');
@@ -119,9 +156,37 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
         return <LandingPage onNavigate={onNavigate} />;
     }
 
+    // Show landing page with resume option when user clicked home
+    if (showLanding) {
+        return <LandingPage onNavigate={onNavigate} onResumeWorkout={handleResumeWorkout} />;
+    }
+
+    // Show Workout Type Selector (when going back from muscle group/activity with no exercises)
+    if (showWorkoutTypeSelector) {
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%', paddingBottom: '80px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <Button variant="ghost" size="icon" onClick={handleBackFromWorkoutTypeSelector} aria-label="Go back">
+                        <ChevronLeft size={24} />
+                    </Button>
+                    <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff', flex: 1 }}>Select Workout Type</h2>
+                    <Button variant="ghost" size="icon" onClick={handleGoHome} aria-label="Go to home">
+                        <Home size={24} />
+                    </Button>
+                </div>
+                <WorkoutTypeSelector onSelect={handleWorkoutTypeSelect} />
+            </div>
+        );
+    }
+
     // Render CardioLogger for CARDIO workouts
     if (activeWorkout.type === 'CARDIO') {
-        return <CardioLogger />;
+        return (
+            <CardioLogger
+                onBackToWorkoutTypeSelector={() => setShowWorkoutTypeSelector(true)}
+                onGoHome={handleGoHome}
+            />
+        );
     }
 
     // Exercise Selector - Muscle Group Step (also shown when workout has no exercises)
@@ -132,7 +197,10 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                     <Button variant="ghost" size="icon" onClick={handleBackFromMuscleGroup} aria-label="Go back">
                         <ChevronLeft size={24} />
                     </Button>
-                    <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff' }}>Select Muscle Group</h2>
+                    <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff', flex: 1 }}>Select Muscle Group</h2>
+                    <Button variant="ghost" size="icon" onClick={handleGoHome} aria-label="Go to home">
+                        <Home size={24} />
+                    </Button>
                 </div>
 
                 <AnatomicalBodySelector onSelect={handleMuscleGroupSelect} />
@@ -156,7 +224,10 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                         <Button variant="ghost" size="icon" onClick={handleBackFromExerciseList} aria-label="Go back">
                             <ChevronLeft size={24} />
                         </Button>
-                        <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff' }}>{selectedMuscleGroup}</h2>
+                        <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff', flex: 1 }}>{selectedMuscleGroup}</h2>
+                        <Button variant="ghost" size="icon" onClick={handleGoHome} aria-label="Go to home">
+                            <Home size={24} />
+                        </Button>
                     </div>
 
                     <ExerciseSelector
@@ -174,8 +245,11 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '96px' }}>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
+                <Button variant="ghost" size="icon" onClick={handleGoHome} aria-label="Go to home" style={{ flexShrink: 0 }}>
+                    <Home size={24} />
+                </Button>
+                <div style={{ flex: 1, minWidth: 0 }}>
                     <h1 style={{
                         fontSize: '28px',
                         fontWeight: 700,
@@ -193,20 +267,20 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <Button
-                        variant="ghost"
-                        size="icon"
+                        variant="primary"
                         onClick={handleSaveRoutine}
-                        title={activeWorkout.routineId ? "Update Routine" : "Save as Routine"}
                         disabled={isSavingRoutine}
                     >
                         {isSavingRoutine ? (
-                            <span style={{ width: 20, height: 20, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                            <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 1s linear infinite', marginRight: '8px' }} />
                         ) : (
-                            <Save size={20} />
+                            <Save size={16} style={{ marginRight: '8px' }} />
                         )}
+                        {activeWorkout.routineId ? 'Update' : 'Save'}
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={cancelWorkout} title="Cancel">
-                        <X size={20} />
+                    <Button variant="primary" onClick={cancelWorkout}>
+                        <X size={16} style={{ marginRight: '8px' }} />
+                        Cancel
                     </Button>
                     <Button variant="primary" onClick={finishWorkout}>
                         Finish

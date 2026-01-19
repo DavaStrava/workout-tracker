@@ -63,7 +63,7 @@ const AppContent: React.FC = () => {
       </div>
       <Layout activeTab={activeTab} onTabChange={setActiveTab}>
         {activeTab === 'workout' && <WorkoutLogger onNavigate={setActiveTab} />}
-        {activeTab === 'history' && <History />}
+        {activeTab === 'history' && <History onNavigate={setActiveTab} />}
         {activeTab === 'analytics' && <Analytics />}
       </Layout>
     </>
