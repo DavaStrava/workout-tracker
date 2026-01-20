@@ -54,6 +54,8 @@ interface WorkoutContextType {
     getExerciseInfo: (id: string) => Exercise | undefined;
     addSet: (exerciseInstanceId: string) => Promise<void>;
     removeSet: (exerciseInstanceId: string, setId: string) => Promise<void>;
+    finishExercise: (exerciseInstanceId: string) => Promise<void>;
+    editExercise: (exerciseInstanceId: string) => Promise<void>;
     getExerciseName: (id: string) => string;
     saveRoutine: (name: string) => Promise<{ error?: string }>;
     updateRoutine: () => Promise<{ error?: string }>;
@@ -556,6 +558,53 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     };
 
+    const finishExercise = async (exerciseInstanceId: string) => {
+        if (!activeWorkout) return;
+
+        const updatedWorkout = {
+            ...activeWorkout,
+            exercises: activeWorkout.exercises.map(ex => {
+                if (ex.id !== exerciseInstanceId) return ex;
+                return {
+                    ...ex,
+                    completedAt: Date.now(),
+                    sets: ex.sets.map(s => ({ ...s, completed: true }))
+                };
+            })
+        };
+
+        // Optimistic update
+        setActiveWorkout(updatedWorkout);
+
+        if (user) {
+            await saveActiveWorkoutToFirestore(user.uid, updatedWorkout);
+        }
+    };
+
+    const editExercise = async (exerciseInstanceId: string) => {
+        if (!activeWorkout) return;
+
+        const updatedWorkout = {
+            ...activeWorkout,
+            exercises: activeWorkout.exercises.map(ex => {
+                if (ex.id !== exerciseInstanceId) return ex;
+                // Clear completedAt and mark all sets as not completed
+                const { completedAt, ...restEx } = ex;
+                return {
+                    ...restEx,
+                    sets: ex.sets.map(s => ({ ...s, completed: false }))
+                };
+            })
+        };
+
+        // Optimistic update
+        setActiveWorkout(updatedWorkout);
+
+        if (user) {
+            await saveActiveWorkoutToFirestore(user.uid, updatedWorkout);
+        }
+    };
+
     const updateSet = async (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; distance: number; duration: number; intensity: CardioIntensity; completed: boolean }>) => {
         if (!activeWorkout) return;
 
@@ -967,7 +1016,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
             lastError, clearError,
             lastFinishedWorkout, canResumeLastWorkout, justFinishedWorkoutId, clearJustFinished,
             startWorkout, finishWorkout, cancelWorkout, pauseWorkout, resumeWorkout, resumeFinishedWorkout,
-            addExercise, addSet, removeSet, updateSet, updateNotes, getExerciseName, getExerciseInfo,
+            addExercise, addSet, removeSet, finishExercise, editExercise, updateSet, updateNotes, getExerciseName, getExerciseInfo,
             saveRoutine, updateRoutine, startRoutine, deleteRoutine,
             softDeleteWorkout, restoreWorkout, permanentlyDeleteWorkout,
             startEditWorkout, updateEditingSet, addEditingSet, removeEditingSet, saveEditedWorkout, cancelEdit

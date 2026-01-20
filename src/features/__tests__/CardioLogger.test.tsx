@@ -67,6 +67,17 @@ vi.mock('../../hooks/useWorkoutStore', () => ({
     updateSet: mockUpdateSet,
     updateNotes: mockUpdateNotes,
     getExerciseName: mockGetExerciseName,
+    finishExercise: vi.fn(),
+    editExercise: vi.fn(),
+  }),
+}));
+
+vi.mock('../../hooks/usePreferences', () => ({
+  usePreferences: () => ({
+    preferences: { unitSystem: 'metric' },
+    unitSystem: 'metric',
+    setUnitSystem: vi.fn(),
+    isLoading: false,
   }),
 }));
 
@@ -347,38 +358,24 @@ describe('CardioLogger', () => {
     });
   });
 
-  describe('mark complete toggle', () => {
+  describe('finish activity toggle', () => {
     beforeEach(() => {
-      // Mark complete toggle is only shown for routine workouts (fromRoutine: true)
       mockActiveWorkout = createMockWorkout({
         exercises: [createMockCardioExercise()],
-        fromRoutine: true,
       });
     });
 
-    it('should render Mark Complete button', () => {
+    it('should render Finish Activity button', () => {
       renderCardioLogger();
 
-      expect(screen.getByText('Mark Complete')).toBeInTheDocument();
+      expect(screen.getByText('Finish Activity')).toBeInTheDocument();
     });
 
-    it('should call updateSet with completed true when clicked', async () => {
-      const user = userEvent.setup();
-
-      renderCardioLogger();
-
-      await user.click(screen.getByText('Mark Complete'));
-
-      expect(mockUpdateSet).toHaveBeenCalledWith('exercise-1', 'set-1', {
-        completed: true,
-      });
-    });
-
-    it('should show Completed text when already completed', () => {
+    it('should render Edit Activity button when exercise is completed', () => {
       mockActiveWorkout = createMockWorkout({
-        fromRoutine: true,
         exercises: [
           createMockCardioExercise({
+            completedAt: Date.now(),
             sets: [
               {
                 id: 'set-1',
@@ -394,7 +391,7 @@ describe('CardioLogger', () => {
 
       renderCardioLogger();
 
-      expect(screen.getByText('Completed')).toBeInTheDocument();
+      expect(screen.getByText('Edit Activity')).toBeInTheDocument();
     });
   });
 

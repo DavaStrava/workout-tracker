@@ -31,16 +31,17 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       {/* Search Input */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-white/40" />
         <Input
           type="text"
           placeholder="Search exercises..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 w-full"
+          className="pl-12 w-full"
+          style={{ fontSize: '16px', padding: '16px 16px 16px 48px' }}
         />
       </div>
 

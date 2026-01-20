@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
 import { usePreferences } from '../hooks/usePreferences';
 import { EXERCISES } from '../data/exercises';
-import { Plus, Check, MessageSquare, ChevronDown, ChevronUp, Home } from 'lucide-react';
+import { Plus, Check, MessageSquare, ChevronDown, ChevronUp, Home, Pencil } from 'lucide-react';
 import { Button } from '../components/Button';
 import { CardioFieldInput } from '../components/CardioFieldInput';
 import { CardioSportSelector } from './CardioSportSelector';
@@ -34,6 +34,8 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
     updateSet,
     updateNotes,
     getExerciseName,
+    finishExercise,
+    editExercise,
   } = useWorkout();
   const { unitSystem } = usePreferences();
 
@@ -196,6 +198,7 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
 
           const sportConfig = getExerciseSportConfig(exerciseInstance.exerciseId);
           const isExpanded = expandedActivities.has(exerciseInstance.id);
+          const isExerciseCompleted = !!exerciseInstance.completedAt;
 
           // Split fields into required and optional
           const requiredFields = sportConfig?.fields.filter(f => f.required) || [];
@@ -273,6 +276,7 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
                         sportConfig?.id
                       )
                     }
+                    disabled={isExerciseCompleted}
                   />
                 ))}
 
@@ -337,6 +341,7 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
                           key={level}
                           aria-pressed={isActive}
                           aria-label={`${level} intensity`}
+                          disabled={isExerciseCompleted}
                           onClick={() =>
                             updateSet(exerciseInstance.id, set.id, { intensity: level })
                           }
@@ -348,7 +353,7 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
                             fontSize: '14px',
                             textTransform: 'capitalize',
                             transition: 'all 0.2s',
-                            cursor: 'pointer',
+                            cursor: isExerciseCompleted ? 'not-allowed' : 'pointer',
                             background: isActive
                               ? colors[level].bg
                               : 'rgba(255, 255, 255, 0.05)',
@@ -356,6 +361,7 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
                               ? `1px solid ${colors[level].border}`
                               : '1px solid rgba(255, 255, 255, 0.1)',
                             color: isActive ? colors[level].text : 'rgba(255, 255, 255, 0.6)',
+                            opacity: isExerciseCompleted ? 0.7 : 1,
                           }}
                         >
                           {level}
@@ -366,7 +372,7 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
                 </div>
 
                 {/* Expand/Collapse for optional fields */}
-                {optionalFields.length > 0 && (
+                {optionalFields.length > 0 && !isExerciseCompleted && (
                   <>
                     <button
                       onClick={() => toggleExpanded(exerciseInstance.id)}
@@ -418,6 +424,7 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
                                   sportConfig?.id
                                 )
                               }
+                              disabled={isExerciseCompleted}
                             />
                           ))}
                         </motion.div>
@@ -426,38 +433,28 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
                   </>
                 )}
 
-                {/* Completed toggle - only show for routine workouts */}
-                {activeWorkout.fromRoutine && (
-                  <button
-                    aria-pressed={set.completed}
-                    aria-label={set.completed ? 'Mark as incomplete' : 'Mark as complete'}
-                    onClick={() =>
-                      updateSet(exerciseInstance.id, set.id, { completed: !set.completed })
-                    }
-                    style={{
-                      width: '100%',
-                      padding: '14px 20px',
-                      borderRadius: '16px',
-                      fontWeight: 600,
-                      fontSize: '15px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '10px',
-                      transition: 'all 0.2s',
-                      cursor: 'pointer',
-                      border: 'none',
-                      background: set.completed
-                        ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                        : 'rgba(255, 255, 255, 0.05)',
-                      color: set.completed ? '#fff' : 'rgba(255, 255, 255, 0.6)',
-                      boxShadow: set.completed ? '0 8px 20px rgba(16, 185, 129, 0.3)' : 'none',
-                    }}
-                  >
-                    <Check size={18} />
-                    {set.completed ? 'Completed' : 'Mark Complete'}
-                  </button>
-                )}
+                {/* Finish/Edit Exercise Button */}
+                <div style={{ marginTop: '8px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                  {!isExerciseCompleted ? (
+                    <Button
+                      variant="primary"
+                      onClick={() => finishExercise(exerciseInstance.id)}
+                      style={{ width: '100%' }}
+                    >
+                      <Check size={18} style={{ marginRight: '8px' }} />
+                      Finish Activity
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      onClick={() => editExercise(exerciseInstance.id)}
+                      style={{ width: '100%' }}
+                    >
+                      <Pencil size={18} style={{ marginRight: '8px' }} />
+                      Edit Activity
+                    </Button>
+                  )}
+                </div>
               </div>
             </motion.div>
           );

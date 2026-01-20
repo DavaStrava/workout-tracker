@@ -8,6 +8,34 @@ export type BodyArea =
   | 'Legs'
   | 'Cardio';
 
+// Granular muscle groups for detailed exercise targeting (20 muscles)
+export type MuscleGroup =
+  // Chest (1)
+  | 'Chest'
+  // Shoulders (3)
+  | 'Anterior Deltoid'
+  | 'Lateral Deltoid'
+  | 'Posterior Deltoid'
+  // Arms (3)
+  | 'Biceps'
+  | 'Triceps'
+  | 'Forearms'
+  // Abdomen (2)
+  | 'Abs'
+  | 'Obliques'
+  // Back (4)
+  | 'Lats'
+  | 'Upper Back'
+  | 'Traps'
+  | 'Lower Back'
+  // Glutes (1)
+  | 'Glutes'
+  // Legs (4)
+  | 'Quads'
+  | 'Hamstrings'
+  | 'Calves'
+  | 'Hip Flexors';
+
 export type Equipment =
   | 'barbell'
   | 'dumbbell'
@@ -63,10 +91,13 @@ export interface Exercise {
   id: string;
   name: string;
   bodyArea: BodyArea;
-  secondaryAreas?: BodyArea[];  // Secondary muscle groups targeted
+  secondaryAreas?: BodyArea[];  // Secondary muscle groups targeted (kept for backwards compatibility)
   equipment?: Equipment;
   isCardio?: boolean;
   sportId?: string;  // Links to CardioSportConfig for cardio exercises
+  // Granular muscle targeting (NEW)
+  primaryMuscles?: MuscleGroup[];
+  secondaryMuscles?: MuscleGroup[];
 }
 
 export interface WorkoutSet {
@@ -97,6 +128,7 @@ export interface WorkoutExercise {
   exerciseId: string;
   sets: WorkoutSet[];
   addedAt?: number; /* Timestamp when exercise was added to workout */
+  completedAt?: number; /* Timestamp when exercise was marked complete */
 }
 
 export interface Workout {

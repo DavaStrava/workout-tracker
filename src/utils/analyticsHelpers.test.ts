@@ -142,6 +142,57 @@ describe('analyticsHelpers', () => {
       const result = getLastPerformance(workouts, 'bench-press');
       expect(result).toBeNull();
     });
+
+    it('should skip soft-deleted workouts', () => {
+      const now = Date.now();
+      const workouts = [
+        // Most recent workout is deleted - should be skipped
+        createWorkout({
+          id: 'deleted-workout',
+          startTime: now,
+          deletedAt: now,
+          exercises: [{
+            id: 'ex-1',
+            exerciseId: 'bench-press',
+            sets: [{ id: 'set-1', weight: 150, reps: 5, completed: true }]
+          }]
+        }),
+        // Older workout not deleted - should be returned
+        createWorkout({
+          id: 'active-workout',
+          startTime: now - 1000,
+          exercises: [{
+            id: 'ex-2',
+            exerciseId: 'bench-press',
+            sets: [{ id: 'set-2', weight: 100, reps: 10, completed: true }]
+          }]
+        })
+      ];
+
+      const result = getLastPerformance(workouts, 'bench-press');
+      // Should return data from the non-deleted workout (100kg x 10), not the deleted one (150kg x 5)
+      expect(result?.weight).toBe(100);
+      expect(result?.reps).toBe(10);
+    });
+
+    it('should return null if all workouts with exercise are deleted', () => {
+      const now = Date.now();
+      const workouts = [
+        createWorkout({
+          id: 'deleted-workout',
+          startTime: now,
+          deletedAt: now,
+          exercises: [{
+            id: 'ex-1',
+            exerciseId: 'bench-press',
+            sets: [{ id: 'set-1', weight: 100, reps: 10, completed: true }]
+          }]
+        })
+      ];
+
+      const result = getLastPerformance(workouts, 'bench-press');
+      expect(result).toBeNull();
+    });
   });
 
   describe('calculateTotalVolume', () => {

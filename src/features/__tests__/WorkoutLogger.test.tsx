@@ -64,6 +64,17 @@ vi.mock('../../hooks/useWorkoutStore', () => ({
     startWorkout: vi.fn(),
     startRoutine: vi.fn(),
     deleteRoutine: vi.fn(),
+    finishExercise: vi.fn(),
+    editExercise: vi.fn(),
+  }),
+}));
+
+vi.mock('../../hooks/usePreferences', () => ({
+  usePreferences: () => ({
+    preferences: { unitSystem: 'metric' },
+    unitSystem: 'metric',
+    setUnitSystem: vi.fn(),
+    isLoading: false,
   }),
 }));
 

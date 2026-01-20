@@ -4,7 +4,7 @@ import { CardioLogger } from './CardioLogger';
 import { WorkoutTypeSelector } from './WorkoutTypeSelector';
 import { useWorkout } from '../hooks/useWorkoutStore';
 import { usePreferences } from '../hooks/usePreferences';
-import { Plus, Check, X, ChevronLeft, Save, History, Home } from 'lucide-react';
+import { Plus, Check, X, ChevronLeft, Save, History, Home, Pencil } from 'lucide-react';
 import type { BodyArea, WorkoutType } from '../types';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -26,7 +26,7 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
     const {
         activeWorkout, history, finishWorkout, cancelWorkout,
         addExercise, addSet, removeSet, updateSet, getExerciseName,
-        saveRoutine, updateRoutine
+        saveRoutine, updateRoutine, finishExercise, editExercise
     } = useWorkout();
     const { unitSystem } = usePreferences();
     const weightUnit = getWeightUnit(unitSystem);
@@ -397,97 +397,139 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
 
                                     {/* Sets */}
                                     <AnimatePresence initial={false}>
-                                        {exerciseInstance.sets.map((set, index) => (
-                                            <motion.div
-                                                key={set.id}
-                                                initial={{ opacity: 0, height: 0 }}
-                                                animate={{ opacity: 1, height: 'auto' }}
-                                                exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
-                                                style={{ display: 'grid', gridTemplateColumns: activeWorkout.fromRoutine ? '24px 1fr 1fr 36px' : '24px 1fr 1fr', gap: '12px', alignItems: 'center' }}
-                                            >
-                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: 'rgba(255, 255, 255, 0.5)', fontFamily: 'monospace' }}>
-                                                    {index + 1}
-                                                </div>
-                                                <Input
-                                                    type="number"
-                                                    style={{ height: '40px', textAlign: 'center', padding: '4px', background: 'rgba(255, 255, 255, 0.05)' }}
-                                                    placeholder="-"
-                                                    min={weightConstraints.min}
-                                                    max={weightConstraints.max}
-                                                    step={weightConstraints.step}
-                                                    value={set.weight ? displayWeight(set.weight, unitSystem) : ''}
-                                                    onChange={(e) => {
-                                                        const value = parseFloat(e.target.value);
-                                                        if (!isNaN(value) && value >= weightConstraints.min && value <= weightConstraints.max) {
-                                                            updateSet(exerciseInstance.id, set.id, { weight: storageWeight(value, unitSystem) });
-                                                        } else if (e.target.value === '') {
-                                                            updateSet(exerciseInstance.id, set.id, { weight: 0 });
-                                                        }
-                                                    }}
-                                                />
-                                                <Input
-                                                    type="number"
-                                                    style={{ height: '40px', textAlign: 'center', padding: '4px', background: 'rgba(255, 255, 255, 0.05)' }}
-                                                    placeholder="-"
-                                                    min="0"
-                                                    max="999"
-                                                    step="1"
-                                                    value={set.reps || ''}
-                                                    onChange={(e) => {
-                                                        const value = parseInt(e.target.value, 10);
-                                                        if (!isNaN(value) && value >= 0 && value <= 999) {
-                                                            updateSet(exerciseInstance.id, set.id, { reps: value });
-                                                        } else if (e.target.value === '') {
-                                                            updateSet(exerciseInstance.id, set.id, { reps: 0 });
-                                                        }
-                                                    }}
-                                                />
-                                                {activeWorkout.fromRoutine && (
-                                                    <button
-                                                        onClick={() => updateSet(exerciseInstance.id, set.id, { completed: !set.completed })}
+                                        {exerciseInstance.sets.map((set, index) => {
+                                            const isExerciseCompleted = !!exerciseInstance.completedAt;
+                                            return (
+                                                <motion.div
+                                                    key={set.id}
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: 'auto' }}
+                                                    exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                                                    style={{ display: 'grid', gridTemplateColumns: activeWorkout.fromRoutine ? '24px 1fr 1fr 36px' : '24px 1fr 1fr', gap: '12px', alignItems: 'center' }}
+                                                >
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: 'rgba(255, 255, 255, 0.5)', fontFamily: 'monospace' }}>
+                                                        {index + 1}
+                                                    </div>
+                                                    <Input
+                                                        type="number"
                                                         style={{
-                                                            width: '36px',
-                                                            height: '36px',
-                                                            borderRadius: '10px',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            transition: 'all 0.2s',
-                                                            cursor: 'pointer',
-                                                            border: 'none',
-                                                            background: set.completed
-                                                                ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                                                                : 'rgba(255, 255, 255, 0.1)',
-                                                            color: set.completed ? '#fff' : 'rgba(255, 255, 255, 0.4)',
-                                                            boxShadow: set.completed ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none',
+                                                            height: '40px',
+                                                            textAlign: 'center',
+                                                            padding: '4px',
+                                                            background: isExerciseCompleted ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                                                            opacity: isExerciseCompleted ? 0.7 : 1,
                                                         }}
-                                                    >
-                                                        <Check size={16} strokeWidth={3} />
-                                                    </button>
-                                                )}
-                                            </motion.div>
-                                        ))}
+                                                        placeholder="-"
+                                                        min={weightConstraints.min}
+                                                        max={weightConstraints.max}
+                                                        step={weightConstraints.step}
+                                                        value={set.weight ? displayWeight(set.weight, unitSystem) : ''}
+                                                        readOnly={isExerciseCompleted}
+                                                        disabled={isExerciseCompleted}
+                                                        onChange={(e) => {
+                                                            const value = parseFloat(e.target.value);
+                                                            if (!isNaN(value) && value >= weightConstraints.min && value <= weightConstraints.max) {
+                                                                updateSet(exerciseInstance.id, set.id, { weight: storageWeight(value, unitSystem) });
+                                                            } else if (e.target.value === '') {
+                                                                updateSet(exerciseInstance.id, set.id, { weight: 0 });
+                                                            }
+                                                        }}
+                                                    />
+                                                    <Input
+                                                        type="number"
+                                                        style={{
+                                                            height: '40px',
+                                                            textAlign: 'center',
+                                                            padding: '4px',
+                                                            background: isExerciseCompleted ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                                                            opacity: isExerciseCompleted ? 0.7 : 1,
+                                                        }}
+                                                        placeholder="-"
+                                                        min="0"
+                                                        max="999"
+                                                        step="1"
+                                                        value={set.reps || ''}
+                                                        readOnly={isExerciseCompleted}
+                                                        disabled={isExerciseCompleted}
+                                                        onChange={(e) => {
+                                                            const value = parseInt(e.target.value, 10);
+                                                            if (!isNaN(value) && value >= 0 && value <= 999) {
+                                                                updateSet(exerciseInstance.id, set.id, { reps: value });
+                                                            } else if (e.target.value === '') {
+                                                                updateSet(exerciseInstance.id, set.id, { reps: 0 });
+                                                            }
+                                                        }}
+                                                    />
+                                                    {activeWorkout.fromRoutine && (
+                                                        <button
+                                                            onClick={() => updateSet(exerciseInstance.id, set.id, { completed: !set.completed })}
+                                                            disabled={isExerciseCompleted}
+                                                            style={{
+                                                                width: '36px',
+                                                                height: '36px',
+                                                                borderRadius: '10px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                transition: 'all 0.2s',
+                                                                cursor: isExerciseCompleted ? 'not-allowed' : 'pointer',
+                                                                border: 'none',
+                                                                background: set.completed
+                                                                    ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                                                                    : 'rgba(255, 255, 255, 0.1)',
+                                                                color: set.completed ? '#fff' : 'rgba(255, 255, 255, 0.4)',
+                                                                boxShadow: set.completed ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none',
+                                                                opacity: isExerciseCompleted ? 0.7 : 1,
+                                                            }}
+                                                        >
+                                                            <Check size={16} strokeWidth={3} />
+                                                        </button>
+                                                    )}
+                                                </motion.div>
+                                            );
+                                        })}
                                     </AnimatePresence>
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                                    {exerciseInstance.sets.length > 0 && (
+                                    {!exerciseInstance.completedAt ? (
+                                        <>
+                                            {exerciseInstance.sets.length > 0 && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    style={{ color: '#f87171' }}
+                                                    onClick={() => removeSet(exerciseInstance.id, exerciseInstance.sets[exerciseInstance.sets.length - 1].id)}
+                                                >
+                                                    Remove Set
+                                                </Button>
+                                            )}
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                onClick={() => addSet(exerciseInstance.id)}
+                                            >
+                                                + Add Set
+                                            </Button>
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                onClick={() => finishExercise(exerciseInstance.id)}
+                                            >
+                                                <Check size={16} style={{ marginRight: '6px' }} />
+                                                Done
+                                            </Button>
+                                        </>
+                                    ) : (
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            style={{ color: '#f87171' }}
-                                            onClick={() => removeSet(exerciseInstance.id, exerciseInstance.sets[exerciseInstance.sets.length - 1].id)}
+                                            onClick={() => editExercise(exerciseInstance.id)}
                                         >
-                                            Remove Set
+                                            <Pencil size={16} style={{ marginRight: '6px' }} />
+                                            Edit
                                         </Button>
                                     )}
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        onClick={() => addSet(exerciseInstance.id)}
-                                    >
-                                        + Add Set
-                                    </Button>
                                 </div>
                             </div>
                         );

@@ -19,6 +19,9 @@ export function getLastPerformance(
 ): { weight: number; reps: number; date: string } | null {
     // Search through history from most recent to oldest
     for (const workout of history) {
+        // Skip soft-deleted workouts
+        if (workout.deletedAt) continue;
+
         const exerciseLog = workout.exercises.find(e => e.exerciseId === exerciseId);
         if (exerciseLog && exerciseLog.sets.length > 0) {
             // Find the heaviest set with actual data (weight > 0 and reps > 0)
