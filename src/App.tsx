@@ -8,11 +8,23 @@ import { WorkoutProvider, useWorkout } from './hooks/useWorkoutStore';
 import { Button } from './components/Button';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Credits } from './components/Credits';
+import { ToastContainer, type ToastData } from './components/Toast';
 import { signOut } from './services/auth';
 
 const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'workout' | 'history' | 'analytics'>('workout');
-  const { user, isLoading } = useWorkout();
+  const { user, isLoading, lastError, clearError } = useWorkout();
+
+  // Convert lastError to toast format
+  const toasts: ToastData[] = lastError ? [{
+    id: lastError.id,
+    message: lastError.message,
+    type: 'error',
+    action: {
+      label: 'Retry',
+      onClick: lastError.retry,
+    },
+  }] : [];
 
   const handleSignOut = async () => {
     await signOut();
@@ -48,6 +60,7 @@ const AppContent: React.FC = () => {
   // Show main app if authenticated
   return (
     <>
+      <ToastContainer toasts={toasts} onDismiss={clearError} />
       <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
         <span className="text-sm text-zinc-400 hidden sm:inline">
           {user.displayName || user.email}

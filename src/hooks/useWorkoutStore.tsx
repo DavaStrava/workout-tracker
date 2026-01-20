@@ -19,6 +19,13 @@ import {
     updateWorkoutInFirestore,
 } from '../services/firestore';
 
+// Error with retry capability
+export interface RetryableError {
+    id: string;
+    message: string;
+    retry: () => Promise<void>;
+}
+
 interface WorkoutContextType {
     activeWorkout: Workout | null;
     history: Workout[];
@@ -28,6 +35,8 @@ interface WorkoutContextType {
     isLoading: boolean;
     editingWorkout: Workout | null;
     isWorkoutPaused: boolean;
+    lastError: RetryableError | null;
+    clearError: () => void;
     startWorkout: (name?: string, type?: WorkoutType) => void;
     finishWorkout: () => Promise<void>;
     cancelWorkout: () => Promise<void>;
@@ -86,6 +95,10 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Editing workout state
     const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
 
+    // Error state with retry capability
+    const [lastError, setLastError] = useState<RetryableError | null>(null);
+    const clearError = () => setLastError(null);
+
     // Capture initial localStorage values for migration (to avoid stale closure issues)
     const initialDataRef = useRef({
         workouts: history,
@@ -101,6 +114,10 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     // Track if we've run the expired workout cleanup for this user session
     const hasCleanedUpExpiredRef = useRef<string | null>(null);
+
+    // Track latest history for cleanup function (avoids stale closure)
+    const historyRef = useRef(history);
+    historyRef.current = history;
 
     // Cleanup timeouts on unmount
     useEffect(() => {
@@ -285,6 +302,16 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 setHistory(prev => prev.filter(w => w.id !== completedWorkout.id));
                 setActiveWorkout(previousWorkout);
                 isFinishingWorkoutRef.current = false;
+
+                // Set error with retry capability
+                setLastError({
+                    id: crypto.randomUUID(),
+                    message: 'Failed to save workout. Please try again.',
+                    retry: async () => {
+                        clearError();
+                        await finishWorkout();
+                    },
+                });
                 return;
             }
         }
@@ -647,7 +674,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const workout = history.find(w => w.id === workoutId);
         if (workout) {
             // Deep clone the workout to avoid mutating the original
-            setEditingWorkout(JSON.parse(JSON.stringify(workout)));
+            setEditingWorkout(structuredClone(workout));
         }
     };
 
@@ -737,34 +764,52 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Computed: workouts that have been soft-deleted (have deletedAt set)
     const deletedWorkouts = history.filter(w => w.deletedAt !== undefined);
 
-    // Cleanup expired workouts (older than 7 days) on load
+    // Cleanup expired workouts (older than 7 days) - runs once after initial data load
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-    useEffect(() => {
-        // Use user ID or 'local' as the cleanup key to run once per user session
-        const cleanupKey = user?.uid || 'local';
+
+    // Function to clean up expired workouts - called once after data is loaded
+    const cleanupExpiredWorkouts = React.useCallback((workouts: Workout[], userId: string | null) => {
+        const cleanupKey = userId || 'local';
 
         // Skip if we've already cleaned up for this user
         if (hasCleanedUpExpiredRef.current === cleanupKey) {
             return;
         }
 
-        const expiredWorkouts = history.filter(
+        const expiredWorkouts = workouts.filter(
             w => w.deletedAt && (Date.now() - w.deletedAt > SEVEN_DAYS_MS)
         );
 
         if (expiredWorkouts.length > 0) {
             console.log(`Cleaning up ${expiredWorkouts.length} expired deleted workout(s)...`);
+            // Delete each expired workout
             expiredWorkouts.forEach(w => {
-                permanentlyDeleteWorkout(w.id);
+                // Optimistic update
+                setHistory(prev => prev.filter(workout => workout.id !== w.id));
+
+                // Sync to Firestore if user is authenticated
+                if (userId) {
+                    permanentlyDeleteWorkoutInFirestore(userId, w.id).catch(error => {
+                        console.error('Failed to delete expired workout:', error);
+                    });
+                }
             });
         }
 
         // Mark cleanup as done for this user
         hasCleanedUpExpiredRef.current = cleanupKey;
-    // Only run on mount and when user/history changes
-    // The ref prevents re-running for the same user even if history changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user, history]);
+    }, []);
+
+    // Run cleanup once when user changes (after Firestore subscription delivers initial data)
+    useEffect(() => {
+        // Small delay to ensure Firestore subscription has delivered initial data
+        const timeoutId = setTimeout(() => {
+            // Use ref to get latest history value (avoids stale closure)
+            cleanupExpiredWorkouts(historyRef.current, user?.uid || null);
+        }, 1000);
+
+        return () => clearTimeout(timeoutId);
+    }, [user?.uid, cleanupExpiredWorkouts]); // Only re-run when user changes, not history
 
     // Computed: is the workout currently paused
     const isWorkoutPaused = activeWorkout?.pausedAt !== undefined;
@@ -772,6 +817,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return (
         <WorkoutContext.Provider value={{
             activeWorkout, history, deletedWorkouts, routines, user, isLoading, editingWorkout, isWorkoutPaused,
+            lastError, clearError,
             startWorkout, finishWorkout, cancelWorkout, pauseWorkout, resumeWorkout,
             addExercise, addSet, removeSet, updateSet, updateNotes, getExerciseName, getExerciseInfo,
             saveRoutine, updateRoutine, startRoutine, deleteRoutine,

@@ -130,14 +130,22 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
         setRoutineSuccess('');
     };
 
+    const MAX_ROUTINE_NAME_LENGTH = 100;
+
     const confirmSaveRoutine = async () => {
-        if (!routineName.trim()) return;
+        const trimmedName = routineName.trim();
+        if (!trimmedName) return;
+
+        if (trimmedName.length > MAX_ROUTINE_NAME_LENGTH) {
+            setRoutineError(`Routine name must be ${MAX_ROUTINE_NAME_LENGTH} characters or less`);
+            return;
+        }
 
         setIsSavingRoutine(true);
         setRoutineError('');
 
         try {
-            const result = await saveRoutine(routineName.trim());
+            const result = await saveRoutine(trimmedName);
 
             if (result.error) {
                 setRoutineError(result.error);
@@ -537,6 +545,7 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                             <Input
                                 placeholder="Routine name"
                                 value={routineName}
+                                maxLength={MAX_ROUTINE_NAME_LENGTH}
                                 onChange={(e) => {
                                     setRoutineName(e.target.value);
                                     if (routineError) setRoutineError('');
