@@ -3,6 +3,7 @@ import { LandingPage } from './LandingPage';
 import { CardioLogger } from './CardioLogger';
 import { WorkoutTypeSelector } from './WorkoutTypeSelector';
 import { useWorkout } from '../hooks/useWorkoutStore';
+import { usePreferences } from '../hooks/usePreferences';
 import { Plus, Check, X, ChevronLeft, Save, History, Home } from 'lucide-react';
 import type { BodyArea, WorkoutType } from '../types';
 import { Button } from '../components/Button';
@@ -12,6 +13,12 @@ import { getLastPerformance } from '../utils/analyticsHelpers';
 import { AnatomicalBodySelector } from '../components/AnatomicalBodySelector';
 import { ExerciseSelector } from '../components/ExerciseSelector';
 import { WorkoutTimer } from '../components/WorkoutTimer';
+import {
+    displayWeight,
+    storageWeight,
+    getWeightUnit,
+    getWeightConstraints,
+} from '../utils/unitConversion';
 
 type ExerciseSelectorStep = 'hidden' | 'muscle-group' | 'exercise-list';
 
@@ -21,6 +28,9 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
         addExercise, addSet, removeSet, updateSet, getExerciseName,
         saveRoutine, updateRoutine
     } = useWorkout();
+    const { unitSystem } = usePreferences();
+    const weightUnit = getWeightUnit(unitSystem);
+    const weightConstraints = getWeightConstraints(unitSystem);
 
     const [exerciseSelectorStep, setExerciseSelectorStep] = useState<ExerciseSelectorStep>('hidden');
     const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<BodyArea | null>(null);
@@ -371,7 +381,7 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                                     {lastPerf && (
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '6px' }}>
                                             <History size={14} />
-                                            <span>Last: {lastPerf.weight}kg × {lastPerf.reps} ({lastPerf.date})</span>
+                                            <span>Last: {displayWeight(lastPerf.weight, unitSystem)}{weightUnit} × {lastPerf.reps} ({lastPerf.date})</span>
                                         </div>
                                     )}
                                 </div>
@@ -380,7 +390,7 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                                     {/* Header Row */}
                                     <div style={{ display: 'grid', gridTemplateColumns: activeWorkout.fromRoutine ? '24px 1fr 1fr 36px' : '24px 1fr 1fr', gap: '12px', fontSize: '12px', fontWeight: 600, color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center', padding: '0 4px' }}>
                                         <span>#</span>
-                                        <span>kg</span>
+                                        <span>{weightUnit}</span>
                                         <span>Reps</span>
                                         {activeWorkout.fromRoutine && <span>✓</span>}
                                     </div>
@@ -402,14 +412,14 @@ export const WorkoutLogger: React.FC<{ onNavigate: (tab: 'workout' | 'history' |
                                                     type="number"
                                                     style={{ height: '40px', textAlign: 'center', padding: '4px', background: 'rgba(255, 255, 255, 0.05)' }}
                                                     placeholder="-"
-                                                    min="0"
-                                                    max="1000"
-                                                    step="0.5"
-                                                    value={set.weight || ''}
+                                                    min={weightConstraints.min}
+                                                    max={weightConstraints.max}
+                                                    step={weightConstraints.step}
+                                                    value={set.weight ? displayWeight(set.weight, unitSystem) : ''}
                                                     onChange={(e) => {
                                                         const value = parseFloat(e.target.value);
-                                                        if (!isNaN(value) && value >= 0 && value <= 1000) {
-                                                            updateSet(exerciseInstance.id, set.id, { weight: value });
+                                                        if (!isNaN(value) && value >= weightConstraints.min && value <= weightConstraints.max) {
+                                                            updateSet(exerciseInstance.id, set.id, { weight: storageWeight(value, unitSystem) });
                                                         } else if (e.target.value === '') {
                                                             updateSet(exerciseInstance.id, set.id, { weight: 0 });
                                                         }

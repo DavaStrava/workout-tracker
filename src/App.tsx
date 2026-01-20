@@ -5,10 +5,12 @@ import { History } from './features/History';
 import { Analytics } from './features/Analytics';
 import { Auth } from './features/Auth';
 import { WorkoutProvider, useWorkout } from './hooks/useWorkoutStore';
+import { PreferencesProvider } from './hooks/usePreferences';
 import { Button } from './components/Button';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Credits } from './components/Credits';
 import { ToastContainer, type ToastData } from './components/Toast';
+import { UnitToggle } from './components/UnitToggle';
 import { signOut } from './services/auth';
 
 const AppContent: React.FC = () => {
@@ -79,6 +81,7 @@ const AppContent: React.FC = () => {
         {activeTab === 'history' && <History onNavigate={setActiveTab} />}
         {activeTab === 'analytics' && <Analytics />}
       </Layout>
+      <UnitToggle />
     </>
   );
 };
@@ -86,9 +89,11 @@ const AppContent: React.FC = () => {
 export default function App() {
   return (
     <ErrorBoundary>
-      <WorkoutProvider>
-        <AppContent />
-      </WorkoutProvider>
+      <PreferencesProvider>
+        <WorkoutProvider>
+          <AppContent />
+        </WorkoutProvider>
+      </PreferencesProvider>
     </ErrorBoundary>
   );
 }

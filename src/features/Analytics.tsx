@@ -1,16 +1,22 @@
 import React, { useMemo, useState } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
+import { usePreferences } from '../hooks/usePreferences';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, CartesianGrid } from 'recharts';
 import { TrendingUp, Activity, Calendar, Dumbbell, Heart, Zap, ChevronDown, Clock, Route } from 'lucide-react';
 import { EXERCISES } from '../data/exercises';
 import { calculateTotalVolume, getWorkoutFrequency, getExerciseProgress, getVolumeByDay, getVolumeByWeek, getVolumeByMonth, getAverageDuration, getDurationByDay, getDurationByWeek, getDurationByMonth, getDistanceByDay, getDistanceByWeek, getDistanceByMonth, calculateTotalCardioDistance } from '../utils/analyticsHelpers';
+import { displayWeight, displayDistance, getWeightUnit, getDistanceUnit } from '../utils/unitConversion';
 
 type TimePeriod = 'week' | 'month' | 'year';
 
 export const Analytics: React.FC = () => {
     const { history } = useWorkout();
+    const { unitSystem } = usePreferences();
     const [timePeriod, setTimePeriod] = useState<TimePeriod>('month');
     const [selectedExercise, setSelectedExercise] = useState<string>('bench_press');
+
+    const weightUnit = getWeightUnit(unitSystem);
+    const distanceUnit = getDistanceUnit(unitSystem);
 
     // Filter out deleted workouts from analytics
     const activeWorkouts = useMemo(() => history.filter(w => !w.deletedAt), [history]);
@@ -89,9 +95,16 @@ export const Analytics: React.FC = () => {
     const distanceChartTitle = timePeriod === 'week' ? 'Daily Distance' : timePeriod === 'month' ? 'Weekly Distance' : 'Monthly Distance';
 
     const formatVolume = (vol: number) => {
-        if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`;
-        if (vol >= 1000) return `${(vol / 1000).toFixed(1)}k`;
-        return vol.toString();
+        const convertedVol = displayWeight(vol, unitSystem);
+        if (convertedVol >= 1000000) return `${(convertedVol / 1000000).toFixed(1)}M`;
+        if (convertedVol >= 1000) return `${(convertedVol / 1000).toFixed(1)}k`;
+        return convertedVol.toString();
+    };
+
+    const formatDistance = (distKm: number) => {
+        // distKm is already in km from the chart data, convert meters to display
+        const meters = distKm * 1000;
+        return displayDistance(meters, unitSystem).toFixed(1);
     };
 
     const strengthExercises = EXERCISES.filter(e => !e.isCardio);
@@ -152,7 +165,7 @@ export const Analytics: React.FC = () => {
                         <Activity size={18} style={{ color: '#fb923c' }} />
                         <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '13px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Volume</span>
                     </div>
-                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>{formatVolume(totalVolume)} kg</div>
+                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>{formatVolume(totalVolume)} {weightUnit}</div>
                 </div>
                 <div style={{
                     background: 'rgba(30, 27, 50, 0.8)',
@@ -254,7 +267,7 @@ export const Analytics: React.FC = () => {
                                 <Tooltip
                                     contentStyle={{ backgroundColor: 'rgba(30, 27, 50, 0.95)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px' }}
                                     itemStyle={{ color: '#fff' }}
-                                    formatter={(value) => [`${formatVolume(Number(value) || 0)} kg`, 'Volume']}
+                                    formatter={(value) => [`${formatVolume(Number(value) || 0)} ${weightUnit}`, 'Volume']}
                                 />
                                 <Bar dataKey="volume" radius={[6, 6, 0, 0]}>
                                     {volumeChartData.map((entry, index) => (
@@ -331,7 +344,7 @@ export const Analytics: React.FC = () => {
                     </div>
                     {totalCardioDistance > 0 && (
                         <span style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>
-                            Total: {totalCardioDistance.toFixed(1)} km
+                            Total: {displayDistance(totalCardioDistance * 1000, unitSystem).toFixed(1)} {distanceUnit}
                         </span>
                     )}
                 </div>
@@ -347,13 +360,13 @@ export const Analytics: React.FC = () => {
                                     tickLine={false}
                                     axisLine={false}
                                     width={40}
-                                    tickFormatter={(value) => `${value}`}
-                                    unit=" km"
+                                    tickFormatter={(value) => formatDistance(value)}
+                                    unit={` ${distanceUnit}`}
                                 />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: 'rgba(30, 27, 50, 0.95)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px' }}
                                     itemStyle={{ color: '#fff' }}
-                                    formatter={(value) => [`${Number(value) || 0} km`, 'Distance']}
+                                    formatter={(value) => [`${formatDistance(Number(value) || 0)} ${distanceUnit}`, 'Distance']}
                                 />
                                 <Bar dataKey="distance" radius={[6, 6, 0, 0]}>
                                     {distanceChartData.map((entry, index) => (
@@ -421,12 +434,13 @@ export const Analytics: React.FC = () => {
                                     tickLine={false}
                                     axisLine={false}
                                     width={45}
-                                    unit=" kg"
+                                    tickFormatter={(value) => `${displayWeight(value, unitSystem)}`}
+                                    unit={` ${weightUnit}`}
                                 />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: 'rgba(30, 27, 50, 0.95)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px' }}
                                     itemStyle={{ color: '#fff' }}
-                                    formatter={(value) => [`${Number(value) || 0} kg`, 'Max Weight']}
+                                    formatter={(value) => [`${displayWeight(Number(value) || 0, unitSystem)} ${weightUnit}`, 'Max Weight']}
                                 />
                                 <Line
                                     type="monotone"

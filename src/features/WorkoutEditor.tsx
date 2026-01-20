@@ -2,8 +2,18 @@ import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Save, X, Plus, AlertCircle, Home } from 'lucide-react';
 import { useWorkout } from '../hooks/useWorkoutStore';
+import { usePreferences } from '../hooks/usePreferences';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
+import {
+    displayWeight,
+    storageWeight,
+    getWeightUnit,
+    getWeightConstraints,
+    displayDistance,
+    storageDistance,
+    getDistanceUnit,
+} from '../utils/unitConversion';
 
 interface WorkoutEditorProps {
     onGoHome?: () => void;
@@ -20,6 +30,9 @@ export const WorkoutEditor: React.FC<WorkoutEditorProps> = ({ onGoHome }) => {
         getExerciseName,
         getExerciseInfo,
     } = useWorkout();
+    const { unitSystem } = usePreferences();
+    const weightUnit = getWeightUnit(unitSystem);
+    const weightConstraints = getWeightConstraints(unitSystem);
 
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -36,12 +49,12 @@ export const WorkoutEditor: React.FC<WorkoutEditorProps> = ({ onGoHome }) => {
 
     const handleWeightChange = useCallback((exerciseId: string, setId: string, value: string) => {
         const num = parseFloat(value);
-        if (!isNaN(num) && num >= 0 && num <= 1000) {
-            updateEditingSet(exerciseId, setId, { weight: num });
+        if (!isNaN(num) && num >= weightConstraints.min && num <= weightConstraints.max) {
+            updateEditingSet(exerciseId, setId, { weight: storageWeight(num, unitSystem) });
         } else if (value === '') {
             updateEditingSet(exerciseId, setId, { weight: 0 });
         }
-    }, [updateEditingSet]);
+    }, [updateEditingSet, unitSystem, weightConstraints]);
 
     const handleRepsChange = useCallback((exerciseId: string, setId: string, value: string) => {
         const num = parseInt(value, 10);
@@ -52,15 +65,15 @@ export const WorkoutEditor: React.FC<WorkoutEditorProps> = ({ onGoHome }) => {
         }
     }, [updateEditingSet]);
 
-    const handleDistanceChange = useCallback((exerciseId: string, setId: string, value: string) => {
+    const handleDistanceChange = useCallback((exerciseId: string, setId: string, value: string, sportId?: string) => {
         const num = parseFloat(value);
-        if (!isNaN(num) && num >= 0 && num <= 1000) {
-            // Convert km (display) to meters (storage)
-            updateEditingSet(exerciseId, setId, { distance: num * 1000 });
+        if (!isNaN(num) && num >= 0) {
+            // Convert display unit to meters (storage)
+            updateEditingSet(exerciseId, setId, { distance: storageDistance(num, unitSystem, sportId) });
         } else if (value === '') {
             updateEditingSet(exerciseId, setId, { distance: 0 });
         }
-    }, [updateEditingSet]);
+    }, [updateEditingSet, unitSystem]);
 
     const handleDurationChange = useCallback((exerciseId: string, setId: string, value: string) => {
         const num = parseInt(value, 10);
@@ -208,14 +221,14 @@ export const WorkoutEditor: React.FC<WorkoutEditorProps> = ({ onGoHome }) => {
                             {isCardio ? (
                                 <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 1fr 40px', gap: '8px', marginBottom: '8px' }}>
                                     <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', textAlign: 'center' }}>Set</span>
-                                    <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', textAlign: 'center' }}>Distance (km)</span>
+                                    <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', textAlign: 'center' }}>Distance ({getDistanceUnit(unitSystem, exerciseInfo?.sportId)})</span>
                                     <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', textAlign: 'center' }}>Duration (min)</span>
                                     <span></span>
                                 </div>
                             ) : (
                                 <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 1fr 40px', gap: '8px', marginBottom: '8px' }}>
                                     <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', textAlign: 'center' }}>Set</span>
-                                    <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', textAlign: 'center' }}>Weight (kg)</span>
+                                    <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', textAlign: 'center' }}>Weight ({weightUnit})</span>
                                     <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', textAlign: 'center' }}>Reps</span>
                                     <span></span>
                                 </div>
@@ -233,8 +246,8 @@ export const WorkoutEditor: React.FC<WorkoutEditorProps> = ({ onGoHome }) => {
                                                 type="number"
                                                 inputMode="decimal"
                                                 step="0.1"
-                                                value={set.distance ? (set.distance / 1000) : ''}
-                                                onChange={(e) => handleDistanceChange(exerciseInstance.id, set.id, e.target.value)}
+                                                value={set.distance ? displayDistance(set.distance, unitSystem, exerciseInfo?.sportId) : ''}
+                                                onChange={(e) => handleDistanceChange(exerciseInstance.id, set.id, e.target.value, exerciseInfo?.sportId)}
                                                 style={{ textAlign: 'center', padding: '10px 8px' }}
                                             />
                                             <Input
@@ -250,8 +263,8 @@ export const WorkoutEditor: React.FC<WorkoutEditorProps> = ({ onGoHome }) => {
                                             <Input
                                                 type="number"
                                                 inputMode="decimal"
-                                                step="0.5"
-                                                value={set.weight ?? ''}
+                                                step={weightConstraints.step}
+                                                value={set.weight ? displayWeight(set.weight, unitSystem) : ''}
                                                 onChange={(e) => handleWeightChange(exerciseInstance.id, set.id, e.target.value)}
                                                 style={{ textAlign: 'center', padding: '10px 8px' }}
                                             />

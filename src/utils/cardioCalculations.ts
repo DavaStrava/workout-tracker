@@ -1,4 +1,4 @@
-import type { CardioFieldType } from '../types';
+import type { CardioFieldType, UnitSystem } from '../types';
 
 /**
  * Calculate pace in seconds per kilometer
@@ -94,20 +94,35 @@ export function formatDistance(meters: number, sportId?: string): string {
   return (meters / 1000).toFixed(1);
 }
 
+// Conversion constants
+const MILES_TO_METERS = 1609.34;
+const YARDS_TO_METERS = 0.9144;
+
 /**
  * Convert display value to storage value
  * @param type Field type
  * @param displayValue Value as shown in UI
  * @param sportId Sport identifier (affects distance conversion)
+ * @param unitSystem Unit system (metric or imperial)
  */
-export function displayToStorage(type: CardioFieldType, displayValue: number, sportId?: string): number {
+export function displayToStorage(type: CardioFieldType, displayValue: number, sportId?: string, unitSystem: UnitSystem = 'metric'): number {
   switch (type) {
     case 'distance':
-      // Swimming and rowing input is already in meters
+      // Swimming and rowing use m/yd
       if (sportId === 'swimming' || sportId === 'rowing') {
+        if (unitSystem === 'imperial') {
+          // Input in yards, convert to meters
+          return displayValue * YARDS_TO_METERS;
+        }
+        // Metric: input already in meters
         return displayValue;
       }
-      // Others input in km, convert to meters
+      // Other sports use km/mi
+      if (unitSystem === 'imperial') {
+        // Input in miles, convert to meters
+        return displayValue * MILES_TO_METERS;
+      }
+      // Metric: input in km, convert to meters
       return displayValue * 1000;
     case 'duration':
       // Input in minutes, store as seconds
@@ -122,15 +137,26 @@ export function displayToStorage(type: CardioFieldType, displayValue: number, sp
  * @param type Field type
  * @param storageValue Value as stored (meters, seconds)
  * @param sportId Sport identifier (affects distance conversion)
+ * @param unitSystem Unit system (metric or imperial)
  */
-export function storageToDisplay(type: CardioFieldType, storageValue: number, sportId?: string): number {
+export function storageToDisplay(type: CardioFieldType, storageValue: number, sportId?: string, unitSystem: UnitSystem = 'metric'): number {
   switch (type) {
     case 'distance':
-      // Swimming and rowing display in meters
+      // Swimming and rowing display in m/yd
       if (sportId === 'swimming' || sportId === 'rowing') {
+        if (unitSystem === 'imperial') {
+          // Convert meters to yards
+          return storageValue / YARDS_TO_METERS;
+        }
+        // Metric: display in meters
         return storageValue;
       }
-      // Others display in km
+      // Other sports display in km/mi
+      if (unitSystem === 'imperial') {
+        // Convert meters to miles
+        return storageValue / MILES_TO_METERS;
+      }
+      // Metric: display in km
       return storageValue / 1000;
     case 'duration':
       // Store in seconds, display in minutes
@@ -167,4 +193,39 @@ export function getComputedValue(
     default:
       return '--';
   }
+}
+
+/**
+ * Get the distance unit for a sport based on unit system
+ * @param sportId Sport identifier
+ * @param unitSystem Unit system (metric or imperial)
+ */
+export function getDistanceUnitForSport(sportId?: string, unitSystem: UnitSystem = 'metric'): string {
+  const useMeterYard = sportId === 'swimming' || sportId === 'rowing';
+
+  if (unitSystem === 'imperial') {
+    return useMeterYard ? 'yd' : 'mi';
+  }
+  return useMeterYard ? 'm' : 'km';
+}
+
+/**
+ * Get pace unit for display based on sport and unit system
+ * @param sportId Sport identifier
+ * @param unitSystem Unit system (metric or imperial)
+ */
+export function getPaceUnitForSport(sportId?: string, unitSystem: UnitSystem = 'metric'): string {
+  if (sportId === 'rowing') {
+    // Rowing always uses /500m regardless of unit system (standard for rowing)
+    return '/500m';
+  }
+  return unitSystem === 'imperial' ? 'min/mi' : 'min/km';
+}
+
+/**
+ * Get speed unit based on unit system
+ * @param unitSystem Unit system (metric or imperial)
+ */
+export function getSpeedUnit(unitSystem: UnitSystem = 'metric'): string {
+  return unitSystem === 'imperial' ? 'mph' : 'km/h';
 }

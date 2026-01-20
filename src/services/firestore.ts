@@ -16,7 +16,7 @@ import {
   type FirestoreError,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import type { Workout, Routine } from '../types';
+import type { Workout, Routine, UserPreferences } from '../types';
 
 /**
  * Get error message from Firestore errors
@@ -145,6 +145,60 @@ export const registerUser = async (
     console.error('Error registering user:', error);
     return { error: getFirestoreErrorMessage(error) };
   }
+};
+
+// ==================== USER PREFERENCES ====================
+
+/**
+ * Save user preferences to Firestore
+ */
+export const saveUserPreferences = async (
+  userId: string,
+  preferences: UserPreferences
+): Promise<{ error: string | null }> => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      preferences: preferences,
+      preferencesUpdatedAt: Timestamp.now(),
+    });
+    return { error: null };
+  } catch (error: unknown) {
+    console.error('Error saving user preferences:', error);
+    return { error: getFirestoreErrorMessage(error) };
+  }
+};
+
+/**
+ * Subscribe to user preferences updates
+ */
+export const subscribeToUserPreferences = (
+  userId: string,
+  onUpdate: (preferences: UserPreferences | null) => void,
+  onError?: (error: Error) => void
+) => {
+  const userRef = doc(db, 'users', userId);
+
+  return onSnapshot(
+    userRef,
+    (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const data = docSnapshot.data();
+        if (data.preferences) {
+          onUpdate(data.preferences as UserPreferences);
+        } else {
+          // No preferences set yet, return null
+          onUpdate(null);
+        }
+      } else {
+        onUpdate(null);
+      }
+    },
+    (error) => {
+      console.error('Error in preferences subscription:', error);
+      if (onError) onError(error);
+    }
+  );
 };
 
 // ==================== WORKOUTS ====================

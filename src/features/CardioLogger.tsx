@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
+import { usePreferences } from '../hooks/usePreferences';
 import { EXERCISES } from '../data/exercises';
 import { Plus, Check, MessageSquare, ChevronDown, ChevronUp, Home } from 'lucide-react';
 import { Button } from '../components/Button';
@@ -13,8 +14,11 @@ import {
   displayToStorage,
   storageToDisplay,
   getComputedValue,
+  getDistanceUnitForSport,
+  getPaceUnitForSport,
+  getSpeedUnit,
 } from '../utils/cardioCalculations';
-import type { CardioIntensity, CardioFieldType, WorkoutSet } from '../types';
+import type { CardioIntensity, CardioFieldType, WorkoutSet, CardioFieldConfig } from '../types';
 
 interface CardioLoggerProps {
   onBackToWorkoutTypeSelector: () => void;
@@ -31,6 +35,7 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
     updateNotes,
     getExerciseName,
   } = useWorkout();
+  const { unitSystem } = usePreferences();
 
   // Show sport selector immediately if no activities added yet
   const [showSportSelector, setShowSportSelector] = useState(
@@ -89,7 +94,7 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
       updateSet(instanceId, setId, { [fieldType]: displayValue });
     } else {
       // Convert display value to storage value
-      const storageValue = displayToStorage(fieldType, displayValue, sportId);
+      const storageValue = displayToStorage(fieldType, displayValue, sportId, unitSystem);
       updateSet(instanceId, setId, { [fieldType]: storageValue });
     }
   };
@@ -104,9 +109,23 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
     if (storageValue === undefined) return undefined;
     if (typeof storageValue === 'string') return storageValue;
     if (typeof storageValue === 'number') {
-      return storageToDisplay(fieldType, storageValue, sportId);
+      return storageToDisplay(fieldType, storageValue, sportId, unitSystem);
     }
     return undefined;
+  };
+
+  // Get field config with unit adjusted for current unit system
+  const getFieldWithUnit = (field: CardioFieldConfig, sportId?: string): CardioFieldConfig => {
+    if (field.type === 'distance') {
+      return { ...field, unit: getDistanceUnitForSport(sportId, unitSystem) };
+    }
+    if (field.type === 'pace') {
+      return { ...field, unit: getPaceUnitForSport(sportId, unitSystem) };
+    }
+    if (field.type === 'speed') {
+      return { ...field, unit: getSpeedUnit(unitSystem) };
+    }
+    return field;
   };
 
   // Sport Selector
@@ -243,7 +262,7 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
                 {requiredFields.map((field) => (
                   <CardioFieldInput
                     key={field.type}
-                    field={field}
+                    field={getFieldWithUnit(field, sportConfig?.id)}
                     value={getFieldDisplayValue(set, field.type, sportConfig?.id)}
                     onChange={(value) =>
                       handleFieldChange(
@@ -261,7 +280,7 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
                 {computedFields.map((field) => (
                   <CardioFieldInput
                     key={field.type}
-                    field={field}
+                    field={getFieldWithUnit(field, sportConfig?.id)}
                     value={undefined}
                     computedValue={getComputedValue(
                       field.type,
@@ -388,7 +407,7 @@ export function CardioLogger({ onBackToWorkoutTypeSelector, onGoHome }: CardioLo
                           {optionalFields.map((field) => (
                             <CardioFieldInput
                               key={field.type}
-                              field={field}
+                              field={getFieldWithUnit(field, sportConfig?.id)}
                               value={getFieldDisplayValue(set, field.type, sportConfig?.id)}
                               onChange={(value) =>
                                 handleFieldChange(

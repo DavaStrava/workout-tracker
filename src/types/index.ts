@@ -131,3 +131,10 @@ export interface Routine {
   name: string;
   exercises: RoutineExercise[];
 }
+
+// Unit system types
+export type UnitSystem = 'metric' | 'imperial';
+
+export interface UserPreferences {
+  unitSystem: UnitSystem;
+}
