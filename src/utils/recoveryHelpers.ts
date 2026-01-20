@@ -3,9 +3,11 @@ import { EXERCISES } from '../data/exercises';
 
 // Recovery constants
 // Based on exercise science: muscle protein synthesis typically completes within 48-72 hours.
-// Using 72 hours (3 days) as a conservative estimate for full recovery.
+// Using a non-linear recovery curve: fast phase (0-48h: 0%→80%), slow phase (48-72h: 80%→100%)
 // Source: https://pubmed.ncbi.nlm.nih.gov/8563679/
 const FULL_RECOVERY_HOURS = 72;
+const FAST_PHASE_HOURS = 48;
+const FAST_PHASE_RECOVERY = 80; // 80% recovered after fast phase
 
 // Pre-compute exercise lookup map for O(1) access instead of O(n) find()
 const EXERCISE_MAP = new Map(EXERCISES.map(e => [e.id, e]));
@@ -14,6 +16,45 @@ const EXERCISE_MAP = new Map(EXERCISES.map(e => [e.id, e]));
 const STRENGTH_BODY_AREAS: BodyArea[] = [
   'Chest', 'Shoulders', 'Arms', 'Abdomen', 'Back', 'Glutes', 'Legs'
 ];
+
+/**
+ * Calculate recovery percentage using non-linear formula.
+ * Fast phase (0-48h): 0% → 80% (linear)
+ * Slow phase (48-72h): 80% → 100% (linear)
+ */
+function calculateRecoveryPercent(hoursSince: number): number {
+  if (hoursSince >= FULL_RECOVERY_HOURS) return 100;
+  if (hoursSince <= FAST_PHASE_HOURS) {
+    // 0-48h: Fast recovery phase (0% → 80%)
+    return Math.round((hoursSince / FAST_PHASE_HOURS) * FAST_PHASE_RECOVERY);
+  }
+  // 48-72h: Slower recovery phase (80% → 100%)
+  const slowPhaseHours = FULL_RECOVERY_HOURS - FAST_PHASE_HOURS;
+  const slowPhaseProgress = (hoursSince - FAST_PHASE_HOURS) / slowPhaseHours;
+  return Math.round(FAST_PHASE_RECOVERY + slowPhaseProgress * (100 - FAST_PHASE_RECOVERY));
+}
+
+/**
+ * Format time remaining until a target recovery percentage.
+ * Returns format like "8h" or "1d".
+ */
+export function formatTimeToRecovery(hoursSince: number, targetPercent: number = 80): string {
+  // Calculate hours needed to reach target
+  let hoursNeeded: number;
+
+  if (targetPercent <= FAST_PHASE_RECOVERY) {
+    // Target is within fast phase
+    hoursNeeded = (targetPercent / FAST_PHASE_RECOVERY) * FAST_PHASE_HOURS;
+  } else {
+    // Target is in slow phase
+    const slowPhaseTarget = (targetPercent - FAST_PHASE_RECOVERY) / (100 - FAST_PHASE_RECOVERY);
+    const slowPhaseHours = FULL_RECOVERY_HOURS - FAST_PHASE_HOURS;
+    hoursNeeded = FAST_PHASE_HOURS + slowPhaseTarget * slowPhaseHours;
+  }
+
+  const hoursLeft = Math.max(0, Math.round(hoursNeeded - hoursSince));
+  return `${hoursLeft} hrs`;
+}
 
 export interface MuscleRecoveryData {
   bodyArea: BodyArea;
@@ -32,7 +73,9 @@ export interface RecoveryStats {
 
 /**
  * Calculate muscle recovery status for all muscle groups based on workout history.
- * Recovery is linear: 0% immediately after workout, 100% after FULL_RECOVERY_HOURS.
+ * Recovery uses non-linear formula:
+ * - 0-48h: Fast phase (0% → 80%)
+ * - 48-72h: Slow phase (80% → 100%)
  */
 export function calculateMuscleRecovery(history: Workout[]): RecoveryStats {
   const now = Date.now();
@@ -70,8 +113,8 @@ export function calculateMuscleRecovery(history: Workout[]): RecoveryStats {
       if (!existingData.lastTrainedDate || workoutTime > existingData.lastTrainedDate.getTime()) {
         const hoursSince = (now - workoutTime) / (1000 * 60 * 60);
 
-        // Linear recovery from 0% to 100% over FULL_RECOVERY_HOURS
-        const recoveryPercent = Math.min(100, Math.round((hoursSince / FULL_RECOVERY_HOURS) * 100));
+        // Non-linear recovery: fast phase (0-48h: 0%→80%), slow phase (48-72h: 80%→100%)
+        const recoveryPercent = calculateRecoveryPercent(hoursSince);
 
         muscleData[area] = {
           bodyArea: area,

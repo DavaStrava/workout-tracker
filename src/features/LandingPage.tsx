@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
-import { Play, ArrowLeft, Dumbbell, TrendingUp, Clock, Target, Trash2, ChevronRight, Home, Undo2 } from 'lucide-react';
+import { Play, ArrowLeft, Dumbbell, Clock, Trash2, ChevronRight, Home, Undo2 } from 'lucide-react';
 import { WorkoutTypeSelector } from './WorkoutTypeSelector';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
-import { StatCard, Badge } from '../components/Badge';
+import { Badge } from '../components/Badge';
 import { ResumeToast } from '../components/ResumeToast';
+import { RecoveryStatusCard } from '../components/RecoveryStatusCard';
+import { calculateMuscleRecovery } from '../utils/recoveryHelpers';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { WorkoutType, Routine } from '../types';
 
@@ -34,30 +36,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onResumeWo
     // Filter out deleted workouts for display
     const activeHistory = history.filter(w => !w.deletedAt);
 
-    // Analytics Calculations (only count active workouts, not deleted ones)
-    const totalWorkouts = activeHistory.length;
-    const totalDurationMs = activeHistory.reduce((acc, curr) => {
-        if (curr.endTime && curr.startTime) {
-            return acc + (curr.endTime - curr.startTime);
-        }
-        return acc;
-    }, 0);
-    const totalHours = Math.round(totalDurationMs / (1000 * 60 * 60));
-
-    const totalSets = activeHistory.reduce((acc, workout) => {
-        return acc + workout.exercises.reduce((wAcc, ex) => wAcc + ex.sets.length, 0);
-    }, 0);
-
-    const totalWeight = activeHistory.reduce((acc, workout) => {
-        return acc + workout.exercises.reduce((wAcc, ex) => {
-            return wAcc + ex.sets.reduce((sAcc, set) => sAcc + ((set.weight || 0) * (set.reps || 1)), 0);
-        }, 0);
-    }, 0);
-
-    const formatWeight = (lbs: number) => {
-        if (lbs >= 1000) return `${(lbs / 1000).toFixed(1)}k`;
-        return lbs.toString();
-    };
+    // Calculate muscle recovery stats
+    const recoveryStats = calculateMuscleRecovery(activeHistory);
 
     // Show Workout Type Selector
     if (showTypeSelector) {
@@ -173,33 +153,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onResumeWo
                 Start New Workout
             </Button>
 
-            {/* Quick Stats - Spotify-inspired floating cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '32px' }}>
-                <StatCard
-                    label="Workouts"
-                    value={totalWorkouts}
-                    gradient="orange-pink"
-                    icon={<Dumbbell size={20} style={{ color: '#fb923c' }} />}
-                />
-                <StatCard
-                    label="Hours"
-                    value={totalHours}
-                    gradient="pink-purple"
-                    icon={<Clock size={20} style={{ color: '#f472b6' }} />}
-                />
-                <StatCard
-                    label="Total Sets"
-                    value={totalSets}
-                    gradient="purple-blue"
-                    icon={<Target size={20} style={{ color: '#c084fc' }} />}
-                />
-                <StatCard
-                    label="kg Lifted"
-                    value={formatWeight(totalWeight)}
-                    gradient="cyan-blue"
-                    icon={<TrendingUp size={20} style={{ color: '#06b6d4' }} />}
-                />
-            </div>
+            {/* Muscle Recovery Status */}
+            <RecoveryStatusCard
+                stats={recoveryStats}
+                hasWorkoutHistory={activeHistory.some(w => w.type === 'STRENGTH')}
+            />
 
             {/* Routines Section - Organic Spotify-style card */}
             <Card variant="gradient" gradient="orange-pink" style={{ marginBottom: '24px' }}>
