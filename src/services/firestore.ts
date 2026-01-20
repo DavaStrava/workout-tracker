@@ -583,6 +583,32 @@ export const finishWorkoutAtomic = async (userId: string, completedWorkout: Work
   }
 };
 
+/**
+ * Atomically resume a finished workout - moves workout from history back to active (inverse of finishWorkoutAtomic)
+ */
+export const resumeFinishedWorkoutAtomic = async (userId: string, workoutId: string, resumedWorkout: Workout) => {
+  try {
+    const batch = writeBatch(db);
+
+    // Delete from workouts collection
+    const workoutRef = getUserDoc(userId, COLLECTIONS.WORKOUTS, workoutId);
+    batch.delete(workoutRef);
+
+    // Save as active workout
+    const activeWorkoutRef = getUserDoc(userId, COLLECTIONS.ACTIVE_WORKOUT, 'current');
+    batch.set(activeWorkoutRef, removeUndefined({
+      ...resumedWorkout,
+      updatedAt: Timestamp.now(),
+    }));
+
+    await batch.commit();
+    return { error: null };
+  } catch (error: unknown) {
+    console.error('Error resuming finished workout:', error);
+    return { error: getFirestoreErrorMessage(error) };
+  }
+};
+
 // ==================== MIGRATION ====================
 
 /**

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
-import { Play, ArrowLeft, Dumbbell, TrendingUp, Clock, Target, Trash2, ChevronRight, Home } from 'lucide-react';
+import { Play, ArrowLeft, Dumbbell, TrendingUp, Clock, Target, Trash2, ChevronRight, Home, Undo2 } from 'lucide-react';
 import { WorkoutTypeSelector } from './WorkoutTypeSelector';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { StatCard, Badge } from '../components/Badge';
+import { ResumeToast } from '../components/ResumeToast';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { WorkoutType, Routine } from '../types';
 
@@ -14,7 +15,7 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onResumeWorkout }) => {
-    const { routines, history, deletedWorkouts, activeWorkout, startWorkout, startRoutine, deleteRoutine } = useWorkout();
+    const { routines, history, deletedWorkouts, activeWorkout, startWorkout, startRoutine, deleteRoutine, lastFinishedWorkout, canResumeLastWorkout, resumeFinishedWorkout } = useWorkout();
     const [showTypeSelector, setShowTypeSelector] = useState(false);
     const [routineToDelete, setRoutineToDelete] = useState<Routine | null>(null);
 
@@ -123,6 +124,38 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onResumeWo
                             </h3>
                             <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>
                                 {activeWorkout.name} • {activeWorkout.exercises.length} exercise{activeWorkout.exercises.length !== 1 ? 's' : ''}
+                            </p>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
+            {/* Resume Finished Workout Card - shown when last workout can be resumed */}
+            {canResumeLastWorkout && lastFinishedWorkout && (
+                <Card
+                    variant="gradient"
+                    gradient="orange-pink"
+                    onClick={resumeFinishedWorkout}
+                    style={{ cursor: 'pointer', marginBottom: '24px' }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '12px',
+                            background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
+                            <Undo2 size={24} style={{ color: '#fff' }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>
+                                Undo Finish
+                            </h3>
+                            <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>
+                                {lastFinishedWorkout.name} • finished {lastFinishedWorkout.endTime ? Math.floor((Date.now() - lastFinishedWorkout.endTime) / 60000) : 0}m ago
                             </p>
                         </div>
                     </div>
@@ -397,6 +430,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onResumeWo
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Resume Toast - shown after finishing a workout */}
+            <ResumeToast />
         </div>
     );
 };

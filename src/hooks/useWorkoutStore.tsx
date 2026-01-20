@@ -17,6 +17,7 @@ import {
     restoreWorkoutInFirestore,
     permanentlyDeleteWorkoutInFirestore,
     updateWorkoutInFirestore,
+    resumeFinishedWorkoutAtomic,
 } from '../services/firestore';
 
 // Error with retry capability
@@ -36,12 +37,17 @@ interface WorkoutContextType {
     editingWorkout: Workout | null;
     isWorkoutPaused: boolean;
     lastError: RetryableError | null;
+    lastFinishedWorkout: Workout | null;
+    canResumeLastWorkout: boolean;
+    justFinishedWorkoutId: string | null;
     clearError: () => void;
+    clearJustFinished: () => void;
     startWorkout: (name?: string, type?: WorkoutType) => void;
     finishWorkout: () => Promise<void>;
     cancelWorkout: () => Promise<void>;
     pauseWorkout: () => Promise<void>;
     resumeWorkout: () => Promise<void>;
+    resumeFinishedWorkout: () => Promise<void>;
     addExercise: (exerciseId: string) => Promise<void>;
     updateSet: (exerciseInstanceId: string, setId: string, updates: Partial<{ reps: number; weight: number; distance: number; duration: number; intensity: CardioIntensity; completed: boolean }>) => Promise<void>;
     updateNotes: (notes: string) => Promise<void>;
@@ -69,6 +75,9 @@ const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
 // Time to wait for Firestore subscription to settle after optimistic updates (ms)
 const SUBSCRIPTION_SETTLE_DELAY_MS = 2000;
 
+// Time window for resuming a finished workout (5 minutes)
+const RESUME_WINDOW_MS = 5 * 60 * 1000;
+
 export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -94,6 +103,10 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     // Editing workout state
     const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
+
+    // Track the workout ID that was just finished (for showing resume toast)
+    const [justFinishedWorkoutId, setJustFinishedWorkoutId] = useState<string | null>(null);
+    const clearJustFinished = () => setJustFinishedWorkoutId(null);
 
     // Error state with retry capability
     const [lastError, setLastError] = useState<RetryableError | null>(null);
@@ -316,6 +329,9 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }
         }
 
+        // Track the just-finished workout for resume toast
+        setJustFinishedWorkoutId(completedWorkout.id);
+
         // Clear the flag after a short delay to allow Firestore subscription to settle
         if (settleTimeoutRef.current) {
             clearTimeout(settleTimeoutRef.current);
@@ -346,6 +362,69 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
 
         // Clear the flag after a short delay
+        if (settleTimeoutRef.current) {
+            clearTimeout(settleTimeoutRef.current);
+        }
+        settleTimeoutRef.current = setTimeout(() => {
+            isFinishingWorkoutRef.current = false;
+        }, SUBSCRIPTION_SETTLE_DELAY_MS);
+    };
+
+    // Resume a finished workout (undo finish within 5 minutes)
+    const resumeFinishedWorkout = async () => {
+        // Find the last finished workout within the resume window
+        const now = Date.now();
+        const resumableWorkout = history.find(w =>
+            w.endTime &&
+            !w.deletedAt &&
+            w.status === 'completed' &&
+            (now - w.endTime) < RESUME_WINDOW_MS
+        );
+
+        if (!resumableWorkout || activeWorkout) return;
+
+        const previousHistory = [...history];
+
+        // Create resumed workout (strip endTime, duration, reset status)
+        const resumedWorkout: Workout = {
+            ...resumableWorkout,
+            endTime: undefined,
+            duration: undefined,
+            status: 'active',
+        };
+
+        // Set flag to prevent subscription from overwriting our optimistic update
+        isFinishingWorkoutRef.current = true;
+
+        // Optimistic update - remove from history and set as active
+        setHistory(prev => prev.filter(w => w.id !== resumableWorkout.id));
+        setActiveWorkout(resumedWorkout);
+        setJustFinishedWorkoutId(null);
+
+        if (user) {
+            // Sync to Firestore atomically
+            const { error } = await resumeFinishedWorkoutAtomic(user.uid, resumableWorkout.id, resumedWorkout);
+            if (error) {
+                // Rollback optimistic update on failure
+                console.error('Failed to resume workout:', error);
+                setHistory(previousHistory);
+                setActiveWorkout(null);
+                isFinishingWorkoutRef.current = false;
+
+                // Set error with retry capability
+                setLastError({
+                    id: crypto.randomUUID(),
+                    message: 'Failed to resume workout. Please try again.',
+                    retry: async () => {
+                        clearError();
+                        await resumeFinishedWorkout();
+                    },
+                });
+                return;
+            }
+        }
+
+        // Clear the flag after a short delay to allow Firestore subscription to settle
         if (settleTimeoutRef.current) {
             clearTimeout(settleTimeoutRef.current);
         }
@@ -764,6 +843,46 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Computed: workouts that have been soft-deleted (have deletedAt set)
     const deletedWorkouts = history.filter(w => w.deletedAt !== undefined);
 
+    // Computed: the last finished workout within resume window (for resume feature)
+    // Note: This is recalculated every second via resumeWindowTick to handle time expiration
+    const [resumeWindowTick, setResumeWindowTick] = useState(0);
+
+    // Timer to update resume window state every second when there's a potential resumable workout
+    useEffect(() => {
+        // Only run timer if there might be a resumable workout
+        const potentialWorkout = history.find(w =>
+            w.endTime && !w.deletedAt && w.status === 'completed'
+        );
+
+        if (!potentialWorkout?.endTime) return;
+
+        // Check if still within resume window
+        const timeElapsed = Date.now() - potentialWorkout.endTime;
+        if (timeElapsed >= RESUME_WINDOW_MS) return;
+
+        // Set up timer to tick every second until window expires
+        const interval = setInterval(() => {
+            setResumeWindowTick(t => t + 1);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [history]);
+
+    const lastFinishedWorkout = React.useMemo(() => {
+        // resumeWindowTick dependency ensures this recalculates as time passes
+        void resumeWindowTick;
+        const now = Date.now();
+        return history.find(w =>
+            w.endTime &&
+            !w.deletedAt &&
+            w.status === 'completed' &&
+            (now - w.endTime) < RESUME_WINDOW_MS
+        ) || null;
+    }, [history, resumeWindowTick]);
+
+    // Computed: can the user resume the last workout?
+    const canResumeLastWorkout = lastFinishedWorkout !== null && activeWorkout === null;
+
     // Cleanup expired workouts (older than 7 days) - runs once after initial data load
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -818,7 +937,8 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         <WorkoutContext.Provider value={{
             activeWorkout, history, deletedWorkouts, routines, user, isLoading, editingWorkout, isWorkoutPaused,
             lastError, clearError,
-            startWorkout, finishWorkout, cancelWorkout, pauseWorkout, resumeWorkout,
+            lastFinishedWorkout, canResumeLastWorkout, justFinishedWorkoutId, clearJustFinished,
+            startWorkout, finishWorkout, cancelWorkout, pauseWorkout, resumeWorkout, resumeFinishedWorkout,
             addExercise, addSet, removeSet, updateSet, updateNotes, getExerciseName, getExerciseInfo,
             saveRoutine, updateRoutine, startRoutine, deleteRoutine,
             softDeleteWorkout, restoreWorkout, permanentlyDeleteWorkout,
