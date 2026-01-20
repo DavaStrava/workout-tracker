@@ -141,8 +141,8 @@ describe('WorkoutLogger', () => {
 
       render(<WorkoutLogger onNavigate={mockOnNavigate} />);
 
-      // Cancel button has X icon with title
-      const cancelButton = screen.getByTitle('Cancel');
+      // Find Cancel button by text (contains X icon and "Cancel" text)
+      const cancelButton = screen.getByRole('button', { name: /Cancel/i });
       await user.click(cancelButton);
 
       expect(mockCancelWorkout).toHaveBeenCalledTimes(1);
@@ -223,8 +223,9 @@ describe('WorkoutLogger', () => {
       const input = screen.getByPlaceholderText('Routine name');
       await user.type(input, 'My Routine');
 
-      // Click Save
-      await user.click(screen.getByRole('button', { name: 'Save' }));
+      // Click Save - get all Save buttons, the modal one is the last one
+      const saveButtons = screen.getAllByRole('button', { name: 'Save' });
+      await user.click(saveButtons[saveButtons.length - 1]);
 
       expect(mockSaveRoutine).toHaveBeenCalledWith('My Routine');
     });
@@ -269,8 +270,10 @@ describe('WorkoutLogger', () => {
       // Open modal
       await user.click(screen.getByTitle('Save as Routine'));
 
-      const saveButton = screen.getByRole('button', { name: 'Save' });
-      expect(saveButton).toBeDisabled();
+      // Get all Save buttons - the modal one is the last one
+      const saveButtons = screen.getAllByRole('button', { name: 'Save' });
+      const modalSaveButton = saveButtons[saveButtons.length - 1];
+      expect(modalSaveButton).toBeDisabled();
     });
 
     it('should enable Save button when routine name is entered', async () => {
@@ -285,8 +288,10 @@ describe('WorkoutLogger', () => {
       const input = screen.getByPlaceholderText('Routine name');
       await user.type(input, 'My Routine');
 
-      const saveButton = screen.getByRole('button', { name: 'Save' });
-      expect(saveButton).not.toBeDisabled();
+      // Get all Save buttons - the modal one is the last one
+      const saveButtons = screen.getAllByRole('button', { name: 'Save' });
+      const modalSaveButton = saveButtons[saveButtons.length - 1];
+      expect(modalSaveButton).not.toBeDisabled();
     });
 
     it('should trim whitespace from routine name', async () => {
@@ -301,8 +306,9 @@ describe('WorkoutLogger', () => {
       const input = screen.getByPlaceholderText('Routine name');
       await user.type(input, '  My Routine  ');
 
-      // Click Save
-      await user.click(screen.getByRole('button', { name: 'Save' }));
+      // Click Save - get all Save buttons, the modal one is the last one
+      const saveButtons = screen.getAllByRole('button', { name: 'Save' });
+      await user.click(saveButtons[saveButtons.length - 1]);
 
       expect(mockSaveRoutine).toHaveBeenCalledWith('My Routine');
     });
@@ -319,8 +325,10 @@ describe('WorkoutLogger', () => {
       const input = screen.getByPlaceholderText('Routine name');
       await user.type(input, '   ');
 
-      const saveButton = screen.getByRole('button', { name: 'Save' });
-      expect(saveButton).toBeDisabled();
+      // Get all Save buttons - the modal one is the last one
+      const saveButtons = screen.getAllByRole('button', { name: 'Save' });
+      const modalSaveButton = saveButtons[saveButtons.length - 1];
+      expect(modalSaveButton).toBeDisabled();
     });
 
     it('should clear input when modal is reopened', async () => {
@@ -464,7 +472,7 @@ describe('WorkoutLogger', () => {
       expect(screen.queryByText('Cardio')).not.toBeInTheDocument();
     });
 
-    it('should cancel workout when back button is clicked from empty workout', async () => {
+    it('should show workout type selector when back button is clicked from empty workout', async () => {
       const user = userEvent.setup();
 
       render(<WorkoutLogger onNavigate={mockOnNavigate} />);
@@ -474,8 +482,9 @@ describe('WorkoutLogger', () => {
       const backButton = screen.getByRole('button', { name: 'Go back' });
       await user.click(backButton);
 
-      // Should cancel the workout (go back to landing page)
-      expect(mockCancelWorkout).toHaveBeenCalled();
+      // Should show workout type selector (not cancel immediately)
+      // The actual cancel happens from the workout type selector back button
+      expect(screen.getByText('Select Workout Type')).toBeInTheDocument();
     });
   });
 

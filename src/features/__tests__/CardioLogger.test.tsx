@@ -10,6 +10,8 @@ const mockCancelWorkout = vi.fn();
 const mockAddExercise = vi.fn();
 const mockUpdateSet = vi.fn();
 const mockUpdateNotes = vi.fn();
+const mockOnBackToWorkoutTypeSelector = vi.fn();
+const mockOnGoHome = vi.fn();
 const mockGetExerciseName = vi.fn((id: string) => {
   const names: Record<string, string> = {
     'running': 'Running',
@@ -18,6 +20,16 @@ const mockGetExerciseName = vi.fn((id: string) => {
   };
   return names[id] || 'Unknown Activity';
 });
+
+// Helper to render with required props
+const renderCardioLogger = () => {
+  return render(
+    <CardioLogger
+      onBackToWorkoutTypeSelector={mockOnBackToWorkoutTypeSelector}
+      onGoHome={mockOnGoHome}
+    />
+  );
+};
 
 const createMockWorkout = (overrides?: Partial<Workout>): Workout => ({
   id: 'workout-1',
@@ -146,13 +158,15 @@ describe('CardioLogger', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockActiveWorkout = null;
+    mockOnBackToWorkoutTypeSelector.mockClear();
+    mockOnGoHome.mockClear();
   });
 
   describe('when no active workout', () => {
     it('should return null when there is no active workout', () => {
       mockActiveWorkout = null;
 
-      const { container } = render(<CardioLogger />);
+      const { container } = renderCardioLogger();
 
       expect(container.firstChild).toBeNull();
     });
@@ -166,33 +180,33 @@ describe('CardioLogger', () => {
     });
 
     it('should render the workout name', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       const heading = screen.getByRole('heading', { level: 1 });
       expect(heading).toHaveTextContent('Cardio Session');
     });
 
     it('should display "Cardio Session" indicator', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       const elements = screen.getAllByText(/Cardio Session/);
       expect(elements.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should render the exercise name', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       expect(screen.getByText(/Running/)).toBeInTheDocument();
     });
 
     it('should render Cancel button', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       expect(screen.getByText('Cancel')).toBeInTheDocument();
     });
 
     it('should render Finish button', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       expect(screen.getByText('Finish')).toBeInTheDocument();
     });
@@ -200,7 +214,7 @@ describe('CardioLogger', () => {
     it('should call cancelWorkout when Cancel is clicked', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       await user.click(screen.getByText('Cancel'));
 
@@ -210,7 +224,7 @@ describe('CardioLogger', () => {
     it('should call finishWorkout when Finish is clicked', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       await user.click(screen.getByText('Finish'));
 
@@ -218,7 +232,7 @@ describe('CardioLogger', () => {
     });
 
     it('should render Add Activity button', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       expect(screen.getByText('Add Activity')).toBeInTheDocument();
     });
@@ -232,14 +246,14 @@ describe('CardioLogger', () => {
     });
 
     it('should render duration input with label', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       // New label format from CardioFieldInput
       expect(screen.getByText(/Duration/)).toBeInTheDocument();
     });
 
     it('should display current duration value', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       // Duration is 1800 seconds = 30 minutes, displayed in the input
       const durationInput = screen.getByPlaceholderText('30') as HTMLInputElement;
@@ -249,7 +263,7 @@ describe('CardioLogger', () => {
     it('should call updateSet when duration changes', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       const durationInput = screen.getByPlaceholderText('30');
       await user.clear(durationInput);
@@ -267,13 +281,13 @@ describe('CardioLogger', () => {
     });
 
     it('should render distance input with label', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       expect(screen.getByText(/Distance/)).toBeInTheDocument();
     });
 
     it('should display current distance value in km', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       // Distance is 5000 meters = 5 km
       const distanceInput = screen.getByPlaceholderText('5.0') as HTMLInputElement;
@@ -283,7 +297,7 @@ describe('CardioLogger', () => {
     it('should call updateSet when distance changes', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       const distanceInput = screen.getByPlaceholderText('5.0');
       await user.clear(distanceInput);
@@ -301,7 +315,7 @@ describe('CardioLogger', () => {
     });
 
     it('should render all intensity buttons', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       expect(screen.getByText('low')).toBeInTheDocument();
       expect(screen.getByText('medium')).toBeInTheDocument();
@@ -311,7 +325,7 @@ describe('CardioLogger', () => {
     it('should call updateSet when intensity button is clicked', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       await user.click(screen.getByText('high'));
 
@@ -323,7 +337,7 @@ describe('CardioLogger', () => {
     it('should call updateSet with low intensity', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       await user.click(screen.getByText('low'));
 
@@ -335,13 +349,15 @@ describe('CardioLogger', () => {
 
   describe('mark complete toggle', () => {
     beforeEach(() => {
+      // Mark complete toggle is only shown for routine workouts (fromRoutine: true)
       mockActiveWorkout = createMockWorkout({
         exercises: [createMockCardioExercise()],
+        fromRoutine: true,
       });
     });
 
     it('should render Mark Complete button', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       expect(screen.getByText('Mark Complete')).toBeInTheDocument();
     });
@@ -349,7 +365,7 @@ describe('CardioLogger', () => {
     it('should call updateSet with completed true when clicked', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       await user.click(screen.getByText('Mark Complete'));
 
@@ -360,6 +376,7 @@ describe('CardioLogger', () => {
 
     it('should show Completed text when already completed', () => {
       mockActiveWorkout = createMockWorkout({
+        fromRoutine: true,
         exercises: [
           createMockCardioExercise({
             sets: [
@@ -375,7 +392,7 @@ describe('CardioLogger', () => {
         ],
       });
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       expect(screen.getByText('Completed')).toBeInTheDocument();
     });
@@ -390,19 +407,19 @@ describe('CardioLogger', () => {
     });
 
     it('should render Session Notes section', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       expect(screen.getByText('Session Notes')).toBeInTheDocument();
     });
 
     it('should render notes textarea with placeholder', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       expect(screen.getByPlaceholderText('How did you feel? Any notes...')).toBeInTheDocument();
     });
 
     it('should display current notes value', () => {
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       const textarea = screen.getByPlaceholderText('How did you feel? Any notes...');
       expect(textarea).toHaveValue('Felt good today');
@@ -411,7 +428,7 @@ describe('CardioLogger', () => {
     it('should call updateNotes when notes change', async () => {
       const user = userEvent.setup();
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       const textarea = screen.getByPlaceholderText('How did you feel? Any notes...');
       await user.clear(textarea);
@@ -425,7 +442,7 @@ describe('CardioLogger', () => {
     it('should show exercise selector immediately when workout has no activities', () => {
       mockActiveWorkout = createMockWorkout({ exercises: [] });
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       // Selector shows immediately for empty workout
       expect(screen.getByText('Select Activity')).toBeInTheDocument();
@@ -434,7 +451,7 @@ describe('CardioLogger', () => {
     it('should show cardio exercises in selector', () => {
       mockActiveWorkout = createMockWorkout({ exercises: [] });
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       expect(screen.getByText('Running')).toBeInTheDocument();
       expect(screen.getByText('Cycling')).toBeInTheDocument();
@@ -445,7 +462,7 @@ describe('CardioLogger', () => {
       const user = userEvent.setup();
       mockActiveWorkout = createMockWorkout({ exercises: [] });
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       await user.click(screen.getByLabelText('Select Running'));
 
@@ -457,21 +474,21 @@ describe('CardioLogger', () => {
         exercises: [createMockCardioExercise()],
       });
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       expect(screen.getByText('Add Activity')).toBeInTheDocument();
     });
 
-    it('should go back and cancel workout when back button is clicked with no activities', async () => {
+    it('should call onBackToWorkoutTypeSelector when back button is clicked with no activities', async () => {
       const user = userEvent.setup();
       mockActiveWorkout = createMockWorkout({ exercises: [] });
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       const backButton = screen.getByLabelText('Go back');
       await user.click(backButton);
 
-      expect(mockCancelWorkout).toHaveBeenCalled();
+      expect(mockOnBackToWorkoutTypeSelector).toHaveBeenCalled();
     });
   });
 
@@ -484,7 +501,7 @@ describe('CardioLogger', () => {
         ],
       });
 
-      render(<CardioLogger />);
+      renderCardioLogger();
 
       expect(screen.getByText(/Running/)).toBeInTheDocument();
       expect(screen.getByText(/Cycling/)).toBeInTheDocument();
