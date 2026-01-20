@@ -1,15 +1,16 @@
 import type { Workout, MuscleGroup } from '../types';
 import { EXERCISES } from '../data/exercises';
 
-// Recovery constants
-// Using a non-linear recovery curve: fast phase (0-24h: 0%→80%), slow phase (24-36h: 80%→100%)
-const FULL_RECOVERY_HOURS = 36;
-const FAST_PHASE_HOURS = 24;
+// Recovery constants for PRIMARY muscles
+// Using a non-linear recovery curve: fast phase (0-48h: 0%→80%), slow phase (48-72h: 80%→100%)
+const PRIMARY_FULL_RECOVERY_HOURS = 72;
+const PRIMARY_FAST_PHASE_HOURS = 48;
 const FAST_PHASE_RECOVERY = 80; // 80% recovered after fast phase (OK to train)
 
-// Secondary muscles recover faster since they're worked less intensely
-// We apply a multiplier to simulate less fatigue (e.g., 0.5 = half the fatigue)
-const SECONDARY_MUSCLE_FATIGUE_FACTOR = 0.5;
+// Recovery constants for SECONDARY muscles (half the time)
+// Fast phase (0-24h: 0%→80%), slow phase (24-36h: 80%→100%)
+const SECONDARY_FULL_RECOVERY_HOURS = 36;
+const SECONDARY_FAST_PHASE_HOURS = 24;
 
 // All granular muscle groups for strength training (18 muscles - excludes Hip Flexors as minor)
 const STRENGTH_MUSCLE_GROUPS: MuscleGroup[] = [
@@ -31,37 +32,42 @@ const STRENGTH_MUSCLE_GROUPS: MuscleGroup[] = [
 
 /**
  * Calculate recovery percentage using non-linear formula.
- * Fast phase (0-48h): 0% → 80% (linear)
- * Slow phase (48-72h): 80% → 100% (linear)
+ * @param isPrimary - true for primary muscles (48/72h), false for secondary (24/36h)
  */
-function calculateRecoveryPercent(hoursSince: number): number {
-  if (hoursSince >= FULL_RECOVERY_HOURS) return 100;
-  if (hoursSince <= FAST_PHASE_HOURS) {
-    // 0-48h: Fast recovery phase (0% → 80%)
-    return Math.round((hoursSince / FAST_PHASE_HOURS) * FAST_PHASE_RECOVERY);
+function calculateRecoveryPercent(hoursSince: number, isPrimary: boolean): number {
+  const fullRecoveryHours = isPrimary ? PRIMARY_FULL_RECOVERY_HOURS : SECONDARY_FULL_RECOVERY_HOURS;
+  const fastPhaseHours = isPrimary ? PRIMARY_FAST_PHASE_HOURS : SECONDARY_FAST_PHASE_HOURS;
+
+  if (hoursSince >= fullRecoveryHours) return 100;
+  if (hoursSince <= fastPhaseHours) {
+    // Fast recovery phase (0% → 80%)
+    return Math.round((hoursSince / fastPhaseHours) * FAST_PHASE_RECOVERY);
   }
-  // 48-72h: Slower recovery phase (80% → 100%)
-  const slowPhaseHours = FULL_RECOVERY_HOURS - FAST_PHASE_HOURS;
-  const slowPhaseProgress = (hoursSince - FAST_PHASE_HOURS) / slowPhaseHours;
+  // Slow recovery phase (80% → 100%)
+  const slowPhaseHours = fullRecoveryHours - fastPhaseHours;
+  const slowPhaseProgress = (hoursSince - fastPhaseHours) / slowPhaseHours;
   return Math.round(FAST_PHASE_RECOVERY + slowPhaseProgress * (100 - FAST_PHASE_RECOVERY));
 }
 
 /**
  * Format time remaining until a target recovery percentage.
- * Returns format like "8h" or "1d".
+ * @param isPrimary - true for primary muscles (48/72h), false for secondary (24/36h)
  */
-export function formatTimeToRecovery(hoursSince: number, targetPercent: number = 80): string {
+export function formatTimeToRecovery(hoursSince: number, targetPercent: number = 80, isPrimary: boolean = true): string {
+  const fullRecoveryHours = isPrimary ? PRIMARY_FULL_RECOVERY_HOURS : SECONDARY_FULL_RECOVERY_HOURS;
+  const fastPhaseHours = isPrimary ? PRIMARY_FAST_PHASE_HOURS : SECONDARY_FAST_PHASE_HOURS;
+
   // Calculate hours needed to reach target
   let hoursNeeded: number;
 
   if (targetPercent <= FAST_PHASE_RECOVERY) {
     // Target is within fast phase
-    hoursNeeded = (targetPercent / FAST_PHASE_RECOVERY) * FAST_PHASE_HOURS;
+    hoursNeeded = (targetPercent / FAST_PHASE_RECOVERY) * fastPhaseHours;
   } else {
     // Target is in slow phase
     const slowPhaseTarget = (targetPercent - FAST_PHASE_RECOVERY) / (100 - FAST_PHASE_RECOVERY);
-    const slowPhaseHours = FULL_RECOVERY_HOURS - FAST_PHASE_HOURS;
-    hoursNeeded = FAST_PHASE_HOURS + slowPhaseTarget * slowPhaseHours;
+    const slowPhaseHours = fullRecoveryHours - fastPhaseHours;
+    hoursNeeded = fastPhaseHours + slowPhaseTarget * slowPhaseHours;
   }
 
   const hoursLeft = Math.max(0, Math.round(hoursNeeded - hoursSince));
@@ -74,6 +80,7 @@ export interface MuscleRecoveryData {
   lastTrainedDate: Date | null;
   hoursSinceTraining: number | null;
   isFresh: boolean;
+  isPrimary: boolean; // true if worked as primary muscle, false if secondary only
 }
 
 export interface RecoveryStats {
@@ -83,34 +90,27 @@ export interface RecoveryStats {
   muscleData: Record<MuscleGroup, MuscleRecoveryData>;
 }
 
+// Track fatigue data per muscle for proper primary/secondary handling
+interface MuscleFatigueInfo {
+  workoutTime: number;
+  isPrimary: boolean; // true = primary (48/72h recovery), false = secondary (24/36h recovery)
+}
+
 /**
  * Calculate muscle recovery status for all granular muscle groups based on workout history.
  * Tracks both primary and secondary muscles from exercises.
- * Secondary muscles receive reduced fatigue (recover faster).
- * Recovery uses non-linear formula:
- * - 0-24h: Fast phase (0% → 80%) - OK to train
- * - 24-36h: Slow phase (80% → 100%) - Fully recovered
+ * - Primary muscles: 48h → 80% (OK to train), 72h → 100% (fully recovered)
+ * - Secondary muscles: 24h → 80% (OK to train), 36h → 100% (fully recovered)
  */
 export function calculateMuscleRecovery(history: Workout[]): RecoveryStats {
   const now = Date.now();
 
-  // Initialize all muscle groups as fully recovered
-  const muscleData: Record<MuscleGroup, MuscleRecoveryData> = {} as Record<MuscleGroup, MuscleRecoveryData>;
-
-  for (const muscle of STRENGTH_MUSCLE_GROUPS) {
-    muscleData[muscle] = {
-      muscleGroup: muscle,
-      recoveryPercent: 100,
-      lastTrainedDate: null,
-      hoursSinceTraining: null,
-      isFresh: true,
-    };
-  }
-
   // Build exercise lookup map for O(1) access
   const exerciseMap = new Map(EXERCISES.map(e => [e.id, e]));
 
-  // Find the most recent training for each muscle group
+  // First pass: collect the most recent training for each muscle, tracking if primary or secondary
+  const muscleFatigue: Record<string, MuscleFatigueInfo> = {};
+
   for (const workout of history) {
     if (workout.type !== 'STRENGTH' || workout.status !== 'completed') continue;
 
@@ -127,17 +127,48 @@ export function calculateMuscleRecovery(history: Workout[]): RecoveryStats {
       // Get primary and secondary muscles trained by this exercise
       const { primary, secondary } = getMusclesFromExercise(exerciseInfo);
 
-      // Process primary muscles (full fatigue)
+      // Process primary muscles
       for (const muscle of primary) {
         if (!STRENGTH_MUSCLE_GROUPS.includes(muscle)) continue;
-        updateMuscleRecovery(muscleData, muscle, workoutTime, now, 1.0);
+        updateMuscleFatigue(muscleFatigue, muscle, workoutTime, true);
       }
 
-      // Process secondary muscles (reduced fatigue)
+      // Process secondary muscles
       for (const muscle of secondary) {
         if (!STRENGTH_MUSCLE_GROUPS.includes(muscle)) continue;
-        updateMuscleRecovery(muscleData, muscle, workoutTime, now, SECONDARY_MUSCLE_FATIGUE_FACTOR);
+        updateMuscleFatigue(muscleFatigue, muscle, workoutTime, false);
       }
+    }
+  }
+
+  // Second pass: calculate recovery based on collected fatigue data
+  const muscleData: Record<MuscleGroup, MuscleRecoveryData> = {} as Record<MuscleGroup, MuscleRecoveryData>;
+
+  for (const muscle of STRENGTH_MUSCLE_GROUPS) {
+    const fatigueInfo = muscleFatigue[muscle];
+
+    if (fatigueInfo) {
+      const hoursSince = (now - fatigueInfo.workoutTime) / (1000 * 60 * 60);
+      const recoveryPercent = calculateRecoveryPercent(hoursSince, fatigueInfo.isPrimary);
+
+      muscleData[muscle] = {
+        muscleGroup: muscle,
+        recoveryPercent,
+        lastTrainedDate: new Date(fatigueInfo.workoutTime),
+        hoursSinceTraining: hoursSince,
+        isFresh: recoveryPercent >= 100,
+        isPrimary: fatigueInfo.isPrimary,
+      };
+    } else {
+      // Never trained - fully recovered
+      muscleData[muscle] = {
+        muscleGroup: muscle,
+        recoveryPercent: 100,
+        lastTrainedDate: null,
+        hoursSinceTraining: null,
+        isFresh: true,
+        isPrimary: true, // Default to primary (doesn't matter since fully recovered)
+      };
     }
   }
 
@@ -159,37 +190,29 @@ export function calculateMuscleRecovery(history: Workout[]): RecoveryStats {
 }
 
 /**
- * Update muscle recovery data for a specific muscle.
- * Only updates if this workout is more recent than what we've seen.
- * @param fatigueFactor - 1.0 for primary muscles, 0.5 for secondary (recovers faster)
+ * Update muscle fatigue tracking.
+ * For the same workout time, primary beats secondary (longer recovery).
+ * For different workout times, keeps the more recent.
  */
-function updateMuscleRecovery(
-  muscleData: Record<MuscleGroup, MuscleRecoveryData>,
+function updateMuscleFatigue(
+  muscleFatigue: Record<string, MuscleFatigueInfo>,
   muscle: MuscleGroup,
   workoutTime: number,
-  now: number,
-  fatigueFactor: number
+  isPrimary: boolean
 ): void {
-  const existingData = muscleData[muscle];
+  const existing = muscleFatigue[muscle];
 
-  // Only update if this workout is more recent than what we've seen
-  if (!existingData.lastTrainedDate || workoutTime > existingData.lastTrainedDate.getTime()) {
-    const hoursSince = (now - workoutTime) / (1000 * 60 * 60);
-
-    // Apply fatigue factor: secondary muscles accumulate less fatigue
-    // Effectively, we scale the recovery time down (they recover faster)
-    const effectiveHoursSince = hoursSince / fatigueFactor;
-
-    const recoveryPercent = calculateRecoveryPercent(effectiveHoursSince);
-
-    muscleData[muscle] = {
-      muscleGroup: muscle,
-      recoveryPercent,
-      lastTrainedDate: new Date(workoutTime),
-      hoursSinceTraining: hoursSince,
-      isFresh: recoveryPercent >= 100,
-    };
+  if (!existing) {
+    // First time seeing this muscle
+    muscleFatigue[muscle] = { workoutTime, isPrimary };
+  } else if (workoutTime > existing.workoutTime) {
+    // More recent workout - always update
+    muscleFatigue[muscle] = { workoutTime, isPrimary };
+  } else if (workoutTime === existing.workoutTime && isPrimary && !existing.isPrimary) {
+    // Same workout but this is primary and existing is secondary - upgrade to primary
+    muscleFatigue[muscle] = { workoutTime, isPrimary: true };
   }
+  // Otherwise: older workout or same workout with same/lower priority - ignore
 }
 
 /**

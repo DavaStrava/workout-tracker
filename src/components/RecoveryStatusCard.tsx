@@ -11,11 +11,12 @@ interface RecoveryStatusCardProps {
 
 export const RecoveryStatusCard: React.FC<RecoveryStatusCardProps> = ({ stats, hasWorkoutHistory }) => {
   // Group muscles by recovery status
+  // Fresh: 90-100%, OK to Train: 70-90%, Recovering: <70%
   const muscleEntries = Object.values(stats.muscleData) as MuscleRecoveryData[];
 
-  const fullyRecovered = muscleEntries.filter(m => m.recoveryPercent >= 100);
-  const okToTrain = muscleEntries.filter(m => m.recoveryPercent >= 80 && m.recoveryPercent < 100);
-  const recovering = muscleEntries.filter(m => m.recoveryPercent < 80);
+  const fullyRecovered = muscleEntries.filter(m => m.recoveryPercent >= 90);
+  const okToTrain = muscleEntries.filter(m => m.recoveryPercent >= 70 && m.recoveryPercent < 90);
+  const recovering = muscleEntries.filter(m => m.recoveryPercent < 70);
 
   // Format last workout time
   const formatLastWorkout = () => {
@@ -73,7 +74,7 @@ export const RecoveryStatusCard: React.FC<RecoveryStatusCardProps> = ({ stats, h
               boxShadow: '0 0 8px rgba(34, 197, 94, 0.5)',
             }} />
             <span style={{ fontSize: '14px', fontWeight: 600, color: '#22c55e' }}>
-              Ready (100%)
+              Fresh (90%+)
             </span>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingLeft: '18px' }}>
@@ -109,7 +110,7 @@ export const RecoveryStatusCard: React.FC<RecoveryStatusCardProps> = ({ stats, h
               boxShadow: '0 0 8px rgba(234, 179, 8, 0.5)',
             }} />
             <span style={{ fontSize: '14px', fontWeight: 600, color: '#eab308' }}>
-              OK to Train (80%+)
+              OK to Train (70-90%)
             </span>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingLeft: '18px' }}>
@@ -129,7 +130,7 @@ export const RecoveryStatusCard: React.FC<RecoveryStatusCardProps> = ({ stats, h
                 {m.muscleGroup}
                 {m.hoursSinceTraining !== null && (
                   <span style={{ opacity: 0.7, marginLeft: '4px' }}>
-                    ({formatTimeToRecovery(m.hoursSinceTraining, 100)} left)
+                    ({formatTimeToRecovery(m.hoursSinceTraining, 90, m.isPrimary)} to fresh)
                   </span>
                 )}
               </span>
@@ -150,7 +151,7 @@ export const RecoveryStatusCard: React.FC<RecoveryStatusCardProps> = ({ stats, h
               boxShadow: '0 0 8px rgba(239, 68, 68, 0.5)',
             }} />
             <span style={{ fontSize: '14px', fontWeight: 600, color: '#ef4444' }}>
-              Recovering
+              Recovering (&lt;70%)
             </span>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingLeft: '18px' }}>
@@ -170,7 +171,7 @@ export const RecoveryStatusCard: React.FC<RecoveryStatusCardProps> = ({ stats, h
                 {m.muscleGroup}
                 {m.hoursSinceTraining !== null && (
                   <span style={{ opacity: 0.7, marginLeft: '4px' }}>
-                    ({formatTimeToRecovery(m.hoursSinceTraining, 80)} left)
+                    ({formatTimeToRecovery(m.hoursSinceTraining, 70, m.isPrimary)} to OK)
                   </span>
                 )}
               </span>
