@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
 import { Play, ArrowLeft, Dumbbell, Clock, Trash2, ChevronRight, Home, Undo2 } from 'lucide-react';
 import { WorkoutTypeSelector } from './WorkoutTypeSelector';
@@ -33,11 +33,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onResumeWo
         }
     };
 
-    // Filter out deleted workouts for display
-    const activeHistory = history.filter(w => !w.deletedAt);
+    // Filter out deleted workouts for display (memoized to avoid recalculation on every render)
+    const activeHistory = useMemo(() => history.filter(w => !w.deletedAt), [history]);
 
-    // Calculate muscle recovery stats
-    const recoveryStats = calculateMuscleRecovery(activeHistory);
+    // Calculate muscle recovery stats (memoized - expensive calculation)
+    const recoveryStats = useMemo(() => calculateMuscleRecovery(activeHistory), [activeHistory]);
 
     // Show Workout Type Selector
     if (showTypeSelector) {

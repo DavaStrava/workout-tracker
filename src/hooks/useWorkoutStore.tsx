@@ -195,7 +195,18 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 // Also update localStorage for offline support
                 localStorage.setItem('workoutHistory', JSON.stringify(workouts));
             },
-            (error) => console.error('Workout subscription error:', error)
+            (error) => {
+                console.error('Workout subscription error:', error);
+                setLastError({
+                    id: crypto.randomUUID(),
+                    message: 'Failed to sync workout history. Please check your connection.',
+                    retry: async () => {
+                        clearError();
+                        // Trigger re-subscription by forcing a state update
+                        window.location.reload();
+                    },
+                });
+            }
         );
 
         // Subscribe to routines
@@ -206,7 +217,10 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 // Also update localStorage for offline support
                 localStorage.setItem('routines', JSON.stringify(routines));
             },
-            (error) => console.error('Routines subscription error:', error)
+            (error) => {
+                console.error('Routines subscription error:', error);
+                // Routines are less critical, just log without blocking UI
+            }
         );
 
         // Subscribe to active workout
@@ -226,7 +240,17 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
                     localStorage.removeItem('activeWorkout');
                 }
             },
-            (error) => console.error('Active workout subscription error:', error)
+            (error) => {
+                console.error('Active workout subscription error:', error);
+                setLastError({
+                    id: crypto.randomUUID(),
+                    message: 'Failed to sync active workout. Please check your connection.',
+                    retry: async () => {
+                        clearError();
+                        window.location.reload();
+                    },
+                });
+            }
         );
 
         return () => {
@@ -495,8 +519,10 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
                     ...e,
                     sets: [...e.sets, {
                         id: crypto.randomUUID(),
-                        reps: lastSet ? lastSet.reps : 0,
-                        weight: lastSet ? lastSet.weight : 0,
+                        reps: lastSet?.reps ?? 0,
+                        weight: lastSet?.weight ?? 0,
+                        distance: lastSet?.distance ?? 0,
+                        duration: lastSet?.duration ?? 0,
                         completed: autoComplete
                     }]
                 };
@@ -789,6 +815,8 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
                         id: crypto.randomUUID(),
                         reps: lastSet?.reps ?? 0,
                         weight: lastSet?.weight ?? 0,
+                        distance: lastSet?.distance ?? 0,
+                        duration: lastSet?.duration ?? 0,
                         completed: true,
                     }]
                 };

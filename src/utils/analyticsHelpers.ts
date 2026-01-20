@@ -1,4 +1,13 @@
 import type { Workout } from '../types';
+import { EXERCISES } from '../data/exercises';
+
+// Sport IDs that track distance (running, walking, hiking)
+const DISTANCE_SPORT_IDS = ['running', 'walking', 'hiking'];
+
+// Get exercise by ID (computed at runtime to avoid module init issues)
+function getExerciseById(exerciseId: string) {
+    return EXERCISES.find(e => e.id === exerciseId);
+}
 
 /**
  * Get the last performance for a specific exercise
@@ -127,14 +136,18 @@ export function getVolumeByWeek(workouts: Workout[]): { label: string; volume: n
     // Generate last 4 weeks
     const weeks: { label: string; volume: number }[] = [];
     const now = new Date();
+    now.setHours(0, 0, 0, 0);
     const currentWeekStart = getWeekStart(now);
 
     for (let i = 3; i >= 0; i--) {
         const weekStart = new Date(currentWeekStart);
         weekStart.setDate(currentWeekStart.getDate() - (i * 7));
         const weekKey = getLocalDateKey(weekStart);
+
+        // For current week (i === 0), show today's date; for past weeks, show week start
+        const labelDate = i === 0 ? now : weekStart;
         weeks.push({
-            label: weekStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+            label: labelDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
             volume: weeklyData[weekKey] || 0
         });
     }
@@ -256,24 +269,45 @@ export function getTotalWorkouts(
 }
 
 /**
+ * Get workout duration in seconds.
+ * For cardio workouts, sums set-level durations (user input).
+ * For strength workouts, uses the timer-based workout.duration.
+ */
+function getWorkoutDuration(workout: Workout): number {
+    if (workout.type === 'CARDIO') {
+        // Sum duration from all sets (user input)
+        return workout.exercises.reduce((total, ex) => {
+            return total + ex.sets.reduce((setTotal, set) => {
+                return setTotal + (set.duration || 0);
+            }, 0);
+        }, 0);
+    }
+    // For strength/HIIT, use timer-based duration
+    return workout.duration || 0;
+}
+
+/**
  * Get average workout duration in minutes
  */
 export function getAverageDuration(workouts: Workout[]): number {
-    const withDuration = workouts.filter(w => w.duration !== undefined && w.duration > 0);
-    if (withDuration.length === 0) return 0;
+    const durations = workouts.map(w => getWorkoutDuration(w)).filter(d => d > 0);
+    if (durations.length === 0) return 0;
 
-    const totalSeconds = withDuration.reduce((sum, w) => sum + (w.duration || 0), 0);
-    return Math.round(totalSeconds / withDuration.length / 60);
+    const totalSeconds = durations.reduce((sum, d) => sum + d, 0);
+    return Math.round(totalSeconds / durations.length / 60);
 }
 
 /**
  * Get duration stats (min, max, average) in minutes
  */
 export function getDurationStats(workouts: Workout[]): { min: number; max: number; avg: number } {
-    const withDuration = workouts.filter(w => w.duration !== undefined && w.duration > 0);
-    if (withDuration.length === 0) return { min: 0, max: 0, avg: 0 };
+    const durations = workouts
+        .map(w => getWorkoutDuration(w))
+        .filter(d => d > 0)
+        .map(d => d / 60); // Convert to minutes
 
-    const durations = withDuration.map(w => (w.duration || 0) / 60); // Convert to minutes
+    if (durations.length === 0) return { min: 0, max: 0, avg: 0 };
+
     return {
         min: Math.round(Math.min(...durations)),
         max: Math.round(Math.max(...durations)),
@@ -288,13 +322,14 @@ export function getDurationByDay(workouts: Workout[]): { label: string; duration
     const dailyData: Record<string, { total: number; count: number }> = {};
 
     workouts.forEach(workout => {
-        if (!workout.duration) return;
+        const duration = getWorkoutDuration(workout);
+        if (duration <= 0) return;
         const date = new Date(workout.startTime);
         const dayKey = getLocalDateKey(date);
         if (!dailyData[dayKey]) {
             dailyData[dayKey] = { total: 0, count: 0 };
         }
-        dailyData[dayKey].total += workout.duration;
+        dailyData[dayKey].total += duration;
         dailyData[dayKey].count += 1;
     });
 
@@ -323,19 +358,21 @@ export function getDurationByWeek(workouts: Workout[]): { label: string; duratio
     const weeklyData: Record<string, { total: number; count: number }> = {};
 
     workouts.forEach(workout => {
-        if (!workout.duration) return;
+        const duration = getWorkoutDuration(workout);
+        if (duration <= 0) return;
         const date = new Date(workout.startTime);
         const weekStart = getWeekStart(date);
         const weekKey = getLocalDateKey(weekStart);
         if (!weeklyData[weekKey]) {
             weeklyData[weekKey] = { total: 0, count: 0 };
         }
-        weeklyData[weekKey].total += workout.duration;
+        weeklyData[weekKey].total += duration;
         weeklyData[weekKey].count += 1;
     });
 
     const weeks: { label: string; duration: number }[] = [];
     const now = new Date();
+    now.setHours(0, 0, 0, 0);
     const currentWeekStart = getWeekStart(now);
 
     for (let i = 3; i >= 0; i--) {
@@ -343,8 +380,11 @@ export function getDurationByWeek(workouts: Workout[]): { label: string; duratio
         weekStart.setDate(currentWeekStart.getDate() - (i * 7));
         const weekKey = getLocalDateKey(weekStart);
         const data = weeklyData[weekKey];
+
+        // For current week (i === 0), show today's date; for past weeks, show week start
+        const labelDate = i === 0 ? now : weekStart;
         weeks.push({
-            label: weekStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+            label: labelDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
             duration: data ? Math.round(data.total / data.count / 60) : 0
         });
     }
@@ -359,13 +399,14 @@ export function getDurationByMonth(workouts: Workout[]): { label: string; durati
     const monthlyData: Record<string, { total: number; count: number }> = {};
 
     workouts.forEach(workout => {
-        if (!workout.duration) return;
+        const duration = getWorkoutDuration(workout);
+        if (duration <= 0) return;
         const date = new Date(workout.startTime);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         if (!monthlyData[monthKey]) {
             monthlyData[monthKey] = { total: 0, count: 0 };
         }
-        monthlyData[monthKey].total += workout.duration;
+        monthlyData[monthKey].total += duration;
         monthlyData[monthKey].count += 1;
     });
 
@@ -379,6 +420,139 @@ export function getDurationByMonth(workouts: Workout[]): { label: string; durati
         months.push({
             label: month.toLocaleDateString(undefined, { month: 'short' }),
             duration: data ? Math.round(data.total / data.count / 60) : 0
+        });
+    }
+
+    return months;
+}
+
+// Cache for exercise lookups to avoid repeated .find() calls
+const exerciseCache = new Map<string, ReturnType<typeof getExerciseById>>();
+
+function getCachedExercise(exerciseId: string) {
+    if (!exerciseCache.has(exerciseId)) {
+        exerciseCache.set(exerciseId, getExerciseById(exerciseId));
+    }
+    return exerciseCache.get(exerciseId);
+}
+
+/**
+ * Calculate total distance from running/walking/hiking exercises (in km)
+ */
+function calculateCardioDistance(workout: Workout): number {
+    let totalDistance = 0;
+    for (const ex of workout.exercises) {
+        const exerciseInfo = getCachedExercise(ex.exerciseId);
+        // Only count exercises with distance-tracking sports
+        if (exerciseInfo?.sportId && DISTANCE_SPORT_IDS.includes(exerciseInfo.sportId)) {
+            for (const set of ex.sets) {
+                // Distance is stored in meters, convert to km
+                if (set.distance && set.distance > 0) {
+                    totalDistance += set.distance / 1000;
+                }
+            }
+        }
+    }
+    return totalDistance;
+}
+
+/**
+ * Calculate total running/walking distance for a list of workouts (in km)
+ */
+export function calculateTotalCardioDistance(workouts: Workout[]): number {
+    return workouts.reduce((total, workout) => total + calculateCardioDistance(workout), 0);
+}
+
+/**
+ * Get daily running/walking distance for charting (last 7 days)
+ */
+export function getDistanceByDay(workouts: Workout[]): { label: string; distance: number }[] {
+    const dailyData: Record<string, number> = {};
+
+    workouts.forEach(workout => {
+        const distance = calculateCardioDistance(workout);
+        if (distance <= 0) return;
+        const date = new Date(workout.startTime);
+        const dayKey = getLocalDateKey(date);
+        dailyData[dayKey] = (dailyData[dayKey] || 0) + distance;
+    });
+
+    const days: { label: string; distance: number }[] = [];
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    for (let i = 6; i >= 0; i--) {
+        const day = new Date(now);
+        day.setDate(now.getDate() - i);
+        const dayKey = getLocalDateKey(day);
+        days.push({
+            label: day.toLocaleDateString(undefined, { weekday: 'short' }),
+            distance: Math.round((dailyData[dayKey] || 0) * 10) / 10
+        });
+    }
+
+    return days;
+}
+
+/**
+ * Get weekly running/walking distance for charting (last 4 weeks)
+ */
+export function getDistanceByWeek(workouts: Workout[]): { label: string; distance: number }[] {
+    const weeklyData: Record<string, number> = {};
+
+    workouts.forEach(workout => {
+        const distance = calculateCardioDistance(workout);
+        if (distance <= 0) return;
+        const date = new Date(workout.startTime);
+        const weekStart = getWeekStart(date);
+        const weekKey = getLocalDateKey(weekStart);
+        weeklyData[weekKey] = (weeklyData[weekKey] || 0) + distance;
+    });
+
+    const weeks: { label: string; distance: number }[] = [];
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const currentWeekStart = getWeekStart(now);
+
+    for (let i = 3; i >= 0; i--) {
+        const weekStart = new Date(currentWeekStart);
+        weekStart.setDate(currentWeekStart.getDate() - (i * 7));
+        const weekKey = getLocalDateKey(weekStart);
+
+        // For current week (i === 0), show today's date; for past weeks, show week start
+        const labelDate = i === 0 ? now : weekStart;
+        weeks.push({
+            label: labelDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+            distance: Math.round((weeklyData[weekKey] || 0) * 10) / 10
+        });
+    }
+
+    return weeks;
+}
+
+/**
+ * Get monthly running/walking distance for charting (last 12 months)
+ */
+export function getDistanceByMonth(workouts: Workout[]): { label: string; distance: number }[] {
+    const monthlyData: Record<string, number> = {};
+
+    workouts.forEach(workout => {
+        const distance = calculateCardioDistance(workout);
+        if (distance <= 0) return;
+        const date = new Date(workout.startTime);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        monthlyData[monthKey] = (monthlyData[monthKey] || 0) + distance;
+    });
+
+    const months: { label: string; distance: number }[] = [];
+    const now = new Date();
+
+    for (let i = 11; i >= 0; i--) {
+        const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthKey = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`;
+        months.push({
+            label: month.toLocaleDateString(undefined, { month: 'short' }),
+            distance: Math.round((monthlyData[monthKey] || 0) * 10) / 10
         });
     }
 
