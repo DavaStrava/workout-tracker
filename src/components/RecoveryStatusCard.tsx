@@ -79,7 +79,7 @@ export const RecoveryStatusCard: React.FC<RecoveryStatusCardProps> = ({ stats, h
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingLeft: '18px' }}>
             {fullyRecovered.map(m => (
               <span
-                key={m.bodyArea}
+                key={m.muscleGroup}
                 style={{
                   padding: '4px 12px',
                   borderRadius: '16px',
@@ -90,7 +90,7 @@ export const RecoveryStatusCard: React.FC<RecoveryStatusCardProps> = ({ stats, h
                   color: '#22c55e',
                 }}
               >
-                {m.bodyArea}
+                {m.muscleGroup}
               </span>
             ))}
           </div>
@@ -115,7 +115,7 @@ export const RecoveryStatusCard: React.FC<RecoveryStatusCardProps> = ({ stats, h
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingLeft: '18px' }}>
             {okToTrain.map(m => (
               <span
-                key={m.bodyArea}
+                key={m.muscleGroup}
                 style={{
                   padding: '4px 12px',
                   borderRadius: '16px',
@@ -126,7 +126,7 @@ export const RecoveryStatusCard: React.FC<RecoveryStatusCardProps> = ({ stats, h
                   color: '#eab308',
                 }}
               >
-                {m.bodyArea}
+                {m.muscleGroup}
                 {m.hoursSinceTraining !== null && (
                   <span style={{ opacity: 0.7, marginLeft: '4px' }}>
                     ({formatTimeToRecovery(m.hoursSinceTraining, 100)} left)
@@ -156,7 +156,7 @@ export const RecoveryStatusCard: React.FC<RecoveryStatusCardProps> = ({ stats, h
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingLeft: '18px' }}>
             {recovering.map(m => (
               <span
-                key={m.bodyArea}
+                key={m.muscleGroup}
                 style={{
                   padding: '4px 12px',
                   borderRadius: '16px',
@@ -167,7 +167,7 @@ export const RecoveryStatusCard: React.FC<RecoveryStatusCardProps> = ({ stats, h
                   color: '#ef4444',
                 }}
               >
-                {m.bodyArea}
+                {m.muscleGroup}
                 {m.hoursSinceTraining !== null && (
                   <span style={{ opacity: 0.7, marginLeft: '4px' }}>
                     ({formatTimeToRecovery(m.hoursSinceTraining, 80)} left)

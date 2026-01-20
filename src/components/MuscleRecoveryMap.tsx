@@ -5,10 +5,22 @@
  */
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import type { BodyArea } from '../types';
+import type { BodyArea, MuscleGroup } from '../types';
 import { useWorkout } from '../hooks/useWorkoutStore';
-import { calculateMuscleRecovery } from '../utils/recoveryHelpers';
+import { calculateMuscleRecovery, type MuscleRecoveryData } from '../utils/recoveryHelpers';
 import { EXERCISES } from '../data/exercises';
+
+// Map BodyArea to a representative MuscleGroup for recovery lookup
+const bodyAreaToMuscleGroup: Record<BodyArea, MuscleGroup | null> = {
+  'Chest': 'Chest',
+  'Shoulders': 'Anterior Deltoid',
+  'Arms': 'Biceps',
+  'Abdomen': 'Abs',
+  'Back': 'Lats',
+  'Glutes': 'Glutes',
+  'Legs': 'Quads',
+  'Cardio': null,
+};
 import {
   ChestIcon,
   ShouldersIcon,
@@ -192,7 +204,11 @@ export const MuscleRecoveryMap: React.FC<MuscleRecoveryMapProps> = ({ onSelect }
         {muscleGroups.map((group, index) => {
           const IconComponent = group.icon;
           const exerciseCount = getExerciseCount(group.area);
-          const muscleRecovery = recoveryStats.muscleData[group.area];
+          // Map BodyArea to representative MuscleGroup for recovery lookup
+          const representativeMuscle = bodyAreaToMuscleGroup[group.area];
+          const muscleRecovery: MuscleRecoveryData | undefined = representativeMuscle
+            ? recoveryStats.muscleData[representativeMuscle]
+            : undefined;
           const isFresh = muscleRecovery?.isFresh ?? true;
 
           return (

@@ -1,17 +1,32 @@
-import type { Workout, BodyArea } from '../types';
+import type { Workout, MuscleGroup } from '../types';
 import { EXERCISES } from '../data/exercises';
 
 // Recovery constants
-// Based on exercise science: muscle protein synthesis typically completes within 48-72 hours.
-// Using a non-linear recovery curve: fast phase (0-48h: 0%→80%), slow phase (48-72h: 80%→100%)
-// Source: https://pubmed.ncbi.nlm.nih.gov/8563679/
-const FULL_RECOVERY_HOURS = 72;
-const FAST_PHASE_HOURS = 48;
-const FAST_PHASE_RECOVERY = 80; // 80% recovered after fast phase
+// Using a non-linear recovery curve: fast phase (0-24h: 0%→80%), slow phase (24-36h: 80%→100%)
+const FULL_RECOVERY_HOURS = 36;
+const FAST_PHASE_HOURS = 24;
+const FAST_PHASE_RECOVERY = 80; // 80% recovered after fast phase (OK to train)
 
-// All strength-training muscle groups (excludes Cardio)
-const STRENGTH_BODY_AREAS: BodyArea[] = [
-  'Chest', 'Shoulders', 'Arms', 'Abdomen', 'Back', 'Glutes', 'Legs'
+// Secondary muscles recover faster since they're worked less intensely
+// We apply a multiplier to simulate less fatigue (e.g., 0.5 = half the fatigue)
+const SECONDARY_MUSCLE_FATIGUE_FACTOR = 0.5;
+
+// All granular muscle groups for strength training (18 muscles - excludes Hip Flexors as minor)
+const STRENGTH_MUSCLE_GROUPS: MuscleGroup[] = [
+  // Chest
+  'Chest',
+  // Shoulders
+  'Anterior Deltoid', 'Lateral Deltoid', 'Posterior Deltoid',
+  // Arms
+  'Biceps', 'Triceps', 'Forearms',
+  // Abdomen
+  'Abs', 'Obliques',
+  // Back
+  'Lats', 'Upper Back', 'Traps', 'Lower Back',
+  // Glutes
+  'Glutes',
+  // Legs
+  'Quads', 'Hamstrings', 'Calves',
 ];
 
 /**
@@ -54,7 +69,7 @@ export function formatTimeToRecovery(hoursSince: number, targetPercent: number =
 }
 
 export interface MuscleRecoveryData {
-  bodyArea: BodyArea;
+  muscleGroup: MuscleGroup;
   recoveryPercent: number;
   lastTrainedDate: Date | null;
   hoursSinceTraining: number | null;
@@ -65,24 +80,26 @@ export interface RecoveryStats {
   lastWorkoutDaysAgo: number | null;
   freshMuscleCount: number;
   totalMuscleGroups: number;
-  muscleData: Record<BodyArea, MuscleRecoveryData>;
+  muscleData: Record<MuscleGroup, MuscleRecoveryData>;
 }
 
 /**
- * Calculate muscle recovery status for all muscle groups based on workout history.
+ * Calculate muscle recovery status for all granular muscle groups based on workout history.
+ * Tracks both primary and secondary muscles from exercises.
+ * Secondary muscles receive reduced fatigue (recover faster).
  * Recovery uses non-linear formula:
- * - 0-48h: Fast phase (0% → 80%)
- * - 48-72h: Slow phase (80% → 100%)
+ * - 0-24h: Fast phase (0% → 80%) - OK to train
+ * - 24-36h: Slow phase (80% → 100%) - Fully recovered
  */
 export function calculateMuscleRecovery(history: Workout[]): RecoveryStats {
   const now = Date.now();
 
   // Initialize all muscle groups as fully recovered
-  const muscleData: Record<BodyArea, MuscleRecoveryData> = {} as Record<BodyArea, MuscleRecoveryData>;
+  const muscleData: Record<MuscleGroup, MuscleRecoveryData> = {} as Record<MuscleGroup, MuscleRecoveryData>;
 
-  for (const area of STRENGTH_BODY_AREAS) {
-    muscleData[area] = {
-      bodyArea: area,
+  for (const muscle of STRENGTH_MUSCLE_GROUPS) {
+    muscleData[muscle] = {
+      muscleGroup: muscle,
       recoveryPercent: 100,
       lastTrainedDate: null,
       hoursSinceTraining: null,
@@ -90,36 +107,36 @@ export function calculateMuscleRecovery(history: Workout[]): RecoveryStats {
     };
   }
 
+  // Build exercise lookup map for O(1) access
+  const exerciseMap = new Map(EXERCISES.map(e => [e.id, e]));
+
   // Find the most recent training for each muscle group
   for (const workout of history) {
     if (workout.type !== 'STRENGTH' || workout.status !== 'completed') continue;
 
     for (const exercise of workout.exercises) {
-      const exerciseInfo = EXERCISES.find(e => e.id === exercise.exerciseId);
+      const exerciseInfo = exerciseMap.get(exercise.exerciseId);
       if (!exerciseInfo || exerciseInfo.bodyArea === 'Cardio') continue;
 
       // Only count exercises with at least one completed set
       const hasCompletedSets = exercise.sets.some(s => s.completed);
       if (!hasCompletedSets) continue;
 
-      const area = exerciseInfo.bodyArea as BodyArea;
-      const existingData = muscleData[area];
       const workoutTime = workout.endTime || workout.startTime;
 
-      // Only update if this workout is more recent than what we've seen
-      if (!existingData.lastTrainedDate || workoutTime > existingData.lastTrainedDate.getTime()) {
-        const hoursSince = (now - workoutTime) / (1000 * 60 * 60);
+      // Get primary and secondary muscles trained by this exercise
+      const { primary, secondary } = getMusclesFromExercise(exerciseInfo);
 
-        // Non-linear recovery: fast phase (0-48h: 0%→80%), slow phase (48-72h: 80%→100%)
-        const recoveryPercent = calculateRecoveryPercent(hoursSince);
+      // Process primary muscles (full fatigue)
+      for (const muscle of primary) {
+        if (!STRENGTH_MUSCLE_GROUPS.includes(muscle)) continue;
+        updateMuscleRecovery(muscleData, muscle, workoutTime, now, 1.0);
+      }
 
-        muscleData[area] = {
-          bodyArea: area,
-          recoveryPercent,
-          lastTrainedDate: new Date(workoutTime),
-          hoursSinceTraining: hoursSince,
-          isFresh: recoveryPercent >= 100,
-        };
+      // Process secondary muscles (reduced fatigue)
+      for (const muscle of secondary) {
+        if (!STRENGTH_MUSCLE_GROUPS.includes(muscle)) continue;
+        updateMuscleRecovery(muscleData, muscle, workoutTime, now, SECONDARY_MUSCLE_FATIGUE_FACTOR);
       }
     }
   }
@@ -136,9 +153,75 @@ export function calculateMuscleRecovery(history: Workout[]): RecoveryStats {
   return {
     lastWorkoutDaysAgo,
     freshMuscleCount: freshCount,
-    totalMuscleGroups: STRENGTH_BODY_AREAS.length,
+    totalMuscleGroups: STRENGTH_MUSCLE_GROUPS.length,
     muscleData,
   };
+}
+
+/**
+ * Update muscle recovery data for a specific muscle.
+ * Only updates if this workout is more recent than what we've seen.
+ * @param fatigueFactor - 1.0 for primary muscles, 0.5 for secondary (recovers faster)
+ */
+function updateMuscleRecovery(
+  muscleData: Record<MuscleGroup, MuscleRecoveryData>,
+  muscle: MuscleGroup,
+  workoutTime: number,
+  now: number,
+  fatigueFactor: number
+): void {
+  const existingData = muscleData[muscle];
+
+  // Only update if this workout is more recent than what we've seen
+  if (!existingData.lastTrainedDate || workoutTime > existingData.lastTrainedDate.getTime()) {
+    const hoursSince = (now - workoutTime) / (1000 * 60 * 60);
+
+    // Apply fatigue factor: secondary muscles accumulate less fatigue
+    // Effectively, we scale the recovery time down (they recover faster)
+    const effectiveHoursSince = hoursSince / fatigueFactor;
+
+    const recoveryPercent = calculateRecoveryPercent(effectiveHoursSince);
+
+    muscleData[muscle] = {
+      muscleGroup: muscle,
+      recoveryPercent,
+      lastTrainedDate: new Date(workoutTime),
+      hoursSinceTraining: hoursSince,
+      isFresh: recoveryPercent >= 100,
+    };
+  }
+}
+
+/**
+ * Get the granular muscles trained by an exercise.
+ * Returns both primary and secondary muscles separately.
+ * Uses primaryMuscles/secondaryMuscles if available, otherwise maps bodyArea to defaults.
+ */
+function getMusclesFromExercise(exerciseInfo: {
+  bodyArea: string;
+  primaryMuscles?: MuscleGroup[];
+  secondaryMuscles?: MuscleGroup[]
+}): { primary: MuscleGroup[]; secondary: MuscleGroup[] } {
+  // Fallback mapping from bodyArea to default muscle groups
+  const bodyAreaToMuscle: Record<string, MuscleGroup[]> = {
+    'Chest': ['Chest'],
+    'Shoulders': ['Anterior Deltoid', 'Lateral Deltoid', 'Posterior Deltoid'],
+    'Arms': ['Biceps', 'Triceps', 'Forearms'],
+    'Abdomen': ['Abs', 'Obliques'],
+    'Back': ['Lats', 'Upper Back', 'Traps', 'Lower Back'],
+    'Glutes': ['Glutes'],
+    'Legs': ['Quads', 'Hamstrings', 'Calves'],
+  };
+
+  // Get primary muscles
+  const primary = exerciseInfo.primaryMuscles?.length
+    ? exerciseInfo.primaryMuscles
+    : (bodyAreaToMuscle[exerciseInfo.bodyArea] || []);
+
+  // Get secondary muscles (empty array if not defined)
+  const secondary = exerciseInfo.secondaryMuscles || [];
+
+  return { primary, secondary };
 }
 
 export interface RecoveryColorScheme {
@@ -185,8 +268,8 @@ export function getRecoveryColor(percent: number): RecoveryColorScheme {
 }
 
 /**
- * Get list of strength body areas for iteration.
+ * Get list of strength muscle groups for iteration.
  */
-export function getStrengthBodyAreas(): BodyArea[] {
-  return [...STRENGTH_BODY_AREAS];
+export function getStrengthMuscleGroups(): MuscleGroup[] {
+  return [...STRENGTH_MUSCLE_GROUPS];
 }

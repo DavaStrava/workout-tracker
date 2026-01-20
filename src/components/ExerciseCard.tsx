@@ -20,12 +20,27 @@ export const ExerciseCard: FC<ExerciseCardProps> = ({ exercise, onSelect, index 
   const gradientIndex = index % 3;
   const { gradient, shadow } = CARD_GRADIENTS[gradientIndex];
 
-  // Build the targets string: primary + secondary muscles
-  const targets = [exercise.bodyArea];
-  if (exercise.secondaryAreas && exercise.secondaryAreas.length > 0) {
-    targets.push(...exercise.secondaryAreas);
-  }
-  const targetsText = targets.join(' · ');
+  // Get primary muscles display text with fallback to bodyArea
+  const getPrimaryDisplay = (): string => {
+    if (exercise.primaryMuscles?.length) {
+      return exercise.primaryMuscles.join(' · ');
+    }
+    return exercise.bodyArea; // Fallback
+  };
+
+  // Get secondary muscles display text with fallback to secondaryAreas
+  const getSecondaryDisplay = (): string | null => {
+    if (exercise.secondaryMuscles?.length) {
+      return exercise.secondaryMuscles.join(' · ');
+    }
+    if (exercise.secondaryAreas?.length) {
+      return exercise.secondaryAreas.join(' · '); // Fallback
+    }
+    return null;
+  };
+
+  const primaryText = getPrimaryDisplay();
+  const secondaryText = getSecondaryDisplay();
 
   return (
     <motion.button
@@ -92,16 +107,27 @@ export const ExerciseCard: FC<ExerciseCardProps> = ({ exercise, onSelect, index 
       )}
 
       {/* Muscle Targets */}
-      <div style={{ width: '100%' }}>
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px' }}>
         <span
           style={{
             fontSize: '11px',
-            color: 'rgba(255, 255, 255, 0.65)',
+            color: 'white',
             fontWeight: 500,
           }}
         >
-          Targets: {targetsText}
+          Primary: {primaryText}
         </span>
+        {secondaryText && (
+          <span
+            style={{
+              fontSize: '11px',
+              color: 'rgba(255, 255, 255, 0.65)',
+              fontWeight: 500,
+            }}
+          >
+            Secondary: {secondaryText}
+          </span>
+        )}
       </div>
     </motion.button>
   );
