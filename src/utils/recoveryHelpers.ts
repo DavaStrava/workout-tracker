@@ -254,37 +254,37 @@ export interface RecoveryColorScheme {
 
 /**
  * Get the color scheme for a muscle based on its recovery percentage.
- * Colors inspired by Fitbod: bright red for fresh, dark purple for fatigued.
+ * Fresh (90%+): Green, OK to Train (70-90%): Yellow, Recovering (<70%): Red gradient
  */
 export function getRecoveryColor(percent: number): RecoveryColorScheme {
-  if (percent >= 100) {
-    // Fresh - Bright red (like Fitbod)
+  if (percent >= 90) {
+    // Fresh - Green
     return {
-      fill: '#ff4d6d',
-      glow: 'rgba(255, 77, 109, 0.6)',
+      fill: '#22c55e',
+      glow: 'rgba(34, 197, 94, 0.5)',
     };
-  } else if (percent >= 75) {
-    // Almost recovered - Coral red
+  } else if (percent >= 70) {
+    // OK to Train - Yellow
     return {
-      fill: '#e05578',
-      glow: 'rgba(224, 85, 120, 0.4)',
+      fill: '#eab308',
+      glow: 'rgba(234, 179, 8, 0.4)',
     };
   } else if (percent >= 50) {
-    // Mid recovery - Muted pink
+    // Recovering - Light red/orange
     return {
-      fill: '#a85a7a',
-      glow: 'rgba(168, 90, 122, 0.2)',
+      fill: '#f97316',
+      glow: 'rgba(249, 115, 22, 0.3)',
     };
   } else if (percent >= 25) {
-    // Low recovery - Purple
+    // Recovering - Red
     return {
-      fill: '#6b4d7a',
-      glow: 'none',
+      fill: '#ef4444',
+      glow: 'rgba(239, 68, 68, 0.2)',
     };
   } else {
-    // Fatigued - Dark purple (like body silhouette)
+    // Heavily fatigued - Dark red
     return {
-      fill: '#4a3d5c',
+      fill: '#dc2626',
       glow: 'none',
     };
   }
