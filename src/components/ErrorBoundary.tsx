@@ -104,7 +104,7 @@ export class ErrorBoundary extends Component<Props, State> {
                         >
                             We encountered an unexpected error. Please try again or refresh the page.
                         </p>
-                        {this.state.error && (
+                        {this.state.error && import.meta.env.DEV && (
                             <details
                                 style={{
                                     marginBottom: '24px',
@@ -122,7 +122,7 @@ export class ErrorBoundary extends Component<Props, State> {
                                         marginBottom: '8px',
                                     }}
                                 >
-                                    Error details
+                                    Error details (development only)
                                 </summary>
                                 <pre
                                     style={{
