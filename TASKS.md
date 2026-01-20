@@ -59,6 +59,17 @@
     - [x] Fix Analytics.tsx to exclude deleted workouts from calculations <!-- id: 59 -->
     - [x] Add loading state and error feedback to WorkoutEditor <!-- id: 60 -->
     - [x] Optimize WorkoutEditor handlers with useCallback <!-- id: 61 -->
+- [x] Unit System Toggle (Metric/Imperial)
+    - [x] Add UnitSystem and UserPreferences types to types/index.ts <!-- id: 62 -->
+    - [x] Create unitConversion.ts utility (weight/distance conversion functions) <!-- id: 63 -->
+    - [x] Create usePreferences.tsx hook (localStorage + Firestore sync) <!-- id: 64 -->
+    - [x] Add saveUserPreferences and subscribeToUserPreferences to firestore.ts <!-- id: 65 -->
+    - [x] Create UnitToggle.tsx component (fixed button, bottom-right) <!-- id: 66 -->
+    - [x] Update WorkoutLogger.tsx with dynamic weight units <!-- id: 67 -->
+    - [x] Update CardioLogger.tsx with dynamic distance units (km/mi, m/yd) <!-- id: 68 -->
+    - [x] Update WorkoutEditor.tsx with dynamic unit labels <!-- id: 69 -->
+    - [x] Update Analytics.tsx with unit-aware charts and stats <!-- id: 70 -->
+    - [x] Update cardioCalculations.ts with unit system support <!-- id: 71 -->
 - [ ] AI-Generated Photorealistic Exercise Icons
     - [ ] Create directory structure: `public/icons/exercises/{muscle-groups}/` <!-- id: 41 -->
     - [ ] Install sharp dependency for image optimization <!-- id: 42 -->

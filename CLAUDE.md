@@ -67,7 +67,8 @@ workout-tracker/
     ├── types/
     │   └── index.ts
     ├── hooks/
-    │   └── useWorkoutStore.tsx
+    │   ├── useWorkoutStore.tsx
+    │   └── usePreferences.tsx       # User preferences context (unit system)
     ├── components/
     │   ├── __tests__/
     │   │   ├── Button.test.tsx
@@ -86,6 +87,7 @@ workout-tracker/
     │   ├── Card.tsx
     │   ├── Badge.tsx
     │   ├── ErrorBoundary.tsx
+    │   ├── UnitToggle.tsx               # Metric/Imperial unit system toggle button
     │   ├── AnatomicalBodySelector.tsx   # Main muscle group selector with front/back toggle
     │   ├── MuscleGroupSelector.tsx      # DEPRECATED (kept for reference)
     │   ├── MuscleGroupIcons.tsx         # DEPRECATED (kept for reference)
@@ -114,6 +116,8 @@ workout-tracker/
     │   ├── analyticsHelpers.ts
     │   ├── analyticsHelpers.test.ts
     │   ├── recoveryHelpers.ts
+    │   ├── unitConversion.ts        # Metric/Imperial conversion utilities
+    │   ├── cardioCalculations.ts    # Cardio pace, speed, distance calculations
     │   └── styles.ts
     ├── services/
     │   ├── auth.ts
@@ -274,6 +278,24 @@ The app uses React Context (`WorkoutProvider` in `src/hooks/useWorkoutStore.tsx`
 
 **Key principle**: All workout data flows through this context. Never manipulate localStorage directly outside of this provider.
 
+### User Preferences (`src/hooks/usePreferences.tsx`)
+
+Manages user preferences including the unit system (metric/imperial):
+- Stores `unitSystem` preference ('metric' | 'imperial')
+- Syncs to localStorage for persistence across sessions
+- Syncs to Firestore for authenticated users (preferences stored in user document)
+- Exposes: `preferences`, `unitSystem`, `setUnitSystem()`, `isLoading`
+
+**Unit Conversion** (`src/utils/unitConversion.ts`):
+- `displayWeight(kg, unitSystem)` - Convert kg to display unit (kg or lbs)
+- `storageWeight(value, unitSystem)` - Convert input to kg for storage
+- `displayDistance(meters, unitSystem, sportId?)` - Convert meters to display unit (km/mi or m/yd)
+- `storageDistance(value, unitSystem, sportId?)` - Convert input to meters for storage
+- `getWeightUnit(unitSystem)` → 'kg' | 'lbs'
+- `getDistanceUnit(unitSystem, sportId?)` → 'km' | 'mi' | 'm' | 'yd'
+
+**Sport-specific distance units**: Swimming and rowing use meters/yards instead of kilometers/miles.
+
 ### Data Model Hierarchy
 
 ```
@@ -293,6 +315,8 @@ Workout (workout session with metadata)
   - Back: Back (upper back + lats + traps + lower back)
   - Lower Body: Glutes, Legs (quads + hamstrings + calves)
   - Plus: Cardio
+- **UnitSystem** type: `'metric' | 'imperial'` for unit preference
+- **UserPreferences** interface: `{ unitSystem: UnitSystem }` stored in Firestore user document
 
 ### Component Structure
 
@@ -311,6 +335,7 @@ Workout (workout session with metadata)
 - `Button.tsx`, `Input.tsx`, `Card.tsx` - Reusable UI primitives
 - `Badge.tsx` - Status badges and StatCard component for displaying metrics
 - `ErrorBoundary.tsx` - React error boundary for graceful error handling
+- `UnitToggle.tsx` - Fixed-position button (bottom-right) to toggle between metric (kg/km) and imperial (lbs/mi) units. Clicking switches the unit system app-wide.
 - `AnatomicalBodySelector.tsx` - Interactive anatomical muscle selector with front/back toggle. Uses inline SVG with embedded `<image>` element for the body and leader lines in the same coordinate space. Features staggered labels on both sides (front: Shoulders/Arms/Legs on right, Chest/Abdomen on left; back: Shoulders/Arms/Legs on left, Back/Glutes on right). ViewBox controls visibility (front: 0-1350, back: 1350-2700 of 2700x2000 SVG). Clicking a label/line navigates to exercise selection.
 - `anatomical/constants.ts` - SVG paths, muscle region definitions, base colors for 7 muscle groups, and recovery color calculation functions (DEPRECATED - leader lines now in AnatomicalBodySelector)
 - `anatomical/MuscleRegion.tsx` - Reusable clickable muscle region component (DEPRECATED - leader lines now in AnatomicalBodySelector)
@@ -373,6 +398,7 @@ Cloud Firestore for persistent data storage:
 - Workout history synced per user
 - Routines stored per user
 - Active workout state preserved
+- User preferences synced per user (`saveUserPreferences`, `subscribeToUserPreferences`)
 - Automatic migration from localStorage on first login
 - User registration with limit enforcement
 - Soft delete operations (`softDeleteWorkoutInFirestore`, `restoreWorkoutInFirestore`, `permanentlyDeleteWorkoutInFirestore`)
@@ -443,6 +469,8 @@ Uses Flexbox/Grid for layout, Framer Motion for animations, and TailwindCSS util
 9. **Soft Delete with 7-Day Retention**: Workouts can be soft-deleted via swipe-to-delete in History. Deleted workouts have a `deletedAt` timestamp and are kept for 7 days before automatic permanent deletion. Users can restore or permanently delete from the DeletedWorkouts view. The cleanup runs on app load via a ref-guarded useEffect to prevent infinite loops. Context exposes `deletedWorkouts` (computed from history), `softDeleteWorkout()`, `restoreWorkout()`, and `permanentlyDeleteWorkout()`.
 
 10. **Edit Workout Flow**: Completed workouts can be edited from History via an edit button on each workout card. The edit button is positioned absolutely outside the draggable swipe area to avoid gesture conflicts. Clicking edit calls `startEditWorkout(workoutId)` which deep-clones the workout into `editingWorkout` state. The `WorkoutEditor` component renders when `editingWorkout` is set, allowing users to modify weight/reps (or distance/duration for cardio), add sets, or remove sets. Saving uses optimistic updates with rollback on failure. The context exposes: `editingWorkout`, `startEditWorkout()`, `updateEditingSet()`, `addEditingSet()`, `removeEditingSet()`, `saveEditedWorkout()`, `cancelEdit()`.
+
+11. **Unit System Toggle**: Users can switch between metric (kg/km) and imperial (lbs/mi) units via a fixed button at the bottom-right of the screen. Data is always stored in metric (kg for weight, meters for distance) and converted at display/input boundaries. The `usePreferences` hook provides `unitSystem` and `setUnitSystem()`. Unit conversion utilities in `unitConversion.ts` handle all conversions. Swimming and rowing use m/yd instead of km/mi in imperial mode.
 
 ## Common Patterns
 
