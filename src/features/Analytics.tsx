@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, CartesianGrid } from 'recharts';
-import { TrendingUp, Activity, Calendar, Dumbbell, Heart, Zap, ChevronDown, Clock } from 'lucide-react';
+import { TrendingUp, Activity, Calendar, Dumbbell, Heart, Zap, ChevronDown, Clock, Route } from 'lucide-react';
 import { EXERCISES } from '../data/exercises';
-import { calculateTotalVolume, getWorkoutFrequency, getExerciseProgress, getVolumeByDay, getVolumeByWeek, getVolumeByMonth, getAverageDuration, getDurationByDay, getDurationByWeek, getDurationByMonth } from '../utils/analyticsHelpers';
+import { calculateTotalVolume, getWorkoutFrequency, getExerciseProgress, getVolumeByDay, getVolumeByWeek, getVolumeByMonth, getAverageDuration, getDurationByDay, getDurationByWeek, getDurationByMonth, getDistanceByDay, getDistanceByWeek, getDistanceByMonth, calculateTotalCardioDistance } from '../utils/analyticsHelpers';
 
 type TimePeriod = 'week' | 'month' | 'year';
 
@@ -48,6 +48,25 @@ export const Analytics: React.FC = () => {
         }
     }, [activeWorkouts, timePeriod]);
 
+    // Cardio distance chart data based on time period
+    const distanceChartData = useMemo(() => {
+        switch (timePeriod) {
+            case 'week': return getDistanceByDay(activeWorkouts);
+            case 'month': return getDistanceByWeek(activeWorkouts);
+            case 'year': return getDistanceByMonth(activeWorkouts);
+        }
+    }, [activeWorkouts, timePeriod]);
+
+    // Total cardio distance for the period
+    const totalCardioDistance = useMemo(() => {
+        const periodMs = timePeriod === 'week' ? 7 * 24 * 60 * 60 * 1000
+            : timePeriod === 'month' ? 30 * 24 * 60 * 60 * 1000
+                : 365 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        const filtered = activeWorkouts.filter(w => (now - w.startTime) <= periodMs);
+        return calculateTotalCardioDistance(filtered);
+    }, [activeWorkouts, timePeriod]);
+
     // Exercise progress data
     const exerciseProgressData = useMemo(() => {
         return getExerciseProgress(activeWorkouts, selectedExercise);
@@ -67,6 +86,7 @@ export const Analytics: React.FC = () => {
     // Chart title based on time period
     const volumeChartTitle = timePeriod === 'week' ? 'Daily Volume' : timePeriod === 'month' ? 'Weekly Volume' : 'Monthly Volume';
     const durationChartTitle = timePeriod === 'week' ? 'Daily Duration' : timePeriod === 'month' ? 'Weekly Duration' : 'Monthly Duration';
+    const distanceChartTitle = timePeriod === 'week' ? 'Daily Distance' : timePeriod === 'month' ? 'Weekly Distance' : 'Monthly Distance';
 
     const formatVolume = (vol: number) => {
         if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`;
@@ -292,6 +312,59 @@ export const Analytics: React.FC = () => {
                     ) : (
                         <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255, 255, 255, 0.5)' }}>
                             No duration data yet
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Cardio Distance Chart */}
+            <div style={{
+                background: 'rgba(30, 27, 50, 0.8)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '24px',
+                padding: '24px',
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <Route size={24} style={{ color: '#f472b6' }} />
+                        <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fff' }}>{distanceChartTitle}</h3>
+                    </div>
+                    {totalCardioDistance > 0 && (
+                        <span style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>
+                            Total: {totalCardioDistance.toFixed(1)} km
+                        </span>
+                    )}
+                </div>
+                <div style={{ height: '200px', width: '100%' }}>
+                    {distanceChartData.some(d => d.distance > 0) ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={distanceChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" vertical={false} />
+                                <XAxis dataKey="label" stroke="rgba(255, 255, 255, 0.4)" fontSize={11} tickLine={false} axisLine={false} />
+                                <YAxis
+                                    stroke="rgba(255, 255, 255, 0.4)"
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    width={40}
+                                    tickFormatter={(value) => `${value}`}
+                                    unit=" km"
+                                />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: 'rgba(30, 27, 50, 0.95)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px' }}
+                                    itemStyle={{ color: '#fff' }}
+                                    formatter={(value) => [`${Number(value) || 0} km`, 'Distance']}
+                                />
+                                <Bar dataKey="distance" radius={[6, 6, 0, 0]}>
+                                    {distanceChartData.map((entry, index) => (
+                                        <Cell key={`distance-${index}`} fill={entry.distance > 0 ? '#f472b6' : 'rgba(255, 255, 255, 0.1)'} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255, 255, 255, 0.5)' }}>
+                            No cardio distance data yet
                         </div>
                     )}
                 </div>

@@ -9,9 +9,6 @@ const FULL_RECOVERY_HOURS = 72;
 const FAST_PHASE_HOURS = 48;
 const FAST_PHASE_RECOVERY = 80; // 80% recovered after fast phase
 
-// Pre-compute exercise lookup map for O(1) access instead of O(n) find()
-const EXERCISE_MAP = new Map(EXERCISES.map(e => [e.id, e]));
-
 // All strength-training muscle groups (excludes Cardio)
 const STRENGTH_BODY_AREAS: BodyArea[] = [
   'Chest', 'Shoulders', 'Arms', 'Abdomen', 'Back', 'Glutes', 'Legs'
@@ -98,7 +95,7 @@ export function calculateMuscleRecovery(history: Workout[]): RecoveryStats {
     if (workout.type !== 'STRENGTH' || workout.status !== 'completed') continue;
 
     for (const exercise of workout.exercises) {
-      const exerciseInfo = EXERCISE_MAP.get(exercise.exerciseId);
+      const exerciseInfo = EXERCISES.find(e => e.id === exercise.exerciseId);
       if (!exerciseInfo || exerciseInfo.bodyArea === 'Cardio') continue;
 
       // Only count exercises with at least one completed set

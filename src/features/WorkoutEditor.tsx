@@ -1,11 +1,15 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Save, X, Plus, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save, X, Plus, AlertCircle, Home } from 'lucide-react';
 import { useWorkout } from '../hooks/useWorkoutStore';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 
-export const WorkoutEditor: React.FC = () => {
+interface WorkoutEditorProps {
+    onGoHome?: () => void;
+}
+
+export const WorkoutEditor: React.FC<WorkoutEditorProps> = ({ onGoHome }) => {
     const {
         editingWorkout,
         updateEditingSet,
@@ -51,7 +55,8 @@ export const WorkoutEditor: React.FC = () => {
     const handleDistanceChange = useCallback((exerciseId: string, setId: string, value: string) => {
         const num = parseFloat(value);
         if (!isNaN(num) && num >= 0 && num <= 1000) {
-            updateEditingSet(exerciseId, setId, { distance: num });
+            // Convert km (display) to meters (storage)
+            updateEditingSet(exerciseId, setId, { distance: num * 1000 });
         } else if (value === '') {
             updateEditingSet(exerciseId, setId, { distance: 0 });
         }
@@ -60,7 +65,8 @@ export const WorkoutEditor: React.FC = () => {
     const handleDurationChange = useCallback((exerciseId: string, setId: string, value: string) => {
         const num = parseInt(value, 10);
         if (!isNaN(num) && num >= 0 && num <= 1440) {
-            updateEditingSet(exerciseId, setId, { duration: num });
+            // Convert minutes (display) to seconds (storage)
+            updateEditingSet(exerciseId, setId, { duration: num * 60 });
         } else if (value === '') {
             updateEditingSet(exerciseId, setId, { duration: 0 });
         }
@@ -125,22 +131,29 @@ export const WorkoutEditor: React.FC = () => {
                         </p>
                     </div>
                 </div>
-                <Button variant="primary" onClick={handleSave} disabled={isSaving}>
-                    {isSaving ? (
-                        <div style={{
-                            width: '16px',
-                            height: '16px',
-                            border: '2px solid rgba(255,255,255,0.3)',
-                            borderTopColor: 'white',
-                            borderRadius: '50%',
-                            animation: 'spin 1s linear infinite',
-                            marginRight: '8px',
-                        }} />
-                    ) : (
-                        <Save size={16} style={{ marginRight: '8px' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    {onGoHome && (
+                        <Button variant="ghost" size="icon" onClick={onGoHome} aria-label="Go to home">
+                            <Home size={20} />
+                        </Button>
                     )}
-                    {isSaving ? 'Saving...' : 'Save'}
-                </Button>
+                    <Button variant="primary" onClick={handleSave} disabled={isSaving}>
+                        {isSaving ? (
+                            <div style={{
+                                width: '16px',
+                                height: '16px',
+                                border: '2px solid rgba(255,255,255,0.3)',
+                                borderTopColor: 'white',
+                                borderRadius: '50%',
+                                animation: 'spin 1s linear infinite',
+                                marginRight: '8px',
+                            }} />
+                        ) : (
+                            <Save size={16} style={{ marginRight: '8px' }} />
+                        )}
+                        {isSaving ? 'Saving...' : 'Save'}
+                    </Button>
+                </div>
             </div>
 
             {/* Workout Name */}
@@ -220,14 +233,14 @@ export const WorkoutEditor: React.FC = () => {
                                                 type="number"
                                                 inputMode="decimal"
                                                 step="0.1"
-                                                value={set.distance ?? ''}
+                                                value={set.distance ? (set.distance / 1000) : ''}
                                                 onChange={(e) => handleDistanceChange(exerciseInstance.id, set.id, e.target.value)}
                                                 style={{ textAlign: 'center', padding: '10px 8px' }}
                                             />
                                             <Input
                                                 type="number"
                                                 inputMode="numeric"
-                                                value={set.duration ?? ''}
+                                                value={set.duration ? Math.round(set.duration / 60) : ''}
                                                 onChange={(e) => handleDurationChange(exerciseInstance.id, set.id, e.target.value)}
                                                 style={{ textAlign: 'center', padding: '10px 8px' }}
                                             />

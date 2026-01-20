@@ -188,12 +188,12 @@ export const History: React.FC<HistoryProps> = ({ onNavigate }) => {
 
     // Show workout editor if editing
     if (editingWorkout) {
-        return <WorkoutEditor />;
+        return <WorkoutEditor onGoHome={() => onNavigate('workout')} />;
     }
 
     // Show deleted workouts view
     if (showDeletedWorkouts) {
-        return <DeletedWorkouts onBack={() => setShowDeletedWorkouts(false)} />;
+        return <DeletedWorkouts onBack={() => setShowDeletedWorkouts(false)} onGoHome={() => onNavigate('workout')} />;
     }
 
     if (activeWorkouts.length === 0 && deletedWorkouts.length === 0) {

@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
-import { ArrowLeft, Trash2, RotateCcw, Clock, Calendar, Dumbbell } from 'lucide-react';
+import { ArrowLeft, Trash2, RotateCcw, Clock, Calendar, Dumbbell, Home } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/Button';
 import type { Workout } from '../types';
 
 interface DeletedWorkoutsProps {
     onBack: () => void;
+    onGoHome?: () => void;
 }
 
-export const DeletedWorkouts: React.FC<DeletedWorkoutsProps> = ({ onBack }) => {
+export const DeletedWorkouts: React.FC<DeletedWorkoutsProps> = ({ onBack, onGoHome }) => {
     const { deletedWorkouts, restoreWorkout, permanentlyDeleteWorkout } = useWorkout();
     const [workoutToRestore, setWorkoutToRestore] = useState<Workout | null>(null);
     const [workoutToDelete, setWorkoutToDelete] = useState<Workout | null>(null);
@@ -43,10 +44,11 @@ export const DeletedWorkouts: React.FC<DeletedWorkoutsProps> = ({ onBack }) => {
                     variant="ghost"
                     onClick={onBack}
                     style={{ padding: '8px' }}
+                    aria-label="Go back"
                 >
                     <ArrowLeft size={24} />
                 </Button>
-                <div>
+                <div style={{ flex: 1 }}>
                     <h1 style={{
                         fontSize: '28px',
                         fontWeight: 700,
@@ -61,6 +63,11 @@ export const DeletedWorkouts: React.FC<DeletedWorkoutsProps> = ({ onBack }) => {
                         Automatically removed after 7 days
                     </p>
                 </div>
+                {onGoHome && (
+                    <Button variant="ghost" size="icon" onClick={onGoHome} aria-label="Go to home">
+                        <Home size={24} />
+                    </Button>
+                )}
             </div>
 
             {/* Empty State */}
