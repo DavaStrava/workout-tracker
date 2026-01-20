@@ -267,13 +267,21 @@ describe('analyticsHelpers', () => {
   });
 
   describe('getVolumeByWeek', () => {
-    it('should return empty array for no workouts', () => {
-      expect(getVolumeByWeek([])).toEqual([]);
+    it('should return 4 weeks with zero volume for no workouts', () => {
+      const result = getVolumeByWeek([]);
+      expect(result).toHaveLength(4);
+      expect(result.every(w => w.volume === 0)).toBe(true);
     });
 
     it('should aggregate volume by week', () => {
-      const mondayMs = new Date('2024-01-01').getTime(); // Jan 1, 2024 is a Monday
-      const tuesdayMs = new Date('2024-01-02').getTime();
+      // Use dates within the current week to ensure they appear in the result
+      const now = new Date();
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(10, 0, 0, 0);
+
+      const mondayMs = startOfWeek.getTime();
+      const tuesdayMs = mondayMs + 24 * 60 * 60 * 1000;
 
       const workouts = [
         createWorkout({
@@ -295,11 +303,13 @@ describe('analyticsHelpers', () => {
       ];
 
       const result = getVolumeByWeek(workouts);
-      expect(result).toHaveLength(1);
-      expect(result[0].volume).toBe(1750); // 1000 + 750
+      expect(result).toHaveLength(4);
+      // The current week should have the aggregated volume
+      const currentWeekData = result[result.length - 1];
+      expect(currentWeekData.volume).toBe(1750); // 1000 + 750
     });
 
-    it('should return last 8 weeks only', () => {
+    it('should return last 4 weeks only', () => {
       const workouts = Array.from({ length: 20 }, (_, i) => {
         const weekMs = 7 * 24 * 60 * 60 * 1000;
         return createWorkout({
@@ -314,23 +324,12 @@ describe('analyticsHelpers', () => {
       });
 
       const result = getVolumeByWeek(workouts);
-      expect(result.length).toBeLessThanOrEqual(8);
+      expect(result.length).toBe(4);
     });
 
     it('should format week dates correctly', () => {
-      const workouts = [
-        createWorkout({
-          startTime: new Date('2024-01-15').getTime(),
-          exercises: [{
-            id: 'ex-1',
-            exerciseId: 'bench-press',
-            sets: [{ id: 'set-1', weight: 100, reps: 10, completed: true }]
-          }]
-        })
-      ];
-
-      const result = getVolumeByWeek(workouts);
-      expect(result[0].week).toMatch(/\w{3} \d+/); // e.g., "Jan 14"
+      const result = getVolumeByWeek([]);
+      expect(result[0].label).toMatch(/\w{3} \d+/); // e.g., "Jan 14"
     });
   });
 

@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { useWorkout } from '../hooks/useWorkoutStore';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, CartesianGrid } from 'recharts';
 import { TrendingUp, Activity, Calendar, Dumbbell, Heart, Zap, ChevronDown, Clock } from 'lucide-react';
 import { EXERCISES } from '../data/exercises';
-import { calculateTotalVolume, getWorkoutFrequency, getExerciseProgress, getVolumeByWeek, getAverageDuration, getDurationByWeek } from '../utils/analyticsHelpers';
+import { calculateTotalVolume, getWorkoutFrequency, getExerciseProgress, getVolumeByDay, getVolumeByWeek, getVolumeByMonth, getAverageDuration, getDurationByDay, getDurationByWeek, getDurationByMonth } from '../utils/analyticsHelpers';
 
 type TimePeriod = 'week' | 'month' | 'year';
 
@@ -30,8 +30,23 @@ export const Analytics: React.FC = () => {
         return calculateTotalVolume(filtered);
     }, [activeWorkouts, timePeriod]);
 
-    // Weekly volume chart data
-    const weeklyVolumeData = useMemo(() => getVolumeByWeek(activeWorkouts), [activeWorkouts]);
+    // Volume chart data based on time period
+    const volumeChartData = useMemo(() => {
+        switch (timePeriod) {
+            case 'week': return getVolumeByDay(activeWorkouts);
+            case 'month': return getVolumeByWeek(activeWorkouts);
+            case 'year': return getVolumeByMonth(activeWorkouts);
+        }
+    }, [activeWorkouts, timePeriod]);
+
+    // Duration chart data based on time period
+    const durationChartData = useMemo(() => {
+        switch (timePeriod) {
+            case 'week': return getDurationByDay(activeWorkouts);
+            case 'month': return getDurationByWeek(activeWorkouts);
+            case 'year': return getDurationByMonth(activeWorkouts);
+        }
+    }, [activeWorkouts, timePeriod]);
 
     // Exercise progress data
     const exerciseProgressData = useMemo(() => {
@@ -48,7 +63,10 @@ export const Analytics: React.FC = () => {
 
     // Duration stats
     const avgDuration = useMemo(() => getAverageDuration(activeWorkouts), [activeWorkouts]);
-    const weeklyDurationData = useMemo(() => getDurationByWeek(activeWorkouts), [activeWorkouts]);
+
+    // Chart title based on time period
+    const volumeChartTitle = timePeriod === 'week' ? 'Daily Volume' : timePeriod === 'month' ? 'Weekly Volume' : 'Monthly Volume';
+    const durationChartTitle = timePeriod === 'week' ? 'Daily Duration' : timePeriod === 'month' ? 'Weekly Duration' : 'Monthly Duration';
 
     const formatVolume = (vol: number) => {
         if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`;
@@ -197,20 +215,29 @@ export const Analytics: React.FC = () => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                     <TrendingUp size={24} style={{ color: '#10b981' }} />
-                    <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fff' }}>Weekly Volume Trend</h3>
+                    <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fff' }}>{volumeChartTitle}</h3>
                 </div>
                 <div style={{ height: '200px', width: '100%' }}>
-                    {weeklyVolumeData.length > 0 ? (
+                    {volumeChartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={weeklyVolumeData}>
-                                <XAxis dataKey="week" stroke="rgba(255, 255, 255, 0.4)" fontSize={11} tickLine={false} axisLine={false} />
+                            <BarChart data={volumeChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" vertical={false} />
+                                <XAxis dataKey="label" stroke="rgba(255, 255, 255, 0.4)" fontSize={11} tickLine={false} axisLine={false} />
+                                <YAxis
+                                    stroke="rgba(255, 255, 255, 0.4)"
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    width={50}
+                                    tickFormatter={(value) => formatVolume(value)}
+                                />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: 'rgba(30, 27, 50, 0.95)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px' }}
                                     itemStyle={{ color: '#fff' }}
                                     formatter={(value) => [`${formatVolume(Number(value) || 0)} kg`, 'Volume']}
                                 />
                                 <Bar dataKey="volume" radius={[6, 6, 0, 0]}>
-                                    {weeklyVolumeData.map((entry, index) => (
+                                    {volumeChartData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={entry.volume > 0 ? '#10b981' : 'rgba(255, 255, 255, 0.1)'} />
                                     ))}
                                 </Bar>
@@ -233,21 +260,31 @@ export const Analytics: React.FC = () => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                     <Clock size={24} style={{ color: '#60a5fa' }} />
-                    <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fff' }}>Weekly Duration Trend</h3>
+                    <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fff' }}>{durationChartTitle}</h3>
                 </div>
                 <div style={{ height: '200px', width: '100%' }}>
-                    {weeklyDurationData.length > 0 ? (
+                    {durationChartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={weeklyDurationData}>
-                                <XAxis dataKey="week" stroke="rgba(255, 255, 255, 0.4)" fontSize={11} tickLine={false} axisLine={false} />
+                            <BarChart data={durationChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" vertical={false} />
+                                <XAxis dataKey="label" stroke="rgba(255, 255, 255, 0.4)" fontSize={11} tickLine={false} axisLine={false} />
+                                <YAxis
+                                    stroke="rgba(255, 255, 255, 0.4)"
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    width={40}
+                                    tickFormatter={(value) => `${value}`}
+                                    unit=" min"
+                                />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: 'rgba(30, 27, 50, 0.95)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px' }}
                                     itemStyle={{ color: '#fff' }}
-                                    formatter={(value) => [`${Number(value) || 0} min`, 'Avg Duration']}
+                                    formatter={(value) => [`${Number(value) || 0} min`, 'Duration']}
                                 />
-                                <Bar dataKey="avgDuration" radius={[6, 6, 0, 0]}>
-                                    {weeklyDurationData.map((entry, index) => (
-                                        <Cell key={`duration-${index}`} fill={entry.avgDuration > 0 ? '#60a5fa' : 'rgba(255, 255, 255, 0.1)'} />
+                                <Bar dataKey="duration" radius={[6, 6, 0, 0]}>
+                                    {durationChartData.map((entry, index) => (
+                                        <Cell key={`duration-${index}`} fill={entry.duration > 0 ? '#60a5fa' : 'rgba(255, 255, 255, 0.1)'} />
                                     ))}
                                 </Bar>
                             </BarChart>
@@ -302,9 +339,17 @@ export const Analytics: React.FC = () => {
                 <div style={{ height: '180px', width: '100%' }}>
                     {exerciseProgressData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={exerciseProgressData}>
+                            <LineChart data={exerciseProgressData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" vertical={false} />
                                 <XAxis dataKey="date" stroke="rgba(255, 255, 255, 0.4)" fontSize={11} tickLine={false} axisLine={false} />
-                                <YAxis stroke="rgba(255, 255, 255, 0.4)" fontSize={11} tickLine={false} axisLine={false} width={40} />
+                                <YAxis
+                                    stroke="rgba(255, 255, 255, 0.4)"
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    width={45}
+                                    unit=" kg"
+                                />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: 'rgba(30, 27, 50, 0.95)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px' }}
                                     itemStyle={{ color: '#fff' }}

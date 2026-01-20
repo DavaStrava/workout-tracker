@@ -328,10 +328,21 @@ Workout (workout session with metadata)
 Pure functions for computing workout stats:
 - `getLastPerformance()` - Find previous best set for an exercise (for "last time" display)
 - `calculateTotalVolume()` - Sum of (weight × reps) across workouts
-- `getVolumeByWeek()` - Weekly volume data for charting (last 8 weeks)
+- `getVolumeByDay()` - Daily volume data for charting (last 7 days)
+- `getVolumeByWeek()` - Weekly volume data for charting (last 4 weeks)
+- `getVolumeByMonth()` - Monthly volume data for charting (last 12 months)
+- `getDurationByDay()` - Daily average duration for charting (last 7 days)
+- `getDurationByWeek()` - Weekly average duration for charting (last 4 weeks)
+- `getDurationByMonth()` - Monthly average duration for charting (last 12 months)
 - `getWorkoutFrequency()` - Workout counts by type (week/month/year)
 - `getExerciseProgress()` - Max weight trend for specific exercise
 - `getTotalWorkouts()` - Count total workouts with optional filters by type and time period
+- `getAverageDuration()` - Average workout duration in minutes
+
+**Time Period Support**: The Analytics page uses the time period selector (This Week/Month/Year) to show appropriate chart granularity:
+- "This Week" → Daily charts (7 days)
+- "This Month" → Weekly charts (4 weeks)
+- "This Year" → Monthly charts (12 months)
 
 **Important**: These functions read from the entire workout history array. For MVP scale (<1000 workouts), this is acceptable. If performance becomes an issue, consider indexing or aggregation strategies.
 

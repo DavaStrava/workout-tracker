@@ -51,38 +51,123 @@ export function calculateTotalVolume(workouts: Workout[]): number {
 }
 
 /**
- * Get weekly volume data for charting
+ * Calculate volume for a workout
  */
-export function getVolumeByWeek(workouts: Workout[]): { week: string; volume: number }[] {
+function calculateWorkoutVolume(workout: Workout): number {
+    return workout.exercises.reduce((total, ex) => {
+        return total + ex.sets.reduce((setTotal, set) => {
+            if (set.weight && set.weight > 0 && set.reps && set.reps > 0) {
+                return setTotal + (set.weight * set.reps);
+            }
+            return setTotal;
+        }, 0);
+    }, 0);
+}
+
+/**
+ * Get a local date key (YYYY-MM-DD) for consistent lookups
+ */
+function getLocalDateKey(date: Date): string {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Get the start of the week (Sunday) for a given date
+ */
+function getWeekStart(date: Date): Date {
+    const weekStart = new Date(date);
+    weekStart.setDate(date.getDate() - date.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+    return weekStart;
+}
+
+/**
+ * Get daily volume data for charting (last 7 days)
+ */
+export function getVolumeByDay(workouts: Workout[]): { label: string; volume: number }[] {
+    const dailyData: Record<string, number> = {};
+
+    workouts.forEach(workout => {
+        const date = new Date(workout.startTime);
+        const dayKey = getLocalDateKey(date);
+        dailyData[dayKey] = (dailyData[dayKey] || 0) + calculateWorkoutVolume(workout);
+    });
+
+    // Generate last 7 days
+    const days: { label: string; volume: number }[] = [];
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    for (let i = 6; i >= 0; i--) {
+        const day = new Date(now);
+        day.setDate(now.getDate() - i);
+        const dayKey = getLocalDateKey(day);
+        days.push({
+            label: day.toLocaleDateString(undefined, { weekday: 'short' }),
+            volume: dailyData[dayKey] || 0
+        });
+    }
+
+    return days;
+}
+
+/**
+ * Get weekly volume data for charting (last 4 weeks)
+ */
+export function getVolumeByWeek(workouts: Workout[]): { label: string; volume: number }[] {
     const weeklyData: Record<string, number> = {};
 
     workouts.forEach(workout => {
         const date = new Date(workout.startTime);
-        const weekStart = new Date(date);
-        weekStart.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
-        const weekKey = weekStart.toISOString().split('T')[0];
-
-        const volume = workout.exercises.reduce((total, ex) => {
-            return total + ex.sets.reduce((setTotal, set) => {
-                // Count sets with actual data (weight > 0 and reps > 0)
-                if (set.weight && set.weight > 0 && set.reps && set.reps > 0) {
-                    return setTotal + (set.weight * set.reps);
-                }
-                return setTotal;
-            }, 0);
-        }, 0);
-
-        weeklyData[weekKey] = (weeklyData[weekKey] || 0) + volume;
+        const weekStart = getWeekStart(date);
+        const weekKey = getLocalDateKey(weekStart);
+        weeklyData[weekKey] = (weeklyData[weekKey] || 0) + calculateWorkoutVolume(workout);
     });
 
-    // Sort by date and return last 8 weeks
-    return Object.entries(weeklyData)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .slice(-8)
-        .map(([week, volume]) => ({
-            week: new Date(week).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-            volume
-        }));
+    // Generate last 4 weeks
+    const weeks: { label: string; volume: number }[] = [];
+    const now = new Date();
+    const currentWeekStart = getWeekStart(now);
+
+    for (let i = 3; i >= 0; i--) {
+        const weekStart = new Date(currentWeekStart);
+        weekStart.setDate(currentWeekStart.getDate() - (i * 7));
+        const weekKey = getLocalDateKey(weekStart);
+        weeks.push({
+            label: weekStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+            volume: weeklyData[weekKey] || 0
+        });
+    }
+
+    return weeks;
+}
+
+/**
+ * Get monthly volume data for charting (last 12 months)
+ */
+export function getVolumeByMonth(workouts: Workout[]): { label: string; volume: number }[] {
+    const monthlyData: Record<string, number> = {};
+
+    workouts.forEach(workout => {
+        const date = new Date(workout.startTime);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        monthlyData[monthKey] = (monthlyData[monthKey] || 0) + calculateWorkoutVolume(workout);
+    });
+
+    // Generate last 12 months
+    const months: { label: string; volume: number }[] = [];
+    const now = new Date();
+
+    for (let i = 11; i >= 0; i--) {
+        const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthKey = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`;
+        months.push({
+            label: month.toLocaleDateString(undefined, { month: 'short' }),
+            volume: monthlyData[monthKey] || 0
+        });
+    }
+
+    return months;
 }
 
 /**
@@ -197,19 +282,51 @@ export function getDurationStats(workouts: Workout[]): { min: number; max: numbe
 }
 
 /**
- * Get weekly average duration for charting
+ * Get daily duration for charting (last 7 days)
  */
-export function getDurationByWeek(workouts: Workout[]): { week: string; avgDuration: number }[] {
+export function getDurationByDay(workouts: Workout[]): { label: string; duration: number }[] {
+    const dailyData: Record<string, { total: number; count: number }> = {};
+
+    workouts.forEach(workout => {
+        if (!workout.duration) return;
+        const date = new Date(workout.startTime);
+        const dayKey = getLocalDateKey(date);
+        if (!dailyData[dayKey]) {
+            dailyData[dayKey] = { total: 0, count: 0 };
+        }
+        dailyData[dayKey].total += workout.duration;
+        dailyData[dayKey].count += 1;
+    });
+
+    const days: { label: string; duration: number }[] = [];
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    for (let i = 6; i >= 0; i--) {
+        const day = new Date(now);
+        day.setDate(now.getDate() - i);
+        const dayKey = getLocalDateKey(day);
+        const data = dailyData[dayKey];
+        days.push({
+            label: day.toLocaleDateString(undefined, { weekday: 'short' }),
+            duration: data ? Math.round(data.total / data.count / 60) : 0
+        });
+    }
+
+    return days;
+}
+
+/**
+ * Get weekly duration for charting (last 4 weeks)
+ */
+export function getDurationByWeek(workouts: Workout[]): { label: string; duration: number }[] {
     const weeklyData: Record<string, { total: number; count: number }> = {};
 
     workouts.forEach(workout => {
         if (!workout.duration) return;
-
         const date = new Date(workout.startTime);
-        const weekStart = new Date(date);
-        weekStart.setDate(date.getDate() - date.getDay());
-        const weekKey = weekStart.toISOString().split('T')[0];
-
+        const weekStart = getWeekStart(date);
+        const weekKey = getLocalDateKey(weekStart);
         if (!weeklyData[weekKey]) {
             weeklyData[weekKey] = { total: 0, count: 0 };
         }
@@ -217,11 +334,53 @@ export function getDurationByWeek(workouts: Workout[]): { week: string; avgDurat
         weeklyData[weekKey].count += 1;
     });
 
-    return Object.entries(weeklyData)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .slice(-8)
-        .map(([week, data]) => ({
-            week: new Date(week).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-            avgDuration: Math.round(data.total / data.count / 60), // Minutes
-        }));
+    const weeks: { label: string; duration: number }[] = [];
+    const now = new Date();
+    const currentWeekStart = getWeekStart(now);
+
+    for (let i = 3; i >= 0; i--) {
+        const weekStart = new Date(currentWeekStart);
+        weekStart.setDate(currentWeekStart.getDate() - (i * 7));
+        const weekKey = getLocalDateKey(weekStart);
+        const data = weeklyData[weekKey];
+        weeks.push({
+            label: weekStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+            duration: data ? Math.round(data.total / data.count / 60) : 0
+        });
+    }
+
+    return weeks;
+}
+
+/**
+ * Get monthly duration for charting (last 12 months)
+ */
+export function getDurationByMonth(workouts: Workout[]): { label: string; duration: number }[] {
+    const monthlyData: Record<string, { total: number; count: number }> = {};
+
+    workouts.forEach(workout => {
+        if (!workout.duration) return;
+        const date = new Date(workout.startTime);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        if (!monthlyData[monthKey]) {
+            monthlyData[monthKey] = { total: 0, count: 0 };
+        }
+        monthlyData[monthKey].total += workout.duration;
+        monthlyData[monthKey].count += 1;
+    });
+
+    const months: { label: string; duration: number }[] = [];
+    const now = new Date();
+
+    for (let i = 11; i >= 0; i--) {
+        const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthKey = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`;
+        const data = monthlyData[monthKey];
+        months.push({
+            label: month.toLocaleDateString(undefined, { month: 'short' }),
+            duration: data ? Math.round(data.total / data.count / 60) : 0
+        });
+    }
+
+    return months;
 }
