@@ -70,6 +70,12 @@
     - [x] Update WorkoutEditor.tsx with dynamic unit labels <!-- id: 69 -->
     - [x] Update Analytics.tsx with unit-aware charts and stats <!-- id: 70 -->
     - [x] Update cardioCalculations.ts with unit system support <!-- id: 71 -->
+- [x] UI Improvements (Jan 2026)
+    - [x] Add per-exercise Done/Edit button to lock inputs when exercise is finished <!-- id: 72 -->
+    - [x] Fix getLastPerformance to exclude soft-deleted workouts <!-- id: 73 -->
+    - [x] Increase search bar size and spacing in ExerciseSelector <!-- id: 74 -->
+    - [x] Add completedAt field to WorkoutExercise type <!-- id: 75 -->
+    - [x] Add finishExercise and editExercise functions to useWorkoutStore <!-- id: 76 -->
 - [ ] AI-Generated Photorealistic Exercise Icons
     - [ ] Create directory structure: `public/icons/exercises/{muscle-groups}/` <!-- id: 41 -->
     - [ ] Install sharp dependency for image optimization <!-- id: 42 -->

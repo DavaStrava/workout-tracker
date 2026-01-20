@@ -305,7 +305,7 @@ Workout (workout session with metadata)
 ```
 
 - **Exercise definitions** live in `src/data/exercises.ts` (static catalog, 224 exercises)
-- **WorkoutExercise** links to an exercise via `exerciseId` and contains the actual logged sets
+- **WorkoutExercise** links to an exercise via `exerciseId` and contains the actual logged sets. Has optional `completedAt` timestamp when the exercise is marked as finished during a workout
 - **WorkoutSet** supports both strength (reps/weight) and cardio (distance/duration/intensity) data
 - **Routine** is a template that stores exercise IDs and set counts to quickly start workouts
 - **Workout.deletedAt** - Optional timestamp indicating when a workout was soft-deleted. Workouts with this field set are shown in the "Deleted Workouts" view and auto-expire after 7 days
@@ -351,7 +351,7 @@ Workout (workout session with metadata)
 ### Analytics Helpers (`src/utils/analyticsHelpers.ts`)
 
 Pure functions for computing workout stats:
-- `getLastPerformance()` - Find previous best set for an exercise (for "last time" display)
+- `getLastPerformance()` - Find previous best set for an exercise (for "last time" display). Excludes soft-deleted workouts
 - `calculateTotalVolume()` - Sum of (weight × reps) across workouts
 - `getVolumeByDay()` - Daily volume data for charting (last 7 days)
 - `getVolumeByWeek()` - Weekly volume data for charting (last 4 weeks)
@@ -471,6 +471,8 @@ Uses Flexbox/Grid for layout, Framer Motion for animations, and TailwindCSS util
 10. **Edit Workout Flow**: Completed workouts can be edited from History via an edit button on each workout card. The edit button is positioned absolutely outside the draggable swipe area to avoid gesture conflicts. Clicking edit calls `startEditWorkout(workoutId)` which deep-clones the workout into `editingWorkout` state. The `WorkoutEditor` component renders when `editingWorkout` is set, allowing users to modify weight/reps (or distance/duration for cardio), add sets, or remove sets. Saving uses optimistic updates with rollback on failure. The context exposes: `editingWorkout`, `startEditWorkout()`, `updateEditingSet()`, `addEditingSet()`, `removeEditingSet()`, `saveEditedWorkout()`, `cancelEdit()`.
 
 11. **Unit System Toggle**: Users can switch between metric (kg/km) and imperial (lbs/mi) units via a fixed button at the bottom-right of the screen. Data is always stored in metric (kg for weight, meters for distance) and converted at display/input boundaries. The `usePreferences` hook provides `unitSystem` and `setUnitSystem()`. Unit conversion utilities in `unitConversion.ts` handle all conversions. Swimming and rowing use m/yd instead of km/mi in imperial mode.
+
+12. **Per-Exercise Completion**: Each exercise card has a "Done" button (strength) or "Finish Activity" button (cardio) that locks all inputs and records a `completedAt` timestamp on the exercise. Once finished, the button changes to "Edit" which unlocks the inputs again. This allows users to mark exercises complete during a workout while still being able to edit if needed. The context exposes `finishExercise(exerciseInstanceId)` and `editExercise(exerciseInstanceId)`.
 
 ## Common Patterns
 
