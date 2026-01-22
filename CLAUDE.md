@@ -346,6 +346,7 @@ Workout (workout session with metadata)
 - `MuscleRecoveryMap.tsx` - **DEPRECATED** (kept for reference) - 15-group muscle selection UI
 - `AnatomicalBody.tsx` - **DEPRECATED** (kept for reference) - Full-body anatomical SVG with toggle views
 - `ExerciseSelector.tsx` - Exercise list filtered by selected muscle group
+- `RecoveryStatusCard.tsx` - Displays muscle recovery status on LandingPage with collapsible sections for three tiers: "needs rest" (<70%), "ok to train" (70-89%), "fresh" (90%+). Features overall recovery % header with animated progress bar, per-section average % with progress bars, and individual muscle cards with progress bars showing time to recovery. All sections start collapsed for a compact view. Uses `NEEDS_REST_THRESHOLD` (70) and `FRESH_THRESHOLD` (90) constants.
 - `ExerciseImage.tsx` - [PLANNED] Image component for photorealistic exercise icons with fallback chain (WebP → PNG → SVG → Letter)
 
 ### Analytics Helpers (`src/utils/analyticsHelpers.ts`)
@@ -374,9 +375,12 @@ Pure functions for computing workout stats:
 ### Recovery Helpers (`src/utils/recoveryHelpers.ts`)
 
 Functions for calculating muscle recovery status:
-- `calculateMuscleRecovery()` - Computes recovery percentage for all 7 muscle groups based on workout history
-- Returns `RecoveryStats` with: `lastWorkoutDaysAgo`, `freshMuscleCount`, `totalMuscleGroups` (=7), and per-muscle `MuscleRecoveryData`
-- Recovery is linear: 0% immediately after workout, 100% after 72 hours (configurable via `FULL_RECOVERY_HOURS`)
+- `calculateMuscleRecovery()` - Computes recovery percentage for all 18 granular muscle groups based on workout history
+- Returns `RecoveryStats` with: `lastWorkoutDaysAgo`, `freshMuscleCount`, `totalMuscleGroups`, and per-muscle `MuscleRecoveryData`
+- `formatTimeToRecovery()` - Formats hours remaining until target recovery % (e.g., "11 hrs")
+- `getRecoveryColor()` - Returns color scheme based on recovery %: green (90%+), yellow (70-89%), orange (50-69%), red (<50%)
+- Recovery uses non-linear curve: primary muscles (48h → 80%, 72h → 100%), secondary muscles (24h → 80%, 36h → 100%)
+- Used by `RecoveryStatusCard` on LandingPage to display muscle recovery status with progress bars
 - Used by `AnatomicalBodySelector` to show visual recovery indicators as color overlays on anatomical regions
 
 ### Authentication (`src/services/auth.ts`)

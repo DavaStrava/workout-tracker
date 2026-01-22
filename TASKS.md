@@ -76,6 +76,10 @@
     - [x] Increase search bar size and spacing in ExerciseSelector <!-- id: 74 -->
     - [x] Add completedAt field to WorkoutExercise type <!-- id: 75 -->
     - [x] Add finishExercise and editExercise functions to useWorkoutStore <!-- id: 76 -->
+    - [x] Redesign RecoveryStatusCard with progress bars and collapsible sections <!-- id: 77 -->
+    - [x] Add three-tier categorization: needs rest (<70%), ok to train (70-89%), fresh (90%+) <!-- id: 78 -->
+    - [x] Add overall recovery % header with animated progress bar <!-- id: 79 -->
+    - [x] Add accessibility attributes (aria-expanded, aria-controls) to collapsible sections <!-- id: 80 -->
 - [ ] AI-Generated Photorealistic Exercise Icons
     - [ ] Create directory structure: `public/icons/exercises/{muscle-groups}/` <!-- id: 41 -->
     - [ ] Install sharp dependency for image optimization <!-- id: 42 -->
