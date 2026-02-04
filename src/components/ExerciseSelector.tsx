@@ -5,6 +5,8 @@ import type { BodyArea, Exercise } from '../types';
 import { EXERCISES } from '../data/exercises';
 import { ExerciseCard } from './ExerciseCard';
 import { Input } from './Input';
+import { useWorkout } from '../hooks/useWorkoutStore';
+import { getExerciseFrequency } from '../utils/analyticsHelpers';
 
 interface ExerciseSelectorProps {
   muscleGroup: BodyArea;
@@ -19,16 +21,27 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
   onSearchChange,
   onSelectExercise,
 }) => {
-  // Filter exercises by muscle group and search query (memoized for performance)
-  const filteredExercises = useMemo(() =>
-    EXERCISES.filter((e: Exercise) => {
+  const { history } = useWorkout();
+
+  // Compute exercise usage frequency from workout history
+  const frequencyMap = useMemo(() => getExerciseFrequency(history), [history]);
+
+  // Filter exercises by muscle group and search query, then sort by usage frequency
+  const filteredExercises = useMemo(() => {
+    const filtered = EXERCISES.filter((e: Exercise) => {
       const matchesArea = e.bodyArea === muscleGroup;
       const matchesSearch = e.name.toLowerCase().includes(searchQuery.toLowerCase());
       const isNotCardio = !e.isCardio;
       return matchesArea && matchesSearch && isNotCardio;
-    }),
-    [muscleGroup, searchQuery]
-  );
+    });
+
+    return [...filtered].sort((a, b) => {
+      const freqA = frequencyMap.get(a.id) || 0;
+      const freqB = frequencyMap.get(b.id) || 0;
+      if (freqB !== freqA) return freqB - freqA;
+      return a.name.localeCompare(b.name);
+    });
+  }, [muscleGroup, searchQuery, frequencyMap]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -63,6 +76,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
               exercise={exercise}
               onSelect={onSelectExercise}
               index={index}
+              usageCount={frequencyMap.get(exercise.id)}
             />
           ))}
         </motion.div>

@@ -5,7 +5,8 @@ import {
   getVolumeByWeek,
   getWorkoutFrequency,
   getExerciseProgress,
-  getTotalWorkouts
+  getTotalWorkouts,
+  getExerciseFrequency
 } from './analyticsHelpers';
 import type { Workout } from '../types';
 
@@ -666,6 +667,87 @@ describe('analyticsHelpers', () => {
       ];
 
       expect(getTotalWorkouts(workouts, { period: 'all' })).toBe(2);
+    });
+  });
+
+  describe('getExerciseFrequency', () => {
+    it('should return empty map for empty history', () => {
+      const result = getExerciseFrequency([]);
+      expect(result.size).toBe(0);
+    });
+
+    it('should count distinct workouts per exercise', () => {
+      const workouts = [
+        createWorkout({
+          id: 'w1',
+          exercises: [
+            { id: 'ex-1', exerciseId: 'bench-press', sets: [{ id: 's1', weight: 100, reps: 10, completed: true }] },
+            { id: 'ex-2', exerciseId: 'squat', sets: [{ id: 's2', weight: 150, reps: 5, completed: true }] }
+          ]
+        }),
+        createWorkout({
+          id: 'w2',
+          exercises: [
+            { id: 'ex-3', exerciseId: 'bench-press', sets: [{ id: 's3', weight: 110, reps: 8, completed: true }] }
+          ]
+        })
+      ];
+
+      const result = getExerciseFrequency(workouts);
+      expect(result.get('bench-press')).toBe(2);
+      expect(result.get('squat')).toBe(1);
+    });
+
+    it('should exclude soft-deleted workouts', () => {
+      const now = Date.now();
+      const workouts = [
+        createWorkout({
+          id: 'w1',
+          deletedAt: now,
+          exercises: [
+            { id: 'ex-1', exerciseId: 'bench-press', sets: [{ id: 's1', weight: 100, reps: 10, completed: true }] }
+          ]
+        }),
+        createWorkout({
+          id: 'w2',
+          exercises: [
+            { id: 'ex-2', exerciseId: 'bench-press', sets: [{ id: 's2', weight: 100, reps: 10, completed: true }] }
+          ]
+        })
+      ];
+
+      const result = getExerciseFrequency(workouts);
+      expect(result.get('bench-press')).toBe(1);
+    });
+
+    it('should deduplicate exercises within a single workout', () => {
+      const workouts = [
+        createWorkout({
+          id: 'w1',
+          exercises: [
+            { id: 'ex-1', exerciseId: 'bench-press', sets: [{ id: 's1', weight: 100, reps: 10, completed: true }] },
+            { id: 'ex-2', exerciseId: 'bench-press', sets: [{ id: 's2', weight: 110, reps: 8, completed: true }] }
+          ]
+        })
+      ];
+
+      const result = getExerciseFrequency(workouts);
+      expect(result.get('bench-press')).toBe(1);
+    });
+
+    it('should not include exercises that have no workouts', () => {
+      const workouts = [
+        createWorkout({
+          id: 'w1',
+          exercises: [
+            { id: 'ex-1', exerciseId: 'bench-press', sets: [{ id: 's1', weight: 100, reps: 10, completed: true }] }
+          ]
+        })
+      ];
+
+      const result = getExerciseFrequency(workouts);
+      expect(result.has('squat')).toBe(false);
+      expect(result.get('squat')).toBeUndefined();
     });
   });
 });

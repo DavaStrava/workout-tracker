@@ -81,6 +81,7 @@ vi.mock('../../hooks/usePreferences', () => ({
 // Mock the analytics helper
 vi.mock('../../utils/analyticsHelpers', () => ({
   getLastPerformance: vi.fn(() => null),
+  getExerciseFrequency: vi.fn(() => new Map()),
 }));
 
 describe('WorkoutLogger', () => {

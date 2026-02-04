@@ -467,6 +467,30 @@ export function calculateTotalCardioDistance(workouts: Workout[]): number {
 }
 
 /**
+ * Get exercise usage frequency across workouts.
+ * Returns a Map of exerciseId → number of distinct workouts the exercise appeared in.
+ * Excludes soft-deleted workouts.
+ */
+export function getExerciseFrequency(history: Workout[]): Map<string, number> {
+    const frequency = new Map<string, number>();
+
+    for (const workout of history) {
+        if (workout.deletedAt) continue;
+
+        // Use a Set to deduplicate exercises within a single workout
+        const seen = new Set<string>();
+        for (const ex of workout.exercises) {
+            seen.add(ex.exerciseId);
+        }
+        for (const exerciseId of seen) {
+            frequency.set(exerciseId, (frequency.get(exerciseId) || 0) + 1);
+        }
+    }
+
+    return frequency;
+}
+
+/**
  * Get daily running/walking distance for charting (last 7 days)
  */
 export function getDistanceByDay(workouts: Workout[]): { label: string; distance: number }[] {

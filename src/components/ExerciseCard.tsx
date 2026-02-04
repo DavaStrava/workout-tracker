@@ -14,9 +14,10 @@ interface ExerciseCardProps {
   exercise: Exercise;
   onSelect: (exerciseId: string) => void;
   index: number;
+  usageCount?: number;
 }
 
-export const ExerciseCard: FC<ExerciseCardProps> = ({ exercise, onSelect, index }) => {
+export const ExerciseCard: FC<ExerciseCardProps> = ({ exercise, onSelect, index, usageCount }) => {
   const gradientIndex = index % 3;
   const { gradient, shadow } = CARD_GRADIENTS[gradientIndex];
 
@@ -51,6 +52,7 @@ export const ExerciseCard: FC<ExerciseCardProps> = ({ exercise, onSelect, index 
       whileHover={{ scale: 1.05, y: -4 }}
       onClick={() => onSelect(exercise.id)}
       style={{
+        position: 'relative',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -66,8 +68,28 @@ export const ExerciseCard: FC<ExerciseCardProps> = ({ exercise, onSelect, index 
         cursor: 'pointer',
         gap: '12px',
       }}
-      aria-label={`Add ${exercise.name}`}
+      aria-label={`Add ${exercise.name}${usageCount ? `, used ${usageCount} times` : ''}`}
     >
+      {/* Usage Count Badge */}
+      {usageCount != null && usageCount > 0 && (
+        <span
+          style={{
+            position: 'absolute',
+            top: '8px',
+            right: '8px',
+            background: 'rgba(255, 255, 255, 0.2)',
+            color: 'white',
+            fontSize: '11px',
+            fontWeight: 600,
+            padding: '2px 8px',
+            borderRadius: '10px',
+            lineHeight: '16px',
+          }}
+        >
+          {usageCount}x
+        </span>
+      )}
+
       {/* Exercise Name */}
       <div style={{ width: '100%', padding: '0 4px', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         <span
